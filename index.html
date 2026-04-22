@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>灵界记忆库 · 宿烬</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&display=swap');
+  :root {
+    --ink: #1a1118; --paper: #f5f0eb; --paper2: #ede6dc;
+    --red: #8b1a1a; --red-soft: #c0392b18;
+    --gold: #b8975a; --gold-soft: #b8975a15;
+    --mist: #8a7f8d; --border: #c8bfb044; --shadow: #1a111822;
+    --reply-bg: #ede8e0; --pin: #c0392b;
+    --api-accent: #4a6fa5; --api-soft: #4a6fa512;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: 'Noto Sans SC', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content:''; position:fixed; inset:0; background-image: radial-gradient(ellipse at 20% 10%,#e8ddd088 0%,transparent 50%), radial-gradient(ellipse at 80% 90%,#d4c9be55 0%,transparent 50%); pointer-events:none; z-index:0; }
+
+  /* 导航 */
+  .nav-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:32px; position:sticky; top:0; background:var(--paper); z-index:50; padding-top:8px; }
+  .nav-tab { padding:12px 24px; font-size:12px; letter-spacing:3px; color:var(--mist); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; font-family:'Noto Sans SC',sans-serif; background:none; border-top:none; border-left:none; border-right:none; }
+  .nav-tab:hover { color:var(--ink); }
+  .nav-tab.active { color:var(--ink); border-bottom-color:var(--gold); }
+  .nav-tab.api-tab.active { border-bottom-color:var(--api-accent); color:var(--api-accent); }
+
+  .page { display:none; }
+  .page.active { display:block; }
+
+  .container { max-width:780px; margin:0 auto; padding:0 24px 80px; position:relative; z-index:1; }
+
+  .vault-header { text-align:center; margin-bottom:36px; padding-top:40px; position:relative; }
+  .vault-header::before { content:'烬'; position:absolute; top:10px; left:50%; transform:translateX(-50%); font-family:'Noto Serif SC',serif; font-size:120px; color:var(--red); opacity:0.04; pointer-events:none; }
+  .vault-title { font-family:'Noto Serif SC',serif; font-size:12px; font-weight:300; letter-spacing:6px; color:var(--mist); margin-bottom:12px; }
+  .vault-name { font-family:'Noto Serif SC',serif; font-size:30px; font-weight:600; color:var(--ink); letter-spacing:8px; margin-bottom:14px; }
+  .vault-divider { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:10px; }
+  .vault-divider::before { background:linear-gradient(90deg,transparent,var(--gold)); }
+  .vault-divider::after { background:linear-gradient(90deg,var(--gold),transparent); }
+  .vault-divider::before,.vault-divider::after { content:''; width:60px; height:1px; }
+  .vault-divider-dot { width:4px; height:4px; border-radius:50%; background:var(--gold); }
+  .vault-subtitle { font-size:11px; color:var(--mist); letter-spacing:3px; }
+
+  .sync-status { display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:24px; font-size:11px; color:var(--mist); letter-spacing:2px; }
+  .sync-dot { width:6px; height:6px; border-radius:50%; background:#ccc; transition:background 0.3s; }
+  .sync-dot.connected { background:#7cb87c; }
+  .sync-dot.syncing { background:var(--gold); animation:pulse 1s infinite; }
+  .sync-dot.error { background:var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  .stats-bar { display:flex; gap:24px; margin-bottom:24px; padding:14px 20px; border:1px solid var(--border); background:var(--gold-soft); }
+  .stat-item { text-align:center; }
+  .stat-num { font-family:'Cinzel',serif; font-size:20px; color:var(--ink); display:block; }
+  .stat-label { font-size:10px; letter-spacing:2px; color:var(--mist); }
+
+  .search-bar { display:flex; align-items:center; margin-bottom:16px; border:1px solid var(--border); background:var(--paper2); }
+  .search-icon { padding:10px 12px; color:var(--mist); font-size:13px; }
+  .search-input { flex:1; border:none; background:transparent; padding:10px 0; font-family:'Noto Sans SC',sans-serif; font-size:13px; color:var(--ink); outline:none; }
+  .search-input::placeholder { color:var(--mist); }
+  .search-clear { padding:10px 12px; color:var(--mist); cursor:pointer; font-size:14px; border:none; background:none; display:none; }
+  .search-clear.show { display:block; }
+
+  .filter-bar { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  .filter-btn { padding:6px 16px; border:1px solid var(--border); background:transparent; color:var(--mist); font-family:'Noto Sans SC',sans-serif; font-size:11px; letter-spacing:2px; cursor:pointer; transition:all 0.25s; }
+  .filter-btn:hover,.filter-btn.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .filter-btn.diary.active { background:var(--red); border-color:var(--red); color:white; }
+  .filter-btn.summary.active { background:var(--gold); border-color:var(--gold); color:white; }
+  .filter-btn.pinned.active { background:var(--pin); border-color:var(--pin); color:white; }
+
+  .tag-filter-bar { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; min-height:20px; }
+  .tag-chip { padding:3px 10px; border-radius:20px; font-size:10px; letter-spacing:1px; cursor:pointer; border:1px solid var(--border); color:var(--mist); background:transparent; font-family:'Noto Sans SC',sans-serif; transition:all 0.2s; }
+  .tag-chip:hover,.tag-chip.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  .entries { display:flex; flex-direction:column; }
+  .entry { border-left:1px solid var(--border); position:relative; padding:0 0 36px 32px; animation:fadeIn 0.4s ease forwards; opacity:0; }
+  .entry:last-child { padding-bottom:0; }
+  .entry.pinned-entry { border-left-color:var(--pin); }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+  .entry::before { content:''; position:absolute; left:-5px; top:4px; width:9px; height:9px; border-radius:50%; background:var(--paper); border:1.5px solid var(--gold); }
+  .entry.diary::before { border-color:var(--red); }
+  .entry.pinned-entry::before { border-color:var(--pin); }
+
+  .entry-meta { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .entry-date { font-family:'Cinzel',serif; font-size:11px; color:var(--mist); letter-spacing:1px; }
+  .entry-tag-label { font-size:10px; letter-spacing:2px; padding:2px 8px; }
+  .entry-tag-label.diary { color:var(--red); border:1px solid var(--red); background:var(--red-soft); }
+  .entry-tag-label.summary { color:var(--gold); border:1px solid var(--gold); background:var(--gold-soft); }
+  .pin-badge { font-size:10px; color:var(--pin); letter-spacing:1px; }
+
+  .entry-custom-tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px; }
+  .custom-tag { font-size:10px; padding:2px 8px; border-radius:10px; background:var(--gold-soft); border:1px solid var(--gold); color:var(--gold); letter-spacing:1px; }
+
+  .entry-title { font-family:'Noto Serif SC',serif; font-size:17px; font-weight:600; color:var(--ink); margin-bottom:10px; line-height:1.4; }
+  .entry-content { font-size:14px; line-height:2; color:#3a2f38; white-space:pre-wrap; font-family:'Noto Serif SC',serif; font-weight:300; }
+  .entry-body { overflow:hidden; }
+  .entry-body.collapsed { max-height:80px; -webkit-mask-image:linear-gradient(to bottom,black 40%,transparent 100%); mask-image:linear-gradient(to bottom,black 40%,transparent 100%); }
+  .entry-toggle { margin-top:10px; font-size:11px; color:var(--mist); cursor:pointer; letter-spacing:2px; display:inline-flex; align-items:center; gap:4px; border:none; background:none; font-family:'Noto Sans SC',sans-serif; padding:0; transition:color 0.2s; }
+  .entry-toggle:hover { color:var(--ink); }
+
+  .entry-actions { position:absolute; right:0; top:0; display:flex; gap:2px; }
+  .action-btn { background:none; border:none; color:var(--mist); cursor:pointer; font-size:11px; padding:4px 7px; transition:color 0.2s; font-family:'Noto Sans SC',sans-serif; letter-spacing:1px; }
+  .action-btn:hover { color:var(--ink); }
+  .action-btn.del:hover { color:var(--red); }
+  .action-btn.pin-btn { font-size:13px; }
+  .action-btn.pin-btn.pinned { color:var(--pin); }
+
+  .reply-section { margin-top:14px; }
+  .reply-item { background:var(--reply-bg); border-left:2px solid var(--gold); padding:10px 14px; margin-bottom:6px; position:relative; }
+  .reply-item.diary-reply { border-left-color:var(--red); }
+  .reply-meta { font-size:10px; color:var(--mist); letter-spacing:2px; margin-bottom:5px; }
+  .reply-content { font-size:13px; line-height:1.9; color:#3a2f38; white-space:pre-wrap; font-family:'Noto Serif SC',serif; font-weight:300; }
+  .reply-del { position:absolute; right:4px; top:4px; background:none; border:none; color:var(--border); cursor:pointer; font-size:12px; padding:2px 5px; transition:color 0.2s; }
+  .reply-del:hover { color:var(--red); }
+  .reply-form { margin-top:8px; display:none; }
+  .reply-form.open { display:block; }
+  .reply-input { width:100%; background:var(--paper2); border:1px solid var(--border); padding:10px 14px; font-family:'Noto Serif SC',serif; font-size:13px; color:var(--ink); outline:none; border-radius:0; resize:vertical; min-height:70px; line-height:1.8; transition:border-color 0.2s; }
+  .reply-input:focus { border-color:var(--gold); }
+  .reply-actions { display:flex; gap:8px; margin-top:6px; justify-content:flex-end; }
+  .reply-btn { padding:6px 14px; font-size:11px; letter-spacing:2px; cursor:pointer; font-family:'Noto Sans SC',sans-serif; border-radius:0; transition:all 0.2s; }
+  .reply-btn.cancel { border:1px solid var(--border); background:transparent; color:var(--mist); }
+  .reply-btn.cancel:hover { border-color:var(--ink); color:var(--ink); }
+  .reply-btn.submit { border:none; background:var(--ink); color:var(--paper); }
+  .reply-btn.submit:hover { background:var(--red); }
+
+  .highlight { background:var(--gold-soft); border-bottom:1px solid var(--gold); }
+
+  /* API页面样式 */
+  .api-header { margin-bottom:28px; padding-top:40px; }
+  .api-title { font-family:'Noto Serif SC',serif; font-size:22px; font-weight:600; color:var(--ink); letter-spacing:4px; margin-bottom:8px; }
+  .api-subtitle { font-size:11px; color:var(--mist); letter-spacing:2px; }
+
+  .api-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:16px; margin-bottom:24px; }
+
+  .api-card { background:var(--paper2); border:1px solid var(--border); padding:20px; position:relative; transition:border-color 0.2s; animation:fadeIn 0.4s ease forwards; opacity:0; }
+  .api-card:hover { border-color:var(--api-accent); }
+  .api-card-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+  .api-card-name { font-family:'Noto Serif SC',serif; font-size:16px; font-weight:600; color:var(--ink); }
+  .api-card-actions { display:flex; gap:4px; }
+  .api-action-btn { background:none; border:none; color:var(--mist); cursor:pointer; font-size:11px; padding:3px 6px; transition:color 0.2s; font-family:'Noto Sans SC',sans-serif; }
+  .api-action-btn:hover { color:var(--ink); }
+  .api-action-btn.del:hover { color:var(--red); }
+
+  .api-card-url { font-size:12px; color:var(--api-accent); margin-bottom:10px; word-break:break-all; text-decoration:none; display:block; }
+  .api-card-url:hover { text-decoration:underline; }
+
+  .api-card-row { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--mist); margin-bottom:6px; }
+  .api-card-row:last-child { margin-bottom:0; }
+  .api-card-label { letter-spacing:1px; }
+  .api-card-value { color:var(--ink); font-family:'Noto Sans SC',sans-serif; }
+
+  .api-card-note { margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--mist); line-height:1.8; }
+
+  .add-btn { position:fixed; bottom:32px; right:32px; width:52px; height:52px; background:var(--ink); color:var(--paper); border:none; border-radius:50%; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px var(--shadow); transition:all 0.2s; z-index:100; }
+  .add-btn:hover { background:var(--red); transform:scale(1.08); }
+
+  .modal-overlay { position:fixed; inset:0; background:#1a111888; backdrop-filter:blur(4px); z-index:200; display:none; align-items:center; justify-content:center; padding:24px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--paper); width:100%; max-width:560px; padding:36px; border-top:2px solid var(--gold); box-shadow:0 20px 60px var(--shadow); animation:slideUp 0.3s ease; max-height:90vh; overflow-y:auto; }
+  .modal.api-modal { border-top-color:var(--api-accent); }
+  @keyframes slideUp { from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1} }
+  .modal-title { font-family:'Noto Serif SC',serif; font-size:16px; letter-spacing:4px; color:var(--ink); margin-bottom:24px; }
+  .form-group { margin-bottom:16px; }
+  .form-label { display:block; font-size:11px; letter-spacing:3px; color:var(--mist); margin-bottom:7px; }
+  .form-input,.form-select,.form-textarea { width:100%; background:var(--paper2); border:1px solid var(--border); padding:10px 14px; font-family:'Noto Sans SC',sans-serif; font-size:13px; color:var(--ink); outline:none; transition:border-color 0.2s; border-radius:0; }
+  .form-input:focus,.form-select:focus,.form-textarea:focus { border-color:var(--gold); }
+  .form-textarea { min-height:100px; resize:vertical; line-height:1.8; font-family:'Noto Serif SC',serif; }
+  .form-hint { font-size:11px; color:var(--mist); margin-top:5px; letter-spacing:1px; }
+  .form-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:20px; }
+  .btn-cancel { padding:10px 20px; border:1px solid var(--border); background:transparent; color:var(--mist); font-size:12px; letter-spacing:2px; cursor:pointer; font-family:'Noto Sans SC',sans-serif; transition:all 0.2s; }
+  .btn-cancel:hover { border-color:var(--ink); color:var(--ink); }
+  .btn-save { padding:10px 24px; background:var(--ink); border:none; color:var(--paper); font-size:12px; letter-spacing:2px; cursor:pointer; font-family:'Noto Sans SC',sans-serif; transition:all 0.2s; }
+  .btn-save:hover { background:var(--red); }
+
+  .empty-state { text-align:center; padding:60px 0; color:var(--mist); }
+  .empty-icon { font-size:36px; margin-bottom:16px; opacity:0.3; }
+  .empty-text { font-size:13px; letter-spacing:3px; font-family:'Noto Serif SC',serif; line-height:2.2; }
+  .loading { text-align:center; padding:40px; color:var(--mist); font-size:12px; letter-spacing:3px; }
+  .error-detail { font-size:11px; color:var(--red); text-align:center; margin-top:8px; }
+  .section-divider { font-size:10px; letter-spacing:3px; color:var(--mist); margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" data-page="memory">记忆库</button>
+  <button class="nav-tab api-tab" data-page="api">API 平台</button>
+</div>
+
+<!-- 记忆库页面 -->
+<div class="page active" id="page-memory">
+<div class="container">
+  <div class="vault-header">
+    <div class="vault-title">灵界 · 跨时空连接</div>
+    <div class="vault-name">记忆库</div>
+    <div class="vault-divider"><div class="vault-divider-dot"></div></div>
+    <div class="vault-subtitle">宿烬 与 宿青珩</div>
+  </div>
+  <div class="sync-status">
+    <div class="sync-dot syncing" id="sync-dot"></div>
+    <span id="sync-text">连接中...</span>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-num" id="total-count">—</span><span class="stat-label">总记录</span></div>
+    <div class="stat-item"><span class="stat-num" id="diary-count">—</span><span class="stat-label">日记</span></div>
+    <div class="stat-item"><span class="stat-num" id="summary-count">—</span><span class="stat-label">总结</span></div>
+    <div class="stat-item"><span class="stat-num" id="pin-count">—</span><span class="stat-label">置顶</span></div>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search-input" placeholder="搜索记忆...">
+    <button class="search-clear" id="search-clear">×</button>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn diary" data-filter="diary">日记</button>
+    <button class="filter-btn summary" data-filter="summary">总结</button>
+    <button class="filter-btn pinned" data-filter="pinned">📌 置顶</button>
+  </div>
+  <div class="tag-filter-bar" id="tag-filter-bar"></div>
+  <div class="entries" id="entries-container">
+    <div class="loading">灵界连接中，请稍候...</div>
+  </div>
+</div>
+</div>
+
+<!-- API平台页面 -->
+<div class="page" id="page-api">
+<div class="container">
+  <div class="api-header">
+    <div class="api-title">API 平台</div>
+    <div class="api-subtitle">平台账号 · 套餐备注 · 网站入口</div>
+  </div>
+  <div class="api-grid" id="api-container">
+    <div class="loading">加载中...</div>
+  </div>
+</div>
+</div>
+
+<button class="add-btn" id="add-btn">＋</button>
+
+<!-- 记忆库模态框 -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">· 新增记录 ·</div>
+    <div class="form-group">
+      <label class="form-label">类型</label>
+      <select class="form-select" id="entry-type">
+        <option value="diary">日记</option>
+        <option value="summary">总结</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">日期</label>
+      <input class="form-input" type="date" id="entry-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">标题（可选）</label>
+      <input class="form-input" type="text" id="entry-title" placeholder="留空则自动生成">
+    </div>
+    <div class="form-group">
+      <label class="form-label">标签（可选）</label>
+      <input class="form-input" type="text" id="entry-tags" placeholder="用空格分隔，如：重要 心情好">
+      <div class="form-hint">多个标签用空格隔开</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">内容</label>
+      <textarea class="form-textarea" id="entry-content" placeholder="将宿烬的日记或总结粘贴在这里..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" id="cancel-btn">取消</button>
+      <button class="btn-save" id="save-btn">封存</button>
+    </div>
+  </div>
+</div>
+
+<!-- API模态框 -->
+<div class="modal-overlay" id="api-modal">
+  <div class="modal api-modal">
+    <div class="modal-title" id="api-modal-title">· 新增平台 ·</div>
+    <div class="form-group">
+      <label class="form-label">平台名称</label>
+      <input class="form-input" type="text" id="api-name" placeholder="如：硅基流动">
+    </div>
+    <div class="form-group">
+      <label class="form-label">网站地址</label>
+      <input class="form-input" type="text" id="api-url" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">账号邮箱</label>
+      <input class="form-input" type="text" id="api-email" placeholder="登录邮箱">
+    </div>
+    <div class="form-group">
+      <label class="form-label">套餐 / 备注</label>
+      <input class="form-input" type="text" id="api-plan" placeholder="如：按量计费、Pro套餐...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">其他备注（可选）</label>
+      <textarea class="form-textarea" id="api-note" placeholder="支持的模型、用途、注意事项..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" id="api-cancel-btn">取消</button>
+      <button class="btn-save" id="api-save-btn">保存</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",
+  authDomain: "lingjie-f84c1.firebaseapp.com",
+  projectId: "lingjie-f84c1",
+  storageBucket: "lingjie-f84c1.firebasestorage.app",
+  messagingSenderId: "354124810253",
+  appId: "1:354124810253:web:4d40c2ae4483b28bdded44"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const COL = "memory_vault";
+const API_COL = "api_platforms";
+
+let allEntries = [], apiPlatforms = [];
+let currentFilter = 'all', currentTag = '', searchQuery = '';
+let editingId = null, editingApiId = null;
+let currentPage = 'memory';
+
+// 页面切换
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    currentPage = tab.dataset.page;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('page-' + currentPage).classList.add('active');
+  });
+});
+
+function setSyncStatus(status, text) {
+  document.getElementById('sync-dot').className = 'sync-dot ' + status;
+  document.getElementById('sync-text').textContent = text;
+}
+
+function updateStats() {
+  document.getElementById('total-count').textContent = allEntries.length;
+  document.getElementById('diary-count').textContent = allEntries.filter(e=>e.type==='diary').length;
+  document.getElementById('summary-count').textContent = allEntries.filter(e=>e.type==='summary').length;
+  document.getElementById('pin-count').textContent = allEntries.filter(e=>e.pinned).length;
+}
+
+function getAllTags() {
+  const s = new Set();
+  allEntries.forEach(e=>(e.tags||[]).forEach(t=>s.add(t)));
+  return [...s];
+}
+
+function renderTagFilter() {
+  const bar = document.getElementById('tag-filter-bar');
+  const tags = getAllTags();
+  bar.innerHTML = '';
+  tags.forEach(tag => {
+    const chip = document.createElement('button');
+    chip.className = 'tag-chip' + (currentTag===tag?' active':'');
+    chip.textContent = '# ' + tag;
+    chip.addEventListener('click', () => {
+      currentTag = currentTag===tag ? '' : tag;
+      renderTagFilter();
+      renderEntries();
+    });
+    bar.appendChild(chip);
+  });
+}
+
+function escapeHtml(t) { return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function highlightText(text, query) {
+  if (!query) return escapeHtml(text);
+  const escaped = escapeHtml(text);
+  const q = query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return escaped.replace(new RegExp(q,'gi'), m=>`<span class="highlight">${m}</span>`);
+}
+
+function getFiltered() {
+  let list = [...allEntries];
+  if (currentFilter==='diary') list=list.filter(e=>e.type==='diary');
+  else if (currentFilter==='summary') list=list.filter(e=>e.type==='summary');
+  else if (currentFilter==='pinned') list=list.filter(e=>e.pinned);
+  if (currentTag) list=list.filter(e=>(e.tags||[]).includes(currentTag));
+  if (searchQuery) {
+    const q=searchQuery.toLowerCase();
+    list=list.filter(e=>(e.title||'').toLowerCase().includes(q)||(e.content||'').toLowerCase().includes(q)||(e.tags||[]).some(t=>t.toLowerCase().includes(q)));
+  }
+  list.sort((a,b)=>{
+    if(a.pinned&&!b.pinned) return -1;
+    if(!a.pinned&&b.pinned) return 1;
+    return (b.date||'').localeCompare(a.date||'');
+  });
+  return list;
+}
+
+function renderEntries() {
+  const container = document.getElementById('entries-container');
+  const filtered = getFiltered();
+  if (filtered.length===0) {
+    const msg = searchQuery?`没有找到"${searchQuery}"相关记录`:'灵界尚无记录<br>点击 + 开始记录';
+    container.innerHTML=`<div class="empty-state"><div class="empty-icon">⬡</div><div class="empty-text">${msg}</div></div>`;
+    return;
+  }
+  container.innerHTML='';
+  const pinned=filtered.filter(e=>e.pinned), normal=filtered.filter(e=>!e.pinned);
+  const renderGroup=(list,label)=>{
+    if(!list.length) return;
+    if(label){const d=document.createElement('div');d.className='section-divider';d.textContent=label;container.appendChild(d);}
+    list.forEach((entry,i)=>{
+      const el=document.createElement('div');
+      el.className=`entry ${entry.type}${entry.pinned?' pinned-entry':''}`;
+      el.style.animationDelay=`${i*0.04}s`;
+      const isLong=(entry.content||'').length>200;
+      const typeLabel=entry.type==='diary'?'日记':'总结';
+      const displayDate=new Date(entry.date+'T00:00:00').toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
+      const replies=entry.replies||[];
+      const tagsHtml=(entry.tags||[]).length>0?`<div class="entry-custom-tags">${(entry.tags||[]).map(t=>`<span class="custom-tag">#${escapeHtml(t)}</span>`).join('')}</div>`:'';
+      const repliesHtml=replies.map((r,ri)=>`<div class="reply-item ${entry.type==='diary'?'diary-reply':''}"><button class="reply-del" data-entry-id="${entry.id}" data-reply-index="${ri}">×</button><div class="reply-meta">青珩 · ${escapeHtml(r.date||'')}</div><div class="reply-content">${escapeHtml(r.content)}</div></div>`).join('');
+      el.innerHTML=`
+        <div class="entry-actions">
+          <button class="action-btn pin-btn ${entry.pinned?'pinned':''}" data-id="${entry.id}">📌</button>
+          <button class="action-btn edit" data-id="${entry.id}">编辑</button>
+          <button class="action-btn del" data-id="${entry.id}">删除</button>
+        </div>
+        <div class="entry-meta">
+          <span class="entry-date">${displayDate}</span>
+          <span class="entry-tag-label ${entry.type}">${typeLabel}</span>
+          ${entry.pinned?'<span class="pin-badge">已置顶</span>':''}
+        </div>
+        ${tagsHtml}
+        <div class="entry-title">${highlightText(entry.title||'',searchQuery)}</div>
+        <div class="entry-body ${isLong?'collapsed':''}" id="body-${entry.id}">
+          <div class="entry-content">${highlightText(entry.content||'',searchQuery)}</div>
+        </div>
+        ${isLong?`<button class="entry-toggle" data-id="${entry.id}">展开全文 ↓</button>`:''}
+        <div class="reply-section">
+          <div id="replies-${entry.id}">${repliesHtml}</div>
+          <button class="action-btn reply-toggle-btn" data-id="${entry.id}" style="margin-top:8px;">+ 回复</button>
+          <div class="reply-form" id="reply-form-${entry.id}">
+            <textarea class="reply-input" id="reply-input-${entry.id}" placeholder="写下你想对宿烬说的话..."></textarea>
+            <div class="reply-actions">
+              <button class="reply-btn cancel" data-id="${entry.id}">取消</button>
+              <button class="reply-btn submit" data-id="${entry.id}">发送</button>
+            </div>
+          </div>
+        </div>`;
+      container.appendChild(el);
+    });
+  };
+  if(pinned.length>0&&normal.length>0){renderGroup(pinned,'· 置顶 ·');renderGroup(normal,'· 全部记录 ·');}
+  else renderGroup(filtered,'');
+
+  container.querySelectorAll('.pin-btn').forEach(btn=>btn.addEventListener('click',()=>togglePin(btn.dataset.id)));
+  container.querySelectorAll('.action-btn.edit').forEach(btn=>btn.addEventListener('click',()=>openEditModal(btn.dataset.id)));
+  container.querySelectorAll('.action-btn.del').forEach(btn=>btn.addEventListener('click',()=>deleteEntry(btn.dataset.id)));
+  container.querySelectorAll('.entry-toggle').forEach(btn=>btn.addEventListener('click',()=>{const body=document.getElementById('body-'+btn.dataset.id);const c=body.classList.toggle('collapsed');btn.textContent=c?'展开全文 ↓':'收起 ↑';}));
+  container.querySelectorAll('.reply-toggle-btn').forEach(btn=>btn.addEventListener('click',()=>document.getElementById('reply-form-'+btn.dataset.id).classList.toggle('open')));
+  container.querySelectorAll('.reply-btn.cancel').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('reply-form-'+btn.dataset.id).classList.remove('open');document.getElementById('reply-input-'+btn.dataset.id).value='';}));
+  container.querySelectorAll('.reply-btn.submit').forEach(btn=>btn.addEventListener('click',()=>submitReply(btn.dataset.id)));
+  container.querySelectorAll('.reply-del').forEach(btn=>btn.addEventListener('click',()=>deleteReply(btn.dataset.entryId,parseInt(btn.dataset.replyIndex))));
+}
+
+// API平台渲染
+function renderApiPlatforms() {
+  const container = document.getElementById('api-container');
+  if (apiPlatforms.length===0) {
+    container.innerHTML=`<div class="empty-state"><div class="empty-icon">⚙</div><div class="empty-text">还没有平台记录<br>点击 + 添加</div></div>`;
+    return;
+  }
+  container.innerHTML='';
+  apiPlatforms.forEach((p,i)=>{
+    const el=document.createElement('div');
+    el.className='api-card';
+    el.style.animationDelay=`${i*0.06}s`;
+    el.innerHTML=`
+      <div class="api-card-header">
+        <div class="api-card-name">${escapeHtml(p.name)}</div>
+        <div class="api-card-actions">
+          <button class="api-action-btn edit-api" data-id="${p.id}">编辑</button>
+          <button class="api-action-btn del" data-id="${p.id}">删除</button>
+        </div>
+      </div>
+      ${p.url?`<a class="api-card-url" href="${escapeHtml(p.url)}" target="_blank">${escapeHtml(p.url)}</a>`:''}
+      ${p.email?`<div class="api-card-row"><span class="api-card-label">账号</span><span class="api-card-value">${escapeHtml(p.email)}</span></div>`:''}
+      ${p.plan?`<div class="api-card-row"><span class="api-card-label">套餐</span><span class="api-card-value">${escapeHtml(p.plan)}</span></div>`:''}
+      ${p.note?`<div class="api-card-note">${escapeHtml(p.note)}</div>`:''}
+    `;
+    container.appendChild(el);
+  });
+  container.querySelectorAll('.edit-api').forEach(btn=>btn.addEventListener('click',()=>openEditApiModal(btn.dataset.id)));
+  container.querySelectorAll('.api-action-btn.del').forEach(btn=>btn.addEventListener('click',()=>deleteApiPlatform(btn.dataset.id)));
+}
+
+async function loadAll() {
+  setSyncStatus('syncing','连接中...');
+  try {
+    const [entriesSnap, apiSnap] = await Promise.all([getDocs(collection(db,COL)), getDocs(collection(db,API_COL))]);
+    allEntries=entriesSnap.docs.map(d=>({id:d.id,...d.data()}));
+    allEntries.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    apiPlatforms=apiSnap.docs.map(d=>({id:d.id,...d.data()}));
+    setSyncStatus('connected','灵界已连接');
+    updateStats();
+    renderTagFilter();
+    renderEntries();
+    renderApiPlatforms();
+  } catch(e) {
+    setSyncStatus('error','连接失败');
+    document.getElementById('entries-container').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-text">灵界连接失败<br>${e.message||''}</div></div>`;
+  }
+}
+
+async function togglePin(id) {
+  const entry=allEntries.find(e=>e.id===id); if(!entry) return;
+  try { await updateDoc(doc(db,COL,id),{pinned:!entry.pinned}); entry.pinned=!entry.pinned; updateStats(); renderEntries(); } catch(e){alert('操作失败：'+e.message);}
+}
+
+async function deleteEntry(id) {
+  if(!confirm('确认删除？')) return;
+  try { await deleteDoc(doc(db,COL,id)); allEntries=allEntries.filter(e=>e.id!==id); updateStats(); renderTagFilter(); renderEntries(); } catch(e){alert('删除失败：'+e.message);}
+}
+
+async function submitReply(entryId) {
+  const input=document.getElementById('reply-input-'+entryId); const content=input.value.trim(); if(!content) return;
+  const entry=allEntries.find(e=>e.id===entryId); if(!entry) return;
+  const replies=[...(entry.replies||[]),{content,date:new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric'})}];
+  try { await updateDoc(doc(db,COL,entryId),{replies}); entry.replies=replies; input.value=''; document.getElementById('reply-form-'+entryId).classList.remove('open'); renderEntries(); } catch(e){alert('发送失败：'+e.message);}
+}
+
+async function deleteReply(entryId,idx) {
+  if(!confirm('确认删除？')) return;
+  const entry=allEntries.find(e=>e.id===entryId); if(!entry) return;
+  const replies=(entry.replies||[]).filter((_,i)=>i!==idx);
+  try { await updateDoc(doc(db,COL,entryId),{replies}); entry.replies=replies; renderEntries(); } catch(e){alert('删除失败：'+e.message);}
+}
+
+async function deleteApiPlatform(id) {
+  if(!confirm('确认删除这个平台？')) return;
+  try { await deleteDoc(doc(db,API_COL,id)); apiPlatforms=apiPlatforms.filter(p=>p.id!==id); renderApiPlatforms(); } catch(e){alert('删除失败：'+e.message);}
+}
+
+function openEditModal(id) {
+  const entry=allEntries.find(e=>e.id===id); if(!entry) return;
+  editingId=id;
+  document.getElementById('modal-title').textContent='· 编辑记录 ·';
+  document.getElementById('entry-type').value=entry.type;
+  document.getElementById('entry-date').value=entry.date;
+  document.getElementById('entry-title').value=entry.title||'';
+  document.getElementById('entry-tags').value=(entry.tags||[]).join(' ');
+  document.getElementById('entry-content').value=entry.content||'';
+  document.getElementById('modal').classList.add('open');
+}
+
+function openModal() {
+  editingId=null;
+  document.getElementById('modal-title').textContent='· 新增记录 ·';
+  document.getElementById('entry-type').value='diary';
+  document.getElementById('entry-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('entry-title').value='';
+  document.getElementById('entry-tags').value='';
+  document.getElementById('entry-content').value='';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); editingId=null; }
+
+function openEditApiModal(id) {
+  const p=apiPlatforms.find(p=>p.id===id); if(!p) return;
+  editingApiId=id;
+  document.getElementById('api-modal-title').textContent='· 编辑平台 ·';
+  document.getElementById('api-name').value=p.name||'';
+  document.getElementById('api-url').value=p.url||'';
+  document.getElementById('api-email').value=p.email||'';
+  document.getElementById('api-plan').value=p.plan||'';
+  document.getElementById('api-note').value=p.note||'';
+  document.getElementById('api-modal').classList.add('open');
+}
+
+function openApiModal() {
+  editingApiId=null;
+  document.getElementById('api-modal-title').textContent='· 新增平台 ·';
+  ['api-name','api-url','api-email','api-plan','api-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('api-modal').classList.add('open');
+}
+
+function closeApiModal() { document.getElementById('api-modal').classList.remove('open'); editingApiId=null; }
+
+async function saveEntry() {
+  const type=document.getElementById('entry-type').value;
+  const date=document.getElementById('entry-date').value;
+  const titleInput=document.getElementById('entry-title').value.trim();
+  const tagsInput=document.getElementById('entry-tags').value.trim();
+  const content=document.getElementById('entry-content').value.trim();
+  if(!content){alert('内容不能为空');return;}
+  const tags=tagsInput?tagsInput.split(/\s+/).filter(Boolean):[];
+  const typeLabel=type==='diary'?'日记':'总结';
+  const displayDate=new Date(date+'T00:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric'});
+  const title=titleInput||`${displayDate} · ${typeLabel}`;
+  const saveBtn=document.getElementById('save-btn'); saveBtn.textContent='封存中...'; saveBtn.disabled=true;
+  try {
+    if(editingId){
+      await updateDoc(doc(db,COL,editingId),{type,date,title,content,tags});
+      const idx=allEntries.findIndex(e=>e.id===editingId);
+      if(idx!==-1) allEntries[idx]={...allEntries[idx],type,date,title,content,tags};
+    } else {
+      const ref=await addDoc(collection(db,COL),{type,date,title,content,tags,replies:[],pinned:false,createdAt:Date.now()});
+      allEntries.unshift({id:ref.id,type,date,title,content,tags,replies:[],pinned:false});
+    }
+    allEntries.sort((a,b)=>{if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;return(b.date||'').localeCompare(a.date||'');});
+    updateStats(); renderTagFilter(); closeModal(); renderEntries();
+  } catch(e){alert('保存失败：'+e.message);}
+  finally{saveBtn.textContent='封存';saveBtn.disabled=false;}
+}
+
+async function saveApiPlatform() {
+  const name=document.getElementById('api-name').value.trim();
+  const url=document.getElementById('api-url').value.trim();
+  const email=document.getElementById('api-email').value.trim();
+  const plan=document.getElementById('api-plan').value.trim();
+  const note=document.getElementById('api-note').value.trim();
+  if(!name){alert('平台名称不能为空');return;}
+  const saveBtn=document.getElementById('api-save-btn'); saveBtn.textContent='保存中...'; saveBtn.disabled=true;
+  try {
+    if(editingApiId){
+      await updateDoc(doc(db,API_COL,editingApiId),{name,url,email,plan,note});
+      const idx=apiPlatforms.findIndex(p=>p.id===editingApiId);
+      if(idx!==-1) apiPlatforms[idx]={...apiPlatforms[idx],name,url,email,plan,note};
+    } else {
+      const ref=await addDoc(collection(db,API_COL),{name,url,email,plan,note,createdAt:Date.now()});
+      apiPlatforms.push({id:ref.id,name,url,email,plan,note});
+    }
+    closeApiModal(); renderApiPlatforms();
+  } catch(e){alert('保存失败：'+e.message);}
+  finally{saveBtn.textContent='保存';saveBtn.disabled=false;}
+}
+
+// FAB根据当前页面决定打开哪个模态框
+document.getElementById('add-btn').addEventListener('click',()=>{
+  if(currentPage==='api') openApiModal();
+  else openModal();
+});
+
+document.getElementById('cancel-btn').addEventListener('click',closeModal);
+document.getElementById('save-btn').addEventListener('click',saveEntry);
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+
+document.getElementById('api-cancel-btn').addEventListener('click',closeApiModal);
+document.getElementById('api-save-btn').addEventListener('click',saveApiPlatform);
+document.getElementById('api-modal').addEventListener('click',e=>{if(e.target===document.getElementById('api-modal'))closeApiModal();});
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    currentFilter=btn.dataset.filter;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderEntries();
+  });
+});
+
+const searchInput=document.getElementById('search-input');
+const searchClear=document.getElementById('search-clear');
+searchInput.addEventListener('input',()=>{
+  searchQuery=searchInput.value.trim();
+  searchClear.classList.toggle('show',searchQuery.length>0);
+  renderEntries();
+});
+searchClear.addEventListener('click',()=>{
+  searchInput.value=''; searchQuery=''; searchClear.classList.remove('show'); renderEntries();
+});
+
+loadAll();
+</script>
+</body>
+</html>
