@@ -675,7 +675,7 @@ async function loadAll(){
     const [entriesSnap,apiSnap,emotionSnap]=await Promise.all([
       getDocs(collection(db,COL)),
       getDocs(collection(db,API_COL)),
-      getDocs(collection(db,EMOTION_COL))
+      getDocs(collection(db,EMOTION_COL)).catch(e => ({docs: []}))
     ]);
     allEntries=entriesSnap.docs.map(d=>({id:d.id,...d.data()}));
     allEntries.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
