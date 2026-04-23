@@ -680,7 +680,7 @@ async function loadAll(){
     allEntries=entriesSnap.docs.map(d=>({id:d.id,...d.data()}));
     allEntries.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     apiPlatforms=apiSnap.docs.map(d=>({id:d.id,...d.data()}));
-    emotionLogs=((emotionSnap emotionSnap.docs.mapemotionSnap.docs.map emotionSnap.docs) || []).map(d=>({id:d.id,...d.data()}));
+    emotionLogs=((emotionSnap && emotionSnap.docs) || []).map(d=>({id:d.id,...d.data()}));
     setSyncStatus('connected','灵界已连接');
     updateStats();
     renderTagFilter();
