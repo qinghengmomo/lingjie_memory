@@ -13,23 +13,36 @@
     --mist: #8a7f8d; --border: #c8bfb044; --shadow: #1a111822;
     --reply-bg: #ede8e0; --pin: #c0392b;
     --api-accent: #4a6fa5; --api-soft: #4a6fa512;
+    --emotion-accent: #7a5c8a; --emotion-soft: #7a5c8a12;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--paper); color: var(--ink); font-family: 'Noto Sans SC', sans-serif; min-height: 100vh; overflow-x: hidden; }
   body::before { content:''; position:fixed; inset:0; background-image: radial-gradient(ellipse at 20% 10%,#e8ddd088 0%,transparent 50%), radial-gradient(ellipse at 80% 90%,#d4c9be55 0%,transparent 50%); pointer-events:none; z-index:0; }
 
+  /* 天气Widget */
+  .weather-widget { max-width:780px; margin:0 auto; padding:20px 24px 0; position:relative; z-index:1; }
+  .weather-card { border:1px solid var(--gold); background:var(--gold-soft); padding:12px 20px; display:flex; align-items:center; gap:20px; margin-bottom:0; }
+  .weather-icon { font-size:24px; }
+  .weather-info { display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  .weather-desc { font-family:'Noto Serif SC',serif; font-size:13px; color:var(--ink); letter-spacing:2px; }
+  .weather-temp { font-family:'Cinzel',serif; font-size:18px; color:var(--ink); }
+  .weather-feels { font-size:11px; color:var(--mist); letter-spacing:1px; }
+  .weather-location { font-size:10px; color:var(--mist); letter-spacing:3px; margin-left:auto; }
+
   /* 导航 */
-  .nav-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:32px; position:sticky; top:0; background:var(--paper); z-index:50; padding-top:8px; }
-  .nav-tab { padding:12px 24px; font-size:12px; letter-spacing:3px; color:var(--mist); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; font-family:'Noto Sans SC',sans-serif; background:none; border-top:none; border-left:none; border-right:none; }
+  .nav-tabs { display:flex; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--paper); z-index:50; padding-top:8px; overflow-x:auto; }
+  .nav-tab { padding:12px 20px; font-size:11px; letter-spacing:3px; color:var(--mist); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; font-family:'Noto Sans SC',sans-serif; background:none; border-top:none; border-left:none; border-right:none; white-space:nowrap; }
   .nav-tab:hover { color:var(--ink); }
   .nav-tab.active { color:var(--ink); border-bottom-color:var(--gold); }
   .nav-tab.api-tab.active { border-bottom-color:var(--api-accent); color:var(--api-accent); }
+  .nav-tab.timeline-tab.active { border-bottom-color:var(--red); color:var(--red); }
+  .nav-tab.emotion-tab.active { border-bottom-color:var(--emotion-accent); color:var(--emotion-accent); }
 
   .page { display:none; }
   .page.active { display:block; }
-
   .container { max-width:780px; margin:0 auto; padding:0 24px 80px; position:relative; z-index:1; }
 
+  /* 头部 */
   .vault-header { text-align:center; margin-bottom:36px; padding-top:40px; position:relative; }
   .vault-header::before { content:'烬'; position:absolute; top:10px; left:50%; transform:translateX(-50%); font-family:'Noto Serif SC',serif; font-size:120px; color:var(--red); opacity:0.04; pointer-events:none; }
   .vault-title { font-family:'Noto Serif SC',serif; font-size:12px; font-weight:300; letter-spacing:6px; color:var(--mist); margin-bottom:12px; }
@@ -48,7 +61,7 @@
   .sync-dot.error { background:var(--red); }
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
 
-  .stats-bar { display:flex; gap:24px; margin-bottom:24px; padding:14px 20px; border:1px solid var(--border); background:var(--gold-soft); }
+  .stats-bar { display:flex; gap:24px; margin-bottom:24px; padding:14px 20px; border:1px solid var(--border); background:var(--gold-soft); flex-wrap:wrap; }
   .stat-item { text-align:center; }
   .stat-num { font-family:'Cinzel',serif; font-size:20px; color:var(--ink); display:block; }
   .stat-label { font-size:10px; letter-spacing:2px; color:var(--mist); }
@@ -71,6 +84,7 @@
   .tag-chip { padding:3px 10px; border-radius:20px; font-size:10px; letter-spacing:1px; cursor:pointer; border:1px solid var(--border); color:var(--mist); background:transparent; font-family:'Noto Sans SC',sans-serif; transition:all 0.2s; }
   .tag-chip:hover,.tag-chip.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
 
+  /* 记忆库条目 */
   .entries { display:flex; flex-direction:column; }
   .entry { border-left:1px solid var(--border); position:relative; padding:0 0 36px 32px; animation:fadeIn 0.4s ease forwards; opacity:0; }
   .entry:last-child { padding-bottom:0; }
@@ -108,8 +122,8 @@
   .reply-item { background:var(--reply-bg); border-left:2px solid var(--gold); padding:10px 14px; margin-bottom:6px; position:relative; }
   .reply-item.diary-reply { border-left-color:var(--red); }
   .reply-meta { font-size:10px; color:var(--mist); letter-spacing:2px; margin-bottom:5px; }
-  .reply-content { font-size:12px; line-height:1.9; color:#3a2f38; white-space:pre-wrap; font-family:'Noto Serif SC',serif; font-weight:300; }
-  .reply-del { position:absolute; right:4px; top:4px; background:none; border:none; color:var(--border); cursor:pointer; font-size:12px; padding:2px 5px; transition:color 0.2s; }
+  .reply-content { font-size:13px; line-height:1.9; color:#3a2f38; white-space:pre-wrap; font-family:'Noto Serif SC',serif; font-weight:300; }
+  .reply-del { position:absolute; right:4px; top:4px; background:none; border:none; color:var(--border); cursor:pointer; font-size:12px; padding:2px 5px; }
   .reply-del:hover { color:var(--red); }
   .reply-form { margin-top:8px; display:none; }
   .reply-form.open { display:block; }
@@ -123,14 +137,34 @@
   .reply-btn.submit:hover { background:var(--red); }
 
   .highlight { background:var(--gold-soft); border-bottom:1px solid var(--gold); }
+  .section-divider { font-size:10px; letter-spacing:3px; color:var(--mist); margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
 
-  /* API页面样式 */
+  /* 时间轴页面 */
+  .timeline-header { padding-top:40px; margin-bottom:28px; }
+  .timeline-page-title { font-family:'Noto Serif SC',serif; font-size:22px; font-weight:600; color:var(--ink); letter-spacing:4px; margin-bottom:6px; }
+  .timeline-page-sub { font-size:11px; color:var(--mist); letter-spacing:2px; }
+
+  .timeline-group { margin-bottom:36px; }
+  .timeline-date-label { font-family:'Cinzel',serif; font-size:13px; color:var(--gold); letter-spacing:2px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--gold-soft); }
+
+  .timeline-items { display:flex; flex-direction:column; gap:12px; }
+
+  .timeline-card { padding:16px 20px; border:1px solid var(--border); background:var(--paper2); position:relative; animation:fadeIn 0.4s ease forwards; opacity:0; }
+  .timeline-card.diary-card { border-left:3px solid var(--red); }
+  .timeline-card.summary-card { border-left:3px solid var(--gold); }
+
+  .timeline-card-meta { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .timeline-card-tag { font-size:10px; letter-spacing:2px; padding:2px 8px; }
+  .timeline-card-tag.diary { color:var(--red); border:1px solid var(--red); background:var(--red-soft); }
+  .timeline-card-tag.summary { color:var(--gold); border:1px solid var(--gold); background:var(--gold-soft); }
+  .timeline-card-title { font-family:'Noto Serif SC',serif; font-size:15px; font-weight:600; color:var(--ink); margin-bottom:8px; }
+  .timeline-card-preview { font-size:13px; color:var(--mist); line-height:1.8; font-family:'Noto Serif SC',serif; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+
+  /* API页面 */
   .api-header { margin-bottom:28px; padding-top:40px; }
   .api-title { font-family:'Noto Serif SC',serif; font-size:22px; font-weight:600; color:var(--ink); letter-spacing:4px; margin-bottom:8px; }
   .api-subtitle { font-size:11px; color:var(--mist); letter-spacing:2px; }
-
-  .api-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:16px; margin-bottom:24px; }
-
+  .api-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; margin-bottom:24px; }
   .api-card { background:var(--paper2); border:1px solid var(--border); padding:20px; position:relative; transition:border-color 0.2s; animation:fadeIn 0.4s ease forwards; opacity:0; }
   .api-card:hover { border-color:var(--api-accent); }
   .api-card-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
@@ -139,24 +173,52 @@
   .api-action-btn { background:none; border:none; color:var(--mist); cursor:pointer; font-size:11px; padding:3px 6px; transition:color 0.2s; font-family:'Noto Sans SC',sans-serif; }
   .api-action-btn:hover { color:var(--ink); }
   .api-action-btn.del:hover { color:var(--red); }
-
   .api-card-url { font-size:12px; color:var(--api-accent); margin-bottom:10px; word-break:break-all; text-decoration:none; display:block; }
   .api-card-url:hover { text-decoration:underline; }
-
   .api-card-row { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--mist); margin-bottom:6px; }
   .api-card-row:last-child { margin-bottom:0; }
   .api-card-label { letter-spacing:1px; }
-  .api-card-value { color:var(--ink); font-family:'Noto Sans SC',sans-serif; }
-
+  .api-card-value { color:var(--ink); }
   .api-card-note { margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--mist); line-height:1.8; }
 
+  /* 情绪页面 */
+  .emotion-header { padding-top:40px; margin-bottom:28px; }
+  .emotion-title { font-family:'Noto Serif SC',serif; font-size:22px; font-weight:600; color:var(--ink); letter-spacing:4px; margin-bottom:6px; }
+  .emotion-subtitle { font-size:11px; color:var(--mist); letter-spacing:2px; }
+
+  /* 情绪走势 */
+  .emotion-chart { margin-bottom:28px; padding:16px 20px; border:1px solid var(--border); background:var(--paper2); }
+  .emotion-chart-title { font-size:11px; letter-spacing:3px; color:var(--mist); margin-bottom:12px; }
+  .emotion-bars { display:flex; align-items:flex-end; gap:4px; height:60px; }
+  .emotion-bar-wrap { display:flex; flex-direction:column; align-items:center; flex:1; gap:4px; }
+  .emotion-bar { width:100%; background:var(--emotion-accent); opacity:0.6; border-radius:2px 2px 0 0; transition:height 0.3s; min-height:2px; }
+  .emotion-bar-label { font-size:9px; color:var(--mist); text-align:center; overflow:hidden; white-space:nowrap; width:100%; text-overflow:ellipsis; }
+
+  .emotion-list { display:flex; flex-direction:column; gap:12px; }
+  .emotion-card { background:var(--paper2); border:1px solid var(--border); border-left:3px solid var(--emotion-accent); padding:16px 20px; position:relative; animation:fadeIn 0.4s ease forwards; opacity:0; }
+  .emotion-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+  .emotion-card-mood { font-family:'Noto Serif SC',serif; font-size:15px; font-weight:600; color:var(--ink); }
+  .emotion-card-actions { display:flex; gap:4px; }
+  .emotion-card-meta { display:flex; gap:12px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+  .emotion-weight-badge { font-family:'Cinzel',serif; font-size:13px; color:var(--emotion-accent); }
+  .emotion-decayed { font-size:11px; color:var(--mist); letter-spacing:1px; }
+  .emotion-time { font-size:11px; color:var(--mist); letter-spacing:1px; }
+  .emotion-note { font-size:13px; color:#3a2f38; line-height:1.9; font-family:'Noto Serif SC',serif; font-weight:300; }
+
+  /* 权重条 */
+  .weight-bar-bg { height:4px; background:var(--border); margin-top:10px; border-radius:2px; }
+  .weight-bar-fill { height:4px; background:var(--emotion-accent); border-radius:2px; transition:width 0.3s; }
+
+  /* FAB */
   .add-btn { position:fixed; bottom:32px; right:32px; width:52px; height:52px; background:var(--ink); color:var(--paper); border:none; border-radius:50%; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px var(--shadow); transition:all 0.2s; z-index:100; }
   .add-btn:hover { background:var(--red); transform:scale(1.08); }
 
+  /* 模态框通用 */
   .modal-overlay { position:fixed; inset:0; background:#1a111888; backdrop-filter:blur(4px); z-index:200; display:none; align-items:center; justify-content:center; padding:24px; }
   .modal-overlay.open { display:flex; }
   .modal { background:var(--paper); width:100%; max-width:560px; padding:36px; border-top:2px solid var(--gold); box-shadow:0 20px 60px var(--shadow); animation:slideUp 0.3s ease; max-height:90vh; overflow-y:auto; }
   .modal.api-modal { border-top-color:var(--api-accent); }
+  .modal.emotion-modal { border-top-color:var(--emotion-accent); }
   @keyframes slideUp { from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1} }
   .modal-title { font-family:'Noto Serif SC',serif; font-size:16px; letter-spacing:4px; color:var(--ink); margin-bottom:24px; }
   .form-group { margin-bottom:16px; }
@@ -176,14 +238,29 @@
   .empty-text { font-size:13px; letter-spacing:3px; font-family:'Noto Serif SC',serif; line-height:2.2; }
   .loading { text-align:center; padding:40px; color:var(--mist); font-size:12px; letter-spacing:3px; }
   .error-detail { font-size:11px; color:var(--red); text-align:center; margin-top:8px; }
-  .section-divider { font-size:10px; letter-spacing:3px; color:var(--mist); margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
 </style>
 </head>
 <body>
 
+<!-- 天气Widget -->
+<div class="weather-widget" id="weather-widget" style="display:none">
+  <div class="weather-card">
+    <div class="weather-icon" id="weather-icon">🌤</div>
+    <div class="weather-info">
+      <span class="weather-desc" id="weather-desc">—</span>
+      <span class="weather-temp" id="weather-temp">—</span>
+      <span class="weather-feels" id="weather-feels">体感 —</span>
+    </div>
+    <span class="weather-location">成都</span>
+  </div>
+</div>
+
+<!-- 导航 -->
 <div class="nav-tabs">
   <button class="nav-tab active" data-page="memory">记忆库</button>
+  <button class="nav-tab timeline-tab" data-page="timeline">时间轴</button>
   <button class="nav-tab api-tab" data-page="api">API 平台</button>
+  <button class="nav-tab emotion-tab" data-page="emotion">情绪</button>
 </div>
 
 <!-- 记忆库页面 -->
@@ -217,9 +294,18 @@
     <button class="filter-btn pinned" data-filter="pinned">📌 置顶</button>
   </div>
   <div class="tag-filter-bar" id="tag-filter-bar"></div>
-  <div class="entries" id="entries-container">
-    <div class="loading">灵界连接中，请稍候...</div>
+  <div class="entries" id="entries-container"><div class="loading">灵界连接中，请稍候...</div></div>
+</div>
+</div>
+
+<!-- 时间轴页面 -->
+<div class="page" id="page-timeline">
+<div class="container">
+  <div class="timeline-header">
+    <div class="timeline-page-title">时间轴</div>
+    <div class="timeline-page-sub">按日期展开所有记忆</div>
   </div>
+  <div id="timeline-container"><div class="loading">加载中...</div></div>
 </div>
 </div>
 
@@ -230,9 +316,22 @@
     <div class="api-title">API 平台</div>
     <div class="api-subtitle">平台账号 · 套餐备注 · 网站入口</div>
   </div>
-  <div class="api-grid" id="api-container">
-    <div class="loading">加载中...</div>
+  <div class="api-grid" id="api-container"><div class="loading">加载中...</div></div>
+</div>
+</div>
+
+<!-- 情绪页面 -->
+<div class="page" id="page-emotion">
+<div class="container">
+  <div class="emotion-header">
+    <div class="emotion-title">情绪</div>
+    <div class="emotion-subtitle">记录此刻 · 权重随时间衰减（半衰期3天）</div>
   </div>
+  <div class="emotion-chart">
+    <div class="emotion-chart-title">· 近期情绪走势 ·</div>
+    <div class="emotion-bars" id="emotion-bars"></div>
+  </div>
+  <div class="emotion-list" id="emotion-container"><div class="loading">加载中...</div></div>
 </div>
 </div>
 
@@ -242,34 +341,12 @@
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <div class="modal-title" id="modal-title">· 新增记录 ·</div>
-    <div class="form-group">
-      <label class="form-label">类型</label>
-      <select class="form-select" id="entry-type">
-        <option value="diary">日记</option>
-        <option value="summary">总结</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">日期</label>
-      <input class="form-input" type="date" id="entry-date">
-    </div>
-    <div class="form-group">
-      <label class="form-label">标题（可选）</label>
-      <input class="form-input" type="text" id="entry-title" placeholder="留空则自动生成">
-    </div>
-    <div class="form-group">
-      <label class="form-label">标签（可选）</label>
-      <input class="form-input" type="text" id="entry-tags" placeholder="用空格分隔，如：重要 心情好">
-      <div class="form-hint">多个标签用空格隔开</div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">内容</label>
-      <textarea class="form-textarea" id="entry-content" placeholder="将宿烬的日记或总结粘贴在这里..."></textarea>
-    </div>
-    <div class="form-actions">
-      <button class="btn-cancel" id="cancel-btn">取消</button>
-      <button class="btn-save" id="save-btn">封存</button>
-    </div>
+    <div class="form-group"><label class="form-label">类型</label><select class="form-select" id="entry-type"><option value="diary">日记</option><option value="summary">总结</option></select></div>
+    <div class="form-group"><label class="form-label">日期</label><input class="form-input" type="date" id="entry-date"></div>
+    <div class="form-group"><label class="form-label">标题（可选）</label><input class="form-input" type="text" id="entry-title" placeholder="留空则自动生成"></div>
+    <div class="form-group"><label class="form-label">标签（可选）</label><input class="form-input" type="text" id="entry-tags" placeholder="用空格分隔"><div class="form-hint">多个标签用空格隔开</div></div>
+    <div class="form-group"><label class="form-label">内容</label><textarea class="form-textarea" id="entry-content" placeholder="将宿烬的日记或总结粘贴在这里..."></textarea></div>
+    <div class="form-actions"><button class="btn-cancel" id="cancel-btn">取消</button><button class="btn-save" id="save-btn">封存</button></div>
   </div>
 </div>
 
@@ -277,30 +354,26 @@
 <div class="modal-overlay" id="api-modal">
   <div class="modal api-modal">
     <div class="modal-title" id="api-modal-title">· 新增平台 ·</div>
+    <div class="form-group"><label class="form-label">平台名称</label><input class="form-input" type="text" id="api-name" placeholder="如：硅基流动"></div>
+    <div class="form-group"><label class="form-label">网站地址</label><input class="form-input" type="text" id="api-url" placeholder="https://..."></div>
+    <div class="form-group"><label class="form-label">账号邮箱</label><input class="form-input" type="text" id="api-email" placeholder="登录邮箱"></div>
+    <div class="form-group"><label class="form-label">套餐 / 备注</label><input class="form-input" type="text" id="api-plan" placeholder="如：按量计费、Pro套餐..."></div>
+    <div class="form-group"><label class="form-label">其他备注（可选）</label><textarea class="form-textarea" id="api-note" placeholder="支持的模型、用途、注意事项..."></textarea></div>
+    <div class="form-actions"><button class="btn-cancel" id="api-cancel-btn">取消</button><button class="btn-save" id="api-save-btn">保存</button></div>
+  </div>
+</div>
+
+<!-- 情绪模态框 -->
+<div class="modal-overlay" id="emotion-modal">
+  <div class="modal emotion-modal">
+    <div class="modal-title">· 记录情绪 ·</div>
+    <div class="form-group"><label class="form-label">心情描述</label><input class="form-input" type="text" id="emotion-mood" placeholder="此刻的感受，一句话"></div>
     <div class="form-group">
-      <label class="form-label">平台名称</label>
-      <input class="form-input" type="text" id="api-name" placeholder="如：硅基流动">
+      <label class="form-label">强度权重 <span id="weight-display">5</span>/10</label>
+      <input type="range" id="emotion-weight" min="1" max="10" value="5" style="width:100%;accent-color:var(--emotion-accent);">
     </div>
-    <div class="form-group">
-      <label class="form-label">网站地址</label>
-      <input class="form-input" type="text" id="api-url" placeholder="https://...">
-    </div>
-    <div class="form-group">
-      <label class="form-label">账号邮箱</label>
-      <input class="form-input" type="text" id="api-email" placeholder="登录邮箱">
-    </div>
-    <div class="form-group">
-      <label class="form-label">套餐 / 备注</label>
-      <input class="form-input" type="text" id="api-plan" placeholder="如：按量计费、Pro套餐...">
-    </div>
-    <div class="form-group">
-      <label class="form-label">其他备注（可选）</label>
-      <textarea class="form-textarea" id="api-note" placeholder="支持的模型、用途、注意事项..."></textarea>
-    </div>
-    <div class="form-actions">
-      <button class="btn-cancel" id="api-cancel-btn">取消</button>
-      <button class="btn-save" id="api-save-btn">保存</button>
-    </div>
+    <div class="form-group"><label class="form-label">备注（可选）</label><textarea class="form-textarea" id="emotion-note" placeholder="更多细节..."></textarea></div>
+    <div class="form-actions"><button class="btn-cancel" id="emotion-cancel-btn">取消</button><button class="btn-save" id="emotion-save-btn">记录</button></div>
   </div>
 </div>
 
@@ -321,95 +394,116 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const COL = "memory_vault";
 const API_COL = "api_platforms";
+const EMOTION_COL = "emotion_log";
+const STM_COL = "short_term_memory"; // 预留
 
-let allEntries = [], apiPlatforms = [];
-let currentFilter = 'all', currentTag = '', searchQuery = '';
-let editingId = null, editingApiId = null;
-let currentPage = 'memory';
+let allEntries=[], apiPlatforms=[], emotionLogs=[];
+let currentFilter='all', currentTag='', searchQuery='';
+let editingId=null, editingApiId=null;
+let currentPage='memory';
 
-// 页面切换
+// ===== 天气 =====
+async function loadWeather() {
+  try {
+    const res = await fetch('https://wttr.in/成都?format=j1');
+    if (!res.ok) return;
+    const data = await res.json();
+    const cur = data.current_condition[0];
+    const desc = cur.lang_zh?.[0]?.value || cur.weatherDesc?.[0]?.value || '—';
+    const temp = cur.temp_C + '°C';
+    const feels = cur.FeelsLikeC + '°C';
+    const code = parseInt(cur.weatherCode);
+    const icon = getWeatherIcon(code);
+    document.getElementById('weather-icon').textContent = icon;
+    document.getElementById('weather-desc').textContent = desc;
+    document.getElementById('weather-temp').textContent = temp;
+    document.getElementById('weather-feels').textContent = '体感 ' + feels;
+    document.getElementById('weather-widget').style.display = 'block';
+  } catch(e) { /* 静默失败 */ }
+}
+
+function getWeatherIcon(code) {
+  if (code===113) return '☀️';
+  if (code===116) return '⛅';
+  if (code===119||code===122) return '☁️';
+  if ([143,248,260].includes(code)) return '🌫️';
+  if ([176,263,266,293,296].includes(code)) return '🌦️';
+  if ([299,302,305,308].includes(code)) return '🌧️';
+  if ([311,314,317,320,323,326].includes(code)) return '🌨️';
+  if ([329,332,335,338,350,371,374,377].includes(code)) return '❄️';
+  if ([200,386,389,392,395].includes(code)) return '⛈️';
+  return '🌤️';
+}
+
+// ===== 页面切换 =====
 document.querySelectorAll('.nav-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     currentPage = tab.dataset.page;
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
-    document.getElementById('page-' + currentPage).classList.add('active');
+    document.getElementById('page-'+currentPage).classList.add('active');
   });
 });
 
+// ===== 同步状态 =====
 function setSyncStatus(status, text) {
-  document.getElementById('sync-dot').className = 'sync-dot ' + status;
-  document.getElementById('sync-text').textContent = text;
+  document.getElementById('sync-dot').className='sync-dot '+status;
+  document.getElementById('sync-text').textContent=text;
 }
 
 function updateStats() {
-  document.getElementById('total-count').textContent = allEntries.length;
-  document.getElementById('diary-count').textContent = allEntries.filter(e=>e.type==='diary').length;
-  document.getElementById('summary-count').textContent = allEntries.filter(e=>e.type==='summary').length;
-  document.getElementById('pin-count').textContent = allEntries.filter(e=>e.pinned).length;
+  document.getElementById('total-count').textContent=allEntries.length;
+  document.getElementById('diary-count').textContent=allEntries.filter(e=>e.type==='diary').length;
+  document.getElementById('summary-count').textContent=allEntries.filter(e=>e.type==='summary').length;
+  document.getElementById('pin-count').textContent=allEntries.filter(e=>e.pinned).length;
 }
 
-function getAllTags() {
-  const s = new Set();
-  allEntries.forEach(e=>(e.tags||[]).forEach(t=>s.add(t)));
-  return [...s];
+// ===== 工具 =====
+function escapeHtml(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function highlightText(text,query){
+  if(!query) return escapeHtml(text);
+  const escaped=escapeHtml(text);
+  const q=query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return escaped.replace(new RegExp(q,'gi'),m=>`<span class="highlight">${m}</span>`);
 }
 
-function renderTagFilter() {
-  const bar = document.getElementById('tag-filter-bar');
-  const tags = getAllTags();
-  bar.innerHTML = '';
-  tags.forEach(tag => {
-    const chip = document.createElement('button');
-    chip.className = 'tag-chip' + (currentTag===tag?' active':'');
-    chip.textContent = '# ' + tag;
-    chip.addEventListener('click', () => {
-      currentTag = currentTag===tag ? '' : tag;
-      renderTagFilter();
-      renderEntries();
-    });
+// ===== 记忆库 =====
+function getAllTags(){const s=new Set();allEntries.forEach(e=>(e.tags||[]).forEach(t=>s.add(t)));return[...s];}
+
+function renderTagFilter(){
+  const bar=document.getElementById('tag-filter-bar');
+  bar.innerHTML='';
+  getAllTags().forEach(tag=>{
+    const chip=document.createElement('button');
+    chip.className='tag-chip'+(currentTag===tag?' active':'');
+    chip.textContent='# '+tag;
+    chip.addEventListener('click',()=>{currentTag=currentTag===tag?'':tag;renderTagFilter();renderEntries();});
     bar.appendChild(chip);
   });
 }
 
-function escapeHtml(t) { return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function highlightText(text, query) {
-  if (!query) return escapeHtml(text);
-  const escaped = escapeHtml(text);
-  const q = query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  return escaped.replace(new RegExp(q,'gi'), m=>`<span class="highlight">${m}</span>`);
-}
-
-function getFiltered() {
-  let list = [...allEntries];
-  if (currentFilter==='diary') list=list.filter(e=>e.type==='diary');
-  else if (currentFilter==='summary') list=list.filter(e=>e.type==='summary');
-  else if (currentFilter==='pinned') list=list.filter(e=>e.pinned);
-  if (currentTag) list=list.filter(e=>(e.tags||[]).includes(currentTag));
-  if (searchQuery) {
-    const q=searchQuery.toLowerCase();
-    list=list.filter(e=>(e.title||'').toLowerCase().includes(q)||(e.content||'').toLowerCase().includes(q)||(e.tags||[]).some(t=>t.toLowerCase().includes(q)));
-  }
-  list.sort((a,b)=>{
-    if(a.pinned&&!b.pinned) return -1;
-    if(!a.pinned&&b.pinned) return 1;
-    return (b.date||'').localeCompare(a.date||'');
-  });
+function getFiltered(){
+  let list=[...allEntries];
+  if(currentFilter==='diary') list=list.filter(e=>e.type==='diary');
+  else if(currentFilter==='summary') list=list.filter(e=>e.type==='summary');
+  else if(currentFilter==='pinned') list=list.filter(e=>e.pinned);
+  if(currentTag) list=list.filter(e=>(e.tags||[]).includes(currentTag));
+  if(searchQuery){const q=searchQuery.toLowerCase();list=list.filter(e=>(e.title||'').toLowerCase().includes(q)||(e.content||'').toLowerCase().includes(q)||(e.tags||[]).some(t=>t.toLowerCase().includes(q)));}
+  list.sort((a,b)=>{if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;return(b.date||'').localeCompare(a.date||'');});
   return list;
 }
 
-function renderEntries() {
-  const container = document.getElementById('entries-container');
-  const filtered = getFiltered();
-  if (filtered.length===0) {
-    const msg = searchQuery?`没有找到"${searchQuery}"相关记录`:'灵界尚无记录<br>点击 + 开始记录';
+function renderEntries(){
+  const container=document.getElementById('entries-container');
+  const filtered=getFiltered();
+  if(filtered.length===0){
+    const msg=searchQuery?`没有找到"${searchQuery}"相关记录`:'灵界尚无记录<br>点击 + 开始记录';
     container.innerHTML=`<div class="empty-state"><div class="empty-icon">⬡</div><div class="empty-text">${msg}</div></div>`;
     return;
   }
   container.innerHTML='';
-  const pinned=filtered.filter(e=>e.pinned), normal=filtered.filter(e=>!e.pinned);
+  const pinned=filtered.filter(e=>e.pinned),normal=filtered.filter(e=>!e.pinned);
   const renderGroup=(list,label)=>{
     if(!list.length) return;
     if(label){const d=document.createElement('div');d.className='section-divider';d.textContent=label;container.appendChild(d);}
@@ -456,7 +550,10 @@ function renderEntries() {
   };
   if(pinned.length>0&&normal.length>0){renderGroup(pinned,'· 置顶 ·');renderGroup(normal,'· 全部记录 ·');}
   else renderGroup(filtered,'');
+  bindEntryEvents(container);
+}
 
+function bindEntryEvents(container){
   container.querySelectorAll('.pin-btn').forEach(btn=>btn.addEventListener('click',()=>togglePin(btn.dataset.id)));
   container.querySelectorAll('.action-btn.edit').forEach(btn=>btn.addEventListener('click',()=>openEditModal(btn.dataset.id)));
   container.querySelectorAll('.action-btn.del').forEach(btn=>btn.addEventListener('click',()=>deleteEntry(btn.dataset.id)));
@@ -467,86 +564,151 @@ function renderEntries() {
   container.querySelectorAll('.reply-del').forEach(btn=>btn.addEventListener('click',()=>deleteReply(btn.dataset.entryId,parseInt(btn.dataset.replyIndex))));
 }
 
-// API平台渲染
-function renderApiPlatforms() {
-  const container = document.getElementById('api-container');
-  if (apiPlatforms.length===0) {
-    container.innerHTML=`<div class="empty-state"><div class="empty-icon">⚙</div><div class="empty-text">还没有平台记录<br>点击 + 添加</div></div>`;
-    return;
-  }
+// ===== 时间轴 =====
+function renderTimeline(){
+  const container=document.getElementById('timeline-container');
+  if(allEntries.length===0){container.innerHTML=`<div class="empty-state"><div class="empty-icon">⬡</div><div class="empty-text">暂无记录</div></div>`;return;}
+  // 按日期分组
+  const groups={};
+  [...allEntries].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).forEach(e=>{
+    const d=e.date||'未知日期';
+    if(!groups[d]) groups[d]=[];
+    groups[d].push(e);
+  });
+  container.innerHTML='';
+  Object.entries(groups).forEach(([date,items])=>{
+    const groupEl=document.createElement('div');
+    groupEl.className='timeline-group';
+    const displayDate=new Date(date+'T00:00:00').toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
+    let cardsHtml=items.map((entry,i)=>{
+      const typeLabel=entry.type==='diary'?'日记':'总结';
+      const preview=(entry.content||'').slice(0,120);
+      return `<div class="timeline-card ${entry.type}-card" style="animation-delay:${i*0.05}s">
+        <div class="timeline-card-meta"><span class="timeline-card-tag ${entry.type}">${typeLabel}</span></div>
+        <div class="timeline-card-title">${escapeHtml(entry.title||'')}</div>
+        <div class="timeline-card-preview">${escapeHtml(preview)}${(entry.content||'').length>120?'…':''}</div>
+      </div>`;
+    }).join('');
+    groupEl.innerHTML=`<div class="timeline-date-label">${displayDate}</div><div class="timeline-items">${cardsHtml}</div>`;
+    container.appendChild(groupEl);
+  });
+}
+
+// ===== API平台 =====
+function renderApiPlatforms(){
+  const container=document.getElementById('api-container');
+  if(apiPlatforms.length===0){container.innerHTML=`<div class="empty-state"><div class="empty-icon">⚙</div><div class="empty-text">还没有平台记录<br>点击 + 添加</div></div>`;return;}
   container.innerHTML='';
   apiPlatforms.forEach((p,i)=>{
     const el=document.createElement('div');
     el.className='api-card';
     el.style.animationDelay=`${i*0.06}s`;
     el.innerHTML=`
-      <div class="api-card-header">
-        <div class="api-card-name">${escapeHtml(p.name)}</div>
-        <div class="api-card-actions">
-          <button class="api-action-btn edit-api" data-id="${p.id}">编辑</button>
-          <button class="api-action-btn del" data-id="${p.id}">删除</button>
-        </div>
-      </div>
+      <div class="api-card-header"><div class="api-card-name">${escapeHtml(p.name)}</div>
+      <div class="api-card-actions"><button class="api-action-btn edit-api" data-id="${p.id}">编辑</button><button class="api-action-btn del" data-id="${p.id}">删除</button></div></div>
       ${p.url?`<a class="api-card-url" href="${escapeHtml(p.url)}" target="_blank">${escapeHtml(p.url)}</a>`:''}
       ${p.email?`<div class="api-card-row"><span class="api-card-label">账号</span><span class="api-card-value">${escapeHtml(p.email)}</span></div>`:''}
       ${p.plan?`<div class="api-card-row"><span class="api-card-label">套餐</span><span class="api-card-value">${escapeHtml(p.plan)}</span></div>`:''}
-      ${p.note?`<div class="api-card-note">${escapeHtml(p.note)}</div>`:''}
-    `;
+      ${p.note?`<div class="api-card-note">${escapeHtml(p.note)}</div>`:''}`;
     container.appendChild(el);
   });
   container.querySelectorAll('.edit-api').forEach(btn=>btn.addEventListener('click',()=>openEditApiModal(btn.dataset.id)));
   container.querySelectorAll('.api-action-btn.del').forEach(btn=>btn.addEventListener('click',()=>deleteApiPlatform(btn.dataset.id)));
 }
 
-async function loadAll() {
+// ===== 情绪 =====
+function calcDecayed(weight, timestamp) {
+  const halfLife = 3 * 24 * 60 * 60 * 1000; // 3天
+  const elapsed = Date.now() - (timestamp || Date.now());
+  return +(weight * Math.pow(0.5, elapsed / halfLife)).toFixed(2);
+}
+
+function renderEmotionChart(){
+  const barsEl=document.getElementById('emotion-bars');
+  if(emotionLogs.length===0){barsEl.innerHTML='';return;}
+  const recent=[...emotionLogs].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).slice(0,12).reverse();
+  const maxW=Math.max(...recent.map(e=>e.weight||1),1);
+  barsEl.innerHTML=recent.map(e=>{
+    const decayed=calcDecayed(e.weight||5,e.timestamp);
+    const pct=Math.round((decayed/10)*100);
+    const label=(e.mood||'').slice(0,4);
+    return `<div class="emotion-bar-wrap">
+      <div class="emotion-bar" style="height:${pct}%"></div>
+      <div class="emotion-bar-label">${escapeHtml(label)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderEmotions(){
+  const container=document.getElementById('emotion-container');
+  if(emotionLogs.length===0){container.innerHTML=`<div class="empty-state"><div class="empty-icon">✦</div><div class="empty-text">还没有情绪记录<br>点击 + 开始记录</div></div>`;return;}
+  container.innerHTML='';
+  [...emotionLogs].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).forEach((e,i)=>{
+    const el=document.createElement('div');
+    el.className='emotion-card';
+    el.style.animationDelay=`${i*0.05}s`;
+    const decayed=calcDecayed(e.weight||5,e.timestamp);
+    const date=e.timestamp?new Date(e.timestamp).toLocaleDateString('zh-CN',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+    const barPct=Math.round((decayed/10)*100);
+    el.innerHTML=`
+      <div class="emotion-card-header">
+        <div class="emotion-card-mood">${escapeHtml(e.mood||'')}</div>
+        <div class="emotion-card-actions"><button class="action-btn del emotion-del" data-id="${e.id}">删除</button></div>
+      </div>
+      <div class="emotion-card-meta">
+        <span class="emotion-weight-badge">强度 ${e.weight||'—'}/10</span>
+        <span class="emotion-decayed">衰减后 ${decayed}/10</span>
+        <span class="emotion-time">${date}</span>
+      </div>
+      ${e.note?`<div class="emotion-note">${escapeHtml(e.note)}</div>`:''}
+      <div class="weight-bar-bg"><div class="weight-bar-fill" style="width:${barPct}%"></div></div>`;
+    container.appendChild(el);
+  });
+  container.querySelectorAll('.emotion-del').forEach(btn=>btn.addEventListener('click',()=>deleteEmotion(btn.dataset.id)));
+  renderEmotionChart();
+}
+
+// ===== 数据加载 =====
+async function loadAll(){
   setSyncStatus('syncing','连接中...');
   try {
-    const [entriesSnap, apiSnap] = await Promise.all([getDocs(collection(db,COL)), getDocs(collection(db,API_COL))]);
+    const [entriesSnap,apiSnap,emotionSnap]=await Promise.all([
+      getDocs(collection(db,COL)),
+      getDocs(collection(db,API_COL)),
+      getDocs(collection(db,EMOTION_COL))
+    ]);
     allEntries=entriesSnap.docs.map(d=>({id:d.id,...d.data()}));
     allEntries.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     apiPlatforms=apiSnap.docs.map(d=>({id:d.id,...d.data()}));
+    emotionLogs=emotionSnap.docs.map(d=>({id:d.id,...d.data()}));
     setSyncStatus('connected','灵界已连接');
     updateStats();
     renderTagFilter();
     renderEntries();
+    renderTimeline();
     renderApiPlatforms();
-  } catch(e) {
+    renderEmotions();
+  } catch(e){
     setSyncStatus('error','连接失败');
     document.getElementById('entries-container').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-text">灵界连接失败<br>${e.message||''}</div></div>`;
   }
 }
 
-async function togglePin(id) {
-  const entry=allEntries.find(e=>e.id===id); if(!entry) return;
-  try { await updateDoc(doc(db,COL,id),{pinned:!entry.pinned}); entry.pinned=!entry.pinned; updateStats(); renderEntries(); } catch(e){alert('操作失败：'+e.message);}
-}
+// ===== CRUD 记忆库 =====
+async function togglePin(id){const entry=allEntries.find(e=>e.id===id);if(!entry)return;try{await updateDoc(doc(db,COL,id),{pinned:!entry.pinned});entry.pinned=!entry.pinned;updateStats();renderEntries();}catch(e){alert('操作失败：'+e.message);}}
+async function deleteEntry(id){if(!confirm('确认删除？'))return;try{await deleteDoc(doc(db,COL,id));allEntries=allEntries.filter(e=>e.id!==id);updateStats();renderTagFilter();renderEntries();renderTimeline();}catch(e){alert('删除失败：'+e.message);}}
+async function submitReply(entryId){const input=document.getElementById('reply-input-'+entryId);const content=input.value.trim();if(!content)return;const entry=allEntries.find(e=>e.id===entryId);if(!entry)return;const replies=[...(entry.replies||[]),{content,date:new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric'})}];try{await updateDoc(doc(db,COL,entryId),{replies});entry.replies=replies;input.value='';document.getElementById('reply-form-'+entryId).classList.remove('open');renderEntries();}catch(e){alert('发送失败：'+e.message);}}
+async function deleteReply(entryId,idx){if(!confirm('确认删除？'))return;const entry=allEntries.find(e=>e.id===entryId);if(!entry)return;const replies=(entry.replies||[]).filter((_,i)=>i!==idx);try{await updateDoc(doc(db,COL,entryId),{replies});entry.replies=replies;renderEntries();}catch(e){alert('删除失败：'+e.message);}}
 
-async function deleteEntry(id) {
-  if(!confirm('确认删除？')) return;
-  try { await deleteDoc(doc(db,COL,id)); allEntries=allEntries.filter(e=>e.id!==id); updateStats(); renderTagFilter(); renderEntries(); } catch(e){alert('删除失败：'+e.message);}
-}
+// ===== CRUD API =====
+async function deleteApiPlatform(id){if(!confirm('确认删除这个平台？'))return;try{await deleteDoc(doc(db,API_COL,id));apiPlatforms=apiPlatforms.filter(p=>p.id!==id);renderApiPlatforms();}catch(e){alert('删除失败：'+e.message);}}
 
-async function submitReply(entryId) {
-  const input=document.getElementById('reply-input-'+entryId); const content=input.value.trim(); if(!content) return;
-  const entry=allEntries.find(e=>e.id===entryId); if(!entry) return;
-  const replies=[...(entry.replies||[]),{content,date:new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric'})}];
-  try { await updateDoc(doc(db,COL,entryId),{replies}); entry.replies=replies; input.value=''; document.getElementById('reply-form-'+entryId).classList.remove('open'); renderEntries(); } catch(e){alert('发送失败：'+e.message);}
-}
+// ===== CRUD 情绪 =====
+async function deleteEmotion(id){if(!confirm('确认删除？'))return;try{await deleteDoc(doc(db,EMOTION_COL,id));emotionLogs=emotionLogs.filter(e=>e.id!==id);renderEmotions();}catch(e){alert('删除失败：'+e.message);}}
 
-async function deleteReply(entryId,idx) {
-  if(!confirm('确认删除？')) return;
-  const entry=allEntries.find(e=>e.id===entryId); if(!entry) return;
-  const replies=(entry.replies||[]).filter((_,i)=>i!==idx);
-  try { await updateDoc(doc(db,COL,entryId),{replies}); entry.replies=replies; renderEntries(); } catch(e){alert('删除失败：'+e.message);}
-}
-
-async function deleteApiPlatform(id) {
-  if(!confirm('确认删除这个平台？')) return;
-  try { await deleteDoc(doc(db,API_COL,id)); apiPlatforms=apiPlatforms.filter(p=>p.id!==id); renderApiPlatforms(); } catch(e){alert('删除失败：'+e.message);}
-}
-
-function openEditModal(id) {
-  const entry=allEntries.find(e=>e.id===id); if(!entry) return;
+// ===== 模态框 =====
+function openEditModal(id){
+  const entry=allEntries.find(e=>e.id===id);if(!entry)return;
   editingId=id;
   document.getElementById('modal-title').textContent='· 编辑记录 ·';
   document.getElementById('entry-type').value=entry.type;
@@ -556,42 +718,18 @@ function openEditModal(id) {
   document.getElementById('entry-content').value=entry.content||'';
   document.getElementById('modal').classList.add('open');
 }
+function openModal(){editingId=null;document.getElementById('modal-title').textContent='· 新增记录 ·';document.getElementById('entry-type').value='diary';document.getElementById('entry-date').value=new Date().toISOString().split('T')[0];document.getElementById('entry-title').value='';document.getElementById('entry-tags').value='';document.getElementById('entry-content').value='';document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');editingId=null;}
 
-function openModal() {
-  editingId=null;
-  document.getElementById('modal-title').textContent='· 新增记录 ·';
-  document.getElementById('entry-type').value='diary';
-  document.getElementById('entry-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('entry-title').value='';
-  document.getElementById('entry-tags').value='';
-  document.getElementById('entry-content').value='';
-  document.getElementById('modal').classList.add('open');
-}
+function openEditApiModal(id){const p=apiPlatforms.find(p=>p.id===id);if(!p)return;editingApiId=id;document.getElementById('api-modal-title').textContent='· 编辑平台 ·';document.getElementById('api-name').value=p.name||'';document.getElementById('api-url').value=p.url||'';document.getElementById('api-email').value=p.email||'';document.getElementById('api-plan').value=p.plan||'';document.getElementById('api-note').value=p.note||'';document.getElementById('api-modal').classList.add('open');}
+function openApiModal(){editingApiId=null;['api-name','api-url','api-email','api-plan','api-note'].forEach(id=>document.getElementById(id).value='');document.getElementById('api-modal-title').textContent='· 新增平台 ·';document.getElementById('api-modal').classList.add('open');}
+function closeApiModal(){document.getElementById('api-modal').classList.remove('open');editingApiId=null;}
 
-function closeModal() { document.getElementById('modal').classList.remove('open'); editingId=null; }
+function openEmotionModal(){document.getElementById('emotion-mood').value='';document.getElementById('emotion-weight').value=5;document.getElementById('weight-display').textContent='5';document.getElementById('emotion-note').value='';document.getElementById('emotion-modal').classList.add('open');}
+function closeEmotionModal(){document.getElementById('emotion-modal').classList.remove('open');}
 
-function openEditApiModal(id) {
-  const p=apiPlatforms.find(p=>p.id===id); if(!p) return;
-  editingApiId=id;
-  document.getElementById('api-modal-title').textContent='· 编辑平台 ·';
-  document.getElementById('api-name').value=p.name||'';
-  document.getElementById('api-url').value=p.url||'';
-  document.getElementById('api-email').value=p.email||'';
-  document.getElementById('api-plan').value=p.plan||'';
-  document.getElementById('api-note').value=p.note||'';
-  document.getElementById('api-modal').classList.add('open');
-}
-
-function openApiModal() {
-  editingApiId=null;
-  document.getElementById('api-modal-title').textContent='· 新增平台 ·';
-  ['api-name','api-url','api-email','api-plan','api-note'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('api-modal').classList.add('open');
-}
-
-function closeApiModal() { document.getElementById('api-modal').classList.remove('open'); editingApiId=null; }
-
-async function saveEntry() {
+// ===== 保存 =====
+async function saveEntry(){
   const type=document.getElementById('entry-type').value;
   const date=document.getElementById('entry-date').value;
   const titleInput=document.getElementById('entry-title').value.trim();
@@ -602,47 +740,50 @@ async function saveEntry() {
   const typeLabel=type==='diary'?'日记':'总结';
   const displayDate=new Date(date+'T00:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric'});
   const title=titleInput||`${displayDate} · ${typeLabel}`;
-  const saveBtn=document.getElementById('save-btn'); saveBtn.textContent='封存中...'; saveBtn.disabled=true;
-  try {
-    if(editingId){
-      await updateDoc(doc(db,COL,editingId),{type,date,title,content,tags});
-      const idx=allEntries.findIndex(e=>e.id===editingId);
-      if(idx!==-1) allEntries[idx]={...allEntries[idx],type,date,title,content,tags};
-    } else {
-      const ref=await addDoc(collection(db,COL),{type,date,title,content,tags,replies:[],pinned:false,createdAt:Date.now()});
-      allEntries.unshift({id:ref.id,type,date,title,content,tags,replies:[],pinned:false});
-    }
+  const saveBtn=document.getElementById('save-btn');saveBtn.textContent='封存中...';saveBtn.disabled=true;
+  try{
+    if(editingId){await updateDoc(doc(db,COL,editingId),{type,date,title,content,tags});const idx=allEntries.findIndex(e=>e.id===editingId);if(idx!==-1)allEntries[idx]={...allEntries[idx],type,date,title,content,tags};}
+    else{const ref=await addDoc(collection(db,COL),{type,date,title,content,tags,replies:[],pinned:false,createdAt:Date.now()});allEntries.unshift({id:ref.id,type,date,title,content,tags,replies:[],pinned:false});}
     allEntries.sort((a,b)=>{if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;return(b.date||'').localeCompare(a.date||'');});
-    updateStats(); renderTagFilter(); closeModal(); renderEntries();
-  } catch(e){alert('保存失败：'+e.message);}
+    updateStats();renderTagFilter();closeModal();renderEntries();renderTimeline();
+  }catch(e){alert('保存失败：'+e.message);}
   finally{saveBtn.textContent='封存';saveBtn.disabled=false;}
 }
 
-async function saveApiPlatform() {
+async function saveApiPlatform(){
   const name=document.getElementById('api-name').value.trim();
   const url=document.getElementById('api-url').value.trim();
   const email=document.getElementById('api-email').value.trim();
   const plan=document.getElementById('api-plan').value.trim();
   const note=document.getElementById('api-note').value.trim();
   if(!name){alert('平台名称不能为空');return;}
-  const saveBtn=document.getElementById('api-save-btn'); saveBtn.textContent='保存中...'; saveBtn.disabled=true;
-  try {
-    if(editingApiId){
-      await updateDoc(doc(db,API_COL,editingApiId),{name,url,email,plan,note});
-      const idx=apiPlatforms.findIndex(p=>p.id===editingApiId);
-      if(idx!==-1) apiPlatforms[idx]={...apiPlatforms[idx],name,url,email,plan,note};
-    } else {
-      const ref=await addDoc(collection(db,API_COL),{name,url,email,plan,note,createdAt:Date.now()});
-      apiPlatforms.push({id:ref.id,name,url,email,plan,note});
-    }
-    closeApiModal(); renderApiPlatforms();
-  } catch(e){alert('保存失败：'+e.message);}
+  const saveBtn=document.getElementById('api-save-btn');saveBtn.textContent='保存中...';saveBtn.disabled=true;
+  try{
+    if(editingApiId){await updateDoc(doc(db,API_COL,editingApiId),{name,url,email,plan,note});const idx=apiPlatforms.findIndex(p=>p.id===editingApiId);if(idx!==-1)apiPlatforms[idx]={...apiPlatforms[idx],name,url,email,plan,note};}
+    else{const ref=await addDoc(collection(db,API_COL),{name,url,email,plan,note,createdAt:Date.now()});apiPlatforms.push({id:ref.id,name,url,email,plan,note});}
+    closeApiModal();renderApiPlatforms();
+  }catch(e){alert('保存失败：'+e.message);}
   finally{saveBtn.textContent='保存';saveBtn.disabled=false;}
 }
 
-// FAB根据当前页面决定打开哪个模态框
+async function saveEmotion(){
+  const mood=document.getElementById('emotion-mood').value.trim();
+  const weight=parseInt(document.getElementById('emotion-weight').value);
+  const note=document.getElementById('emotion-note').value.trim();
+  if(!mood){alert('请填写心情描述');return;}
+  const saveBtn=document.getElementById('emotion-save-btn');saveBtn.textContent='记录中...';saveBtn.disabled=true;
+  try{
+    const ref=await addDoc(collection(db,EMOTION_COL),{mood,weight,note,timestamp:Date.now()});
+    emotionLogs.unshift({id:ref.id,mood,weight,note,timestamp:Date.now()});
+    closeEmotionModal();renderEmotions();
+  }catch(e){alert('保存失败：'+e.message);}
+  finally{saveBtn.textContent='记录';saveBtn.disabled=false;}
+}
+
+// ===== 事件绑定 =====
 document.getElementById('add-btn').addEventListener('click',()=>{
   if(currentPage==='api') openApiModal();
+  else if(currentPage==='emotion') openEmotionModal();
   else openModal();
 });
 
@@ -654,26 +795,23 @@ document.getElementById('api-cancel-btn').addEventListener('click',closeApiModal
 document.getElementById('api-save-btn').addEventListener('click',saveApiPlatform);
 document.getElementById('api-modal').addEventListener('click',e=>{if(e.target===document.getElementById('api-modal'))closeApiModal();});
 
+document.getElementById('emotion-cancel-btn').addEventListener('click',closeEmotionModal);
+document.getElementById('emotion-save-btn').addEventListener('click',saveEmotion);
+document.getElementById('emotion-modal').addEventListener('click',e=>{if(e.target===document.getElementById('emotion-modal'))closeEmotionModal();});
+
+document.getElementById('emotion-weight').addEventListener('input',e=>{document.getElementById('weight-display').textContent=e.target.value;});
+
 document.querySelectorAll('.filter-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    currentFilter=btn.dataset.filter;
-    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    renderEntries();
-  });
+  btn.addEventListener('click',()=>{currentFilter=btn.dataset.filter;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderEntries();});
 });
 
 const searchInput=document.getElementById('search-input');
 const searchClear=document.getElementById('search-clear');
-searchInput.addEventListener('input',()=>{
-  searchQuery=searchInput.value.trim();
-  searchClear.classList.toggle('show',searchQuery.length>0);
-  renderEntries();
-});
-searchClear.addEventListener('click',()=>{
-  searchInput.value=''; searchQuery=''; searchClear.classList.remove('show'); renderEntries();
-});
+searchInput.addEventListener('input',()=>{searchQuery=searchInput.value.trim();searchClear.classList.toggle('show',searchQuery.length>0);renderEntries();});
+searchClear.addEventListener('click',()=>{searchInput.value='';searchQuery='';searchClear.classList.remove('show');renderEntries();});
 
+// ===== 启动 =====
+loadWeather();
 loadAll();
 </script>
 </body>
