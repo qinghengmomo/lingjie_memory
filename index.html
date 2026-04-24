@@ -678,7 +678,7 @@ async function loadAll(){
       getDocs(collection(db,EMOTION_COL)).catch(e => ({docs: []}))
     ]);
     allEntries=entriesSnap.docs.map(d=>({id:d.id,...d.data()}));
-    allEntries.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    allEntries.sort((a,b)=> { if(a.pinned !== b.pinned) return b.pinned ? 1 : -1; return (b.createdAt || 0) - (a.createdAt || 0); });
     apiPlatforms=apiSnap.docs.map(d=>({id:d.id,...d.data()}));
     emotionLogs=((emotionSnap && emotionSnap.docs) || []).map(d=>({id:d.id,...d.data()}));
     setSyncStatus('connected','灵界已连接');
@@ -738,7 +738,7 @@ async function saveEntry(){
   if(!content){alert('内容不能为空');return;}
   const tags=tagsInput?tagsInput.split(/\s+/).filter(Boolean):[];
   const typeLabel=type==='diary'?'日记':'总结';
-  const displayDate=new Date(date+'T00:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric'});
+  const dateObj=new Date(date); const displayDate=dateObj.toLocaleDateString('zh-CN',{month:'long',day:'numeric'}) + ' ' + dateObj.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
   const title=titleInput||`${displayDate} · ${typeLabel}`;
   const saveBtn=document.getElementById('save-btn');saveBtn.textContent='封存中...';saveBtn.disabled=true;
   try{
