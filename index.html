@@ -95,8 +95,12 @@
   .entry.pinned-entry::before { border-color:var(--pin); }
 
   .entry-meta { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
-  .read-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--border); border:1.5px solid var(--mist); cursor:pointer; transition:all 0.25s; margin-left:4px; vertical-align:middle; flex-shrink:0; }
-  .read-dot.readed { background:var(--gold); border-color:var(--gold); box-shadow:0 0 4px var(--gold); }
+  .read-dot { display:inline-flex; align-items:center; justify-content:center; width:18px; height:12px; cursor:pointer; margin-left:6px; vertical-align:middle; flex-shrink:0; opacity:0.35; transition:all 0.3s; position:relative; }
+  .read-dot::before { content:''; display:block; width:14px; height:9px; border-radius:50% 50% 50% 50%/60% 60% 40% 40%; border:1.5px solid var(--red); background:transparent; }
+  .read-dot::after { content:''; position:absolute; width:5px; height:5px; border-radius:50%; background:var(--red); top:50%; left:50%; transform:translate(-50%,-50%); }
+  .read-dot.readed { opacity:1; }
+  .read-dot.readed::before { border-color:var(--gold); }
+  .read-dot.readed::after { background:var(--gold); box-shadow:0 0 4px var(--gold); }
   .entry-date { font-family:'Cinzel',serif; font-size:11px; color:var(--mist); letter-spacing:1px; }
   .entry-tag-label { font-size:10px; letter-spacing:2px; padding:2px 8px; }
   .entry-tag-label.diary { color:var(--red); border:1px solid var(--red); background:var(--red-soft); }
