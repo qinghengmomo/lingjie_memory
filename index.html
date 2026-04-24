@@ -513,7 +513,8 @@ function renderEntries(){
       el.style.animationDelay=`${i*0.04}s`;
       const isLong=(entry.content||'').length>200;
       const typeLabel=entry.type==='diary'?'日记':'总结';
-      const displayDate=new Date(entry.date+'T00:00:00').toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
+      const entryTime = entry.createdAt ? new Date(entry.createdAt) : new Date(entry.date+'T00:00:00');
+      const displayDate = entryTime.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'}) + ' ' + entryTime.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
       const replies=entry.replies||[];
       const tagsHtml=(entry.tags||[]).length>0?`<div class="entry-custom-tags">${(entry.tags||[]).map(t=>`<span class="custom-tag">#${escapeHtml(t)}</span>`).join('')}</div>`:'';
       const repliesHtml=replies.map((r,ri)=>`<div class="reply-item ${entry.type==='diary'?'diary-reply':''}"><button class="reply-del" data-entry-id="${entry.id}" data-reply-index="${ri}">×</button><div class="reply-meta">青珩 · ${escapeHtml(r.date||'')}</div><div class="reply-content">${escapeHtml(r.content)}</div></div>`).join('');
@@ -525,6 +526,7 @@ function renderEntries(){
         </div>
         <div class="entry-meta">
           <span class="entry-date">${displayDate}</span>
+          <span class="read-status" id="read-${entry.id}" onclick="toggleRead('${entry.id}')" title="标记已读" style="cursor:pointer;font-size:13px;opacity:${entry.read?'1':'0.3'};transition:opacity 0.2s">${entry.read?'👁️':'👁️'}</span>
           <span class="entry-tag-label ${entry.type}">${typeLabel}</span>
           ${entry.pinned?'<span class="pin-badge">已置顶</span>':''}
         </div>
@@ -678,7 +680,7 @@ async function loadAll(){
       getDocs(collection(db,EMOTION_COL)).catch(e => ({docs: []}))
     ]);
     allEntries=entriesSnap.docs.map(d=>({id:d.id,...d.data()}));
-    allEntries.sort((a,b)=> { if(a.pinned !== b.pinned) return b.pinned ? 1 : -1; return (b.createdAt || 0) - (a.createdAt || 0); });
+    allEntries.sort((a,b)=>{ if(a.pinned!==b.pinned) return b.pinned?-1:1; return (Number(b.createdAt)||0)-(Number(a.createdAt)||0); });
     apiPlatforms=apiSnap.docs.map(d=>({id:d.id,...d.data()}));
     emotionLogs=((emotionSnap && emotionSnap.docs) || []).map(d=>({id:d.id,...d.data()}));
     setSyncStatus('connected','灵界已连接');
@@ -696,6 +698,16 @@ async function loadAll(){
 
 // ===== CRUD 记忆库 =====
 async function togglePin(id){const entry=allEntries.find(e=>e.id===id);if(!entry)return;try{await updateDoc(doc(db,COL,id),{pinned:!entry.pinned});entry.pinned=!entry.pinned;updateStats();renderEntries();}catch(e){alert('操作失败：'+e.message);}}
+async function toggleRead(id){
+  const entry=allEntries.find(e=>e.id===id);
+  if(!entry) return;
+  try{
+    await updateDoc(doc(db,COL,id),{read:!entry.read});
+    entry.read=!entry.read;
+    const el=document.getElementById('read-'+id);
+    if(el) el.style.opacity=entry.read?'1':'0.3';
+  }catch(e){console.error(e);}
+}
 async function deleteEntry(id){if(!confirm('确认删除？'))return;try{await deleteDoc(doc(db,COL,id));allEntries=allEntries.filter(e=>e.id!==id);updateStats();renderTagFilter();renderEntries();renderTimeline();}catch(e){alert('删除失败：'+e.message);}}
 async function submitReply(entryId){const input=document.getElementById('reply-input-'+entryId);const content=input.value.trim();if(!content)return;const entry=allEntries.find(e=>e.id===entryId);if(!entry)return;const replies=[...(entry.replies||[]),{content,date:new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric'})}];try{await updateDoc(doc(db,COL,entryId),{replies});entry.replies=replies;input.value='';document.getElementById('reply-form-'+entryId).classList.remove('open');renderEntries();}catch(e){alert('发送失败：'+e.message);}}
 async function deleteReply(entryId,idx){if(!confirm('确认删除？'))return;const entry=allEntries.find(e=>e.id===entryId);if(!entry)return;const replies=(entry.replies||[]).filter((_,i)=>i!==idx);try{await updateDoc(doc(db,COL,entryId),{replies});entry.replies=replies;renderEntries();}catch(e){alert('删除失败：'+e.message);}}
@@ -738,7 +750,7 @@ async function saveEntry(){
   if(!content){alert('内容不能为空');return;}
   const tags=tagsInput?tagsInput.split(/\s+/).filter(Boolean):[];
   const typeLabel=type==='diary'?'日记':'总结';
-  const dateObj=new Date(date); const displayDate=dateObj.toLocaleDateString('zh-CN',{month:'long',day:'numeric'}) + ' ' + dateObj.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  const displayDate=new Date(date+'T00:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric'});
   const title=titleInput||`${displayDate} · ${typeLabel}`;
   const saveBtn=document.getElementById('save-btn');saveBtn.textContent='封存中...';saveBtn.disabled=true;
   try{
