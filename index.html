@@ -676,15 +676,16 @@ function renderEmotions(){
 async function loadAll(){
   setSyncStatus('syncing','连接中...');
   try {
-    const [entriesSnap,apiSnap,emotionSnap]=await Promise.all([
+    const [entriesSnap,apiSnap]=await Promise.all([
       getDocs(collection(db,COL)),
-      getDocs(collection(db,API_COL)),
-      getDocs(collection(db,EMOTION_COL)).catch(e => ({docs: []}))
+      getDocs(collection(db,API_COL))
     ]);
+    let emotionSnap={docs:[]};
+    try{emotionSnap=await getDocs(collection(db,EMOTION_COL));}catch(e){}
     allEntries=entriesSnap.docs.map(d=>({id:d.id,...d.data()}));
     allEntries.sort((a,b)=>{ if(a.pinned!==b.pinned) return b.pinned?-1:1; return (Number(b.createdAt)||0)-(Number(a.createdAt)||0); });
     apiPlatforms=apiSnap.docs.map(d=>({id:d.id,...d.data()}));
-    emotionLogs=((emotionSnap && emotionSnap.docs) || []).map(d=>({id:d.id,...d.data()}));
+    emotionLogs=(emotionSnap.docs||[]).map(d=>({id:d.id,...d.data()}));
     setSyncStatus('connected','灵界已连接');
     updateStats();
     renderTagFilter();
@@ -702,12 +703,12 @@ async function loadAll(){
 window.togglePin = async function togglePin(id){const entry=allEntries.find(e=>e.id===id);if(!entry)return;try{await updateDoc(doc(db,COL,id),{pinned:!entry.pinned});entry.pinned=!entry.pinned;updateStats();renderEntries();}catch(e){alert('操作失败：'+e.message);}}
 window.toggleRead = async function toggleRead(id){
   const entry=allEntries.find(e=>e.id===id);
-  if(!entry) return;
+  if(!entry||entry.read) return;
   try{
-    await updateDoc(doc(db,COL,id),{read:!entry.read});
-    entry.read=!entry.read;
+    await updateDoc(doc(db,COL,id),{read:true});
+    entry.read=true;
     const el=document.getElementById('read-'+id);
-    if(el) el.style.opacity=entry.read?'1':'0.3';
+    if(el){el.classList.add('readed');el.title='已读';}
   }catch(e){console.error(e);}
 }
 window.deleteEntry = async function deleteEntry(id){if(!confirm('确认删除？'))return;try{await deleteDoc(doc(db,COL,id));allEntries=allEntries.filter(e=>e.id!==id);updateStats();renderTagFilter();renderEntries();renderTimeline();}catch(e){alert('删除失败：'+e.message);}}
