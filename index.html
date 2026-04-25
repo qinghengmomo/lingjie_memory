@@ -385,7 +385,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",
@@ -676,31 +676,44 @@ function renderEmotions(){
   renderEmotionChart();
 }
 
-// ===== 数据加载 =====
-async function loadAll(){
+// ===== 数据加载（onSnapshot 实时监听）=====
+function sortEntries(){
+  allEntries.sort((a,b)=>{
+    if(a.pinned!==b.pinned) return b.pinned?1:-1;
+    const da=a.date||'', db2=b.date||'';
+    if(da!==db2) return da>db2?-1:1;
+    return (Number(b.createdAt)||0)-(Number(a.createdAt)||0);
+  });
+}
+
+let _unsubEntries=null, _unsubApi=null;
+function loadAll(){
   setSyncStatus('syncing','连接中...');
-  try {
-    const [entriesSnap,apiSnap]=await Promise.all([
-      getDocs(collection(db,COL)),
-      getDocs(collection(db,API_COL))
-    ]);
-    let emotionSnap={docs:[]};
-    try{emotionSnap=await getDocs(collection(db,EMOTION_COL));}catch(e){}
-    allEntries=entriesSnap.docs.map(d=>({id:d.id,...d.data()}));
-    allEntries.sort((a,b)=>{ if(a.pinned!==b.pinned) return b.pinned?-1:1; return (Number(b.createdAt)||0)-(Number(a.createdAt)||0); });
-    apiPlatforms=apiSnap.docs.map(d=>({id:d.id,...d.data()}));
-    emotionLogs=(emotionSnap.docs||[]).map(d=>({id:d.id,...d.data()}));
+  // 记忆库实时监听
+  if(_unsubEntries) _unsubEntries();
+  _unsubEntries=onSnapshot(collection(db,COL),(snap)=>{
+    allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
+    sortEntries();
     setSyncStatus('connected','灵界已连接');
     updateStats();
     renderTagFilter();
     renderEntries();
     renderTimeline();
-    renderApiPlatforms();
-    renderEmotions();
-  } catch(e){
+  },(e)=>{
     setSyncStatus('error','连接失败');
     document.getElementById('entries-container').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-text">灵界连接失败<br>${e.message||''}</div></div>`;
-  }
+  });
+  // API平台实时监听
+  if(_unsubApi) _unsubApi();
+  _unsubApi=onSnapshot(collection(db,API_COL),(snap)=>{
+    apiPlatforms=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderApiPlatforms();
+  },()=>{});
+  // 情绪日志（单次加载即可，量小）
+  getDocs(collection(db,EMOTION_COL)).then(emotionSnap=>{
+    emotionLogs=emotionSnap.docs.map(d=>({id:d.id,...d.data()}));
+    renderEmotions();
+  }).catch(()=>{});
 }
 
 // ===== CRUD 记忆库 =====
