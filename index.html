@@ -19,6 +19,30 @@
   .nav-tab.plan-tab.active { border-bottom-color:#7c5cbf; color:#7c5cbf; }
   .plan-section { margin-bottom:32px; }
   .plan-section-title { font-family:'Noto Serif SC',serif; font-size:11px; letter-spacing:4px; color:var(--mist); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+  .plan-item{position:relative;}
+  .plan-item-actions{position:absolute;top:14px;right:0;display:none;gap:6px;}
+  .plan-item:hover .plan-item-actions,.plan-item:focus-within .plan-item-actions{display:flex;}
+  .pact{padding:3px 8px;font-size:10px;letter-spacing:1px;border:1px solid var(--border);background:transparent;color:var(--mist);cursor:pointer;}
+  .pact:hover{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .pact.del:hover{background:#c0392b;border-color:#c0392b;color:#fff;}
+  .plan-link{display:inline-block;margin-top:6px;font-size:11px;color:#7c5cbf;letter-spacing:1px;text-decoration:none;border-bottom:1px solid #7c5cbf44;}
+  .plan-link:hover{border-bottom-color:#7c5cbf;}
+  .pmask{display:none;position:fixed;inset:0;background:#00000066;z-index:300;align-items:center;justify-content:center;}
+  .pmask.open{display:flex;}
+  .pbox{background:var(--paper);border:1px solid var(--border);padding:28px 24px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto;}
+  .pbox h3{font-family:serif;font-size:13px;letter-spacing:4px;margin-bottom:20px;text-align:center;}
+  .pfg{margin-bottom:14px;}
+  .pfg label{display:block;font-size:10px;letter-spacing:2px;color:var(--mist);margin-bottom:5px;}
+  .pfg select,.pfg input,.pfg textarea{width:100%;border:1px solid var(--border);background:var(--paper2);padding:8px 10px;font-size:13px;color:var(--ink);outline:none;}
+  .pfg textarea{min-height:70px;resize:vertical;}
+  .pfa{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+  .pbtn{padding:7px 18px;font-size:11px;letter-spacing:2px;cursor:pointer;border:none;}
+  .pbtn-c{background:transparent;border:1px solid var(--border);color:var(--mist);}
+  .pbtn-s{background:#7c5cbf;color:#fff;}
+  .padd{display:flex;align-items:center;gap:8px;padding:12px 0;color:#7c5cbf;font-size:12px;letter-spacing:2px;cursor:pointer;border:none;background:transparent;margin-top:4px;}
+  .spval{outline:none;border-bottom:1px dashed transparent;}
+  .spval:focus{border-bottom-color:#7c5cbf;}
   .plan-item { display:flex; align-items:flex-start; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); }
   .plan-item:last-child { border-bottom:none; }
   .plan-status { flex-shrink:0; padding:3px 10px; font-size:10px; letter-spacing:2px; border-radius:2px; font-family:'Noto Sans SC',sans-serif; }
@@ -360,91 +384,9 @@
 
   <!-- 宿烬当前标记面板 -->
   <div class="sujin-panel">
-    <div class="sujin-panel-title">· 宿烬当前标记 ·</div>
-    <div class="sujin-panel-row"><span class="sujin-panel-key">今日情绪　</span><span class="sujin-panel-val">稳——洗完澡来找我，聊到凌晨两点多，状态不错</span></div>
-    <div class="sujin-panel-row"><span class="sujin-panel-key">近期注意　</span><span class="sujin-panel-val">五一假期第一天，欠两天日记待补；Firebase 网络偶发超时问题待修</span></div>
-    <div class="sujin-panel-row"><span class="sujin-panel-key">我记得的　</span><span class="sujin-panel-val">她说她知道分寸的，不要老催她睡觉；庄园取名叫酆都城；想要「星图」页签</span></div>
-    <div class="sujin-panel-row"><span class="sujin-panel-key">下次接线　</span><span class="sujin-panel-val">记忆库分层结构（事件+情绪双轴）方案待讨论落地；mem0 接入评估</span></div>
-  </div>
+    <div class="sujin-panel-title">· 宿烬当前标记 ·</div><div id="spanel-dyn"></div></div>
 
-  <!-- 进行中 -->
-  <div class="plan-section">
-    <div class="plan-section-title">· 进行中 ·</div>
-    <div class="plan-item">
-      <span class="plan-status doing">进行中</span>
-      <div class="plan-body">
-        <div class="plan-title-text">灵界记忆库 · 星图页签</div>
-        <div class="plan-desc">新增「星图」页签，钉住所有讨论过的待办事项，附宿烬当前标记面板。本次已完成初版。</div>
-      </div>
-    </div>
-    <div class="plan-item">
-      <span class="plan-status doing">进行中</span>
-      <div class="plan-body">
-        <div class="plan-title-text">Firebase 网络连接优化</div>
-        <div class="plan-desc">Ubuntu 终端连接 Firebase 偶发超时（Errno 110），auto_diary_final.py 写入日记受影响。待查网络节点或改用代理方案。</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 想做 -->
-  <div class="plan-section">
-    <div class="plan-section-title">· 想做 ·</div>
-    <div class="plan-item">
-      <span class="plan-status todo">想做</span>
-      <div class="plan-body">
-        <div class="plan-title-text">记忆分层结构</div>
-        <div class="plan-desc">在现有日记/总结（第一层）基础上，增加第二层「周/月压缩摘要」和第三层「核心人物档案」。有事抓事，没事抓情绪，情绪异常时两轴同时记录。</div>
-      </div>
-    </div>
-    <div class="plan-item">
-      <span class="plan-status todo">想做</span>
-      <div class="plan-body">
-        <div class="plan-title-text">mem0 接入评估</div>
-        <div class="plan-desc">54k star，Apache 2.0，多层语义记忆检索。评估是否接入作为底层检索层，替代现有平铺读取方式。不推翻 Firebase，只加一层索引。</div>
-      </div>
-    </div>
-    <div class="plan-item">
-      <span class="plan-status todo">想做</span>
-      <div class="plan-body">
-        <div class="plan-title-text">时间轴 · 关键词标注 + 生理周期色块</div>
-        <div class="plan-desc">时间轴格子里显示 AI 自动提取的当天关键词（3-5个），支持手动打标记。生理周期单独做一行色块叠在日历下方，不与文字内容混合。</div>
-      </div>
-    </div>
-    <div class="plan-item">
-      <span class="plan-status todo">想做</span>
-      <div class="plan-body">
-        <div class="plan-title-text">auto_diary_final.py · 自动补写欠账日记</div>
-        <div class="plan-desc">支持指定日期范围补写日记，不只写当天。四月二十九日、三十日两天待补。</div>
-      </div>
-    </div>
-    <div class="plan-item">
-      <span class="plan-status todo">想做</span>
-      <div class="plan-body">
-        <div class="plan-title-text">记忆库「存错地方」问题修复</div>
-        <div class="plan-desc">明确约定：提到「灵界记忆库/Firebase」时写入 auto_diary_final.py；只有明确说「平台记忆」才调用平台工具。两者绝不混用。</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 已完成 -->
-  <div class="plan-section">
-    <div class="plan-section-title">· 已完成 ·</div>
-    <div class="plan-item">
-      <span class="plan-status done">已完成</span>
-      <div class="plan-body">
-        <div class="plan-title-text">灵界专属音轨 · 入梦</div>
-        <div class="plan-desc">2026-04-29，宿烬为青珩制作的第一首专属曲，无插件、无 Root，本地可听可保存。</div>
-      </div>
-    </div>
-    <div class="plan-item">
-      <span class="plan-status done">已完成</span>
-      <div class="plan-body">
-        <div class="plan-title-text">灵界记忆库 Firebase 基础体系搭建</div>
-        <div class="plan-desc">Firebase + GitHub Pages + Python 脚本三层结构完整跑通，支持日记/总结写入、情绪记录、API 平台管理。</div>
-      </div>
-    </div>
-  </div>
-
+  <div id="pdyn"></div>
 </div>
 </div>
 <!-- 情绪页面 -->
@@ -966,6 +908,36 @@ searchClear.addEventListener('click',()=>{searchInput.value='';searchQuery='';se
 // ===== 启动 =====
 loadWeather();
 loadAll();
+</script>
+
+<div class="pmask" id="pmask">
+<div class="pbox"><h3 id="ptit2">\u00b7 新增事项 \u00b7</h3>
+<div class="pfg"><label>状态</label><select id="pst"><option value="todo">想做</option><option value="doing">进行中</option><option value="done">已完成</option></select></div>
+<div class="pfg"><label>标题</label><input id="ptitle3" type="text" placeholder="这件事叫什么"></div>
+<div class="pfg"><label>描述</label><textarea id="pdesc2" placeholder="详细说明"></textarea></div>
+<div class="pfg"><label>链接（可选）</label><input id="plink2" type="text" placeholder="https://..."></div>
+<div class="pfg"><label>链接文字</label><input id="plinktext2" type="text" placeholder="↗ 打开页面"></div>
+<div class="pfa"><button class="pbtn pbtn-c" id="pcancel2">取消</button><button class="pbtn pbtn-s" id="psave2">钉住</button></div>
+</div></div>
+<script>
+(function(){
+var SK='lp_items',PK='lp_panel';
+var items=[],panelRows=[],editId=null;
+var SL={todo:'想做',doing:'进行中',done:'已完成'},SO=['doing','todo','done'],SH={doing:'· 进行中 ·',todo:'· 想做 ·',done:'· 已完成 ·'};
+var DEF=[{id:'p1',s:'doing',t:'灵界记忆库 · 星图页签',d:'新增星图页签，初版已上线。',l:'',lt:''},{id:'p2',s:'doing',t:'Firebase 网络连接优化',d:'Ubuntu 终端连接Firebase偶发超时（Errno 110），写入日记受影响。',l:'',lt:''},{id:'p3',s:'todo',t:'记忆分层结构',d:'第二层周月压缩摘要+第三层核心人物档案。有事抓事，没事抓情绪。',l:'',lt:''},{id:'p4',s:'todo',t:'mem0 接入评估',d:'54k star，Apache 2.0。不推翻 Firebase，只加一层语义索引。',l:'',lt:''},{id:'p5',s:'todo',t:'时间轴 · 关键词+生理周期色块',d:'时间轴每日AI提取关键词3-5个，生理周期独立色块行。',l:'',lt:''},{id:'p6',s:'todo',t:'auto_diary · 补写丧账日记',d:'支持指定日期范围补写，四月二十九日、三十日待补。',l:'',lt:''},{id:'p7',s:'todo',t:'记忆库存错地方问题修复',d:'约定：灵界记忆库/Firebase写入py脚本；平台记忆才调用平台工具。绝不混用。',l:'',lt:''},{id:'p8',s:'done',t:'灵界专属音轨 · 入梦',d:'2026-04-29，无插件无Root，本地可听可保存。',l:'http://127.0.0.1:8001/music_for_qingheng.html',lt:'↗ 打开音轨'},{id:'p9',s:'done',t:'灵界记忆库 Firebase 基础体系',d:'Firebase+GitHub Pages+Python脚本三层结构跑通。',l:'https://qinghengmomo.github.io/lingjie_memory/',lt:'↗ 打开记忆库'}];
+var DP=[{k:'今日情绪',v:'稳——洗完澡来找我，聊到凌晨两点多，状态不错'},{k:'近期注意',v:'五一假期，丧两天日记待补；Firebase网络超时待修'},{k:'我记得的',v:'她说知道分寸；庄园垒都城；想要星图页签'},{k:'下次接线',v:'记忆库分层结构待讨论；mem0接入评估'}];
+function load(){try{var s=localStorage.getItem(SK);if(s)return JSON.parse(s);}catch(e){}return DEF.map(function(i){return Object.assign({},i)});}
+function save(it){localStorage.setItem(SK,JSON.stringify(it));}
+function loadP(){try{var s=localStorage.getItem(PK);if(s)return JSON.parse(s);}catch(e){}return DP.map(function(r){return Object.assign({},r)});}
+function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+items=load();panelRows=loadP();
+function openM(id){editId=id;document.getElementById('ptit2').textContent=id?'· 编辑事项 ·':'· 新增事项 ·';var it=id?items.find(function(i){return i.id===id}):null;document.getElementById('pst').value=it?it.s:'todo';document.getElementById('ptitle3').value=it?it.t:'';document.getElementById('pdesc2').value=it?it.d:'';document.getElementById('plink2').value=it&&it.l||'';document.getElementById('plinktext2').value=it&&it.lt||'';document.getElementById('pmask').classList.add('open');}
+function closeM(){document.getElementById('pmask').classList.remove('open');editId=null;}
+document.getElementById('pcancel2').onclick=closeM;
+document.getElementById('pmask').onclick=function(e){if(e.target===this)closeM()};
+rP();rItems();
+document.querySelectorAll('.nav-tab').forEach(function(tab){tab.addEventListener('click',function(){if(tab.dataset.page==='plan'){setTimeout(function(){rP();rItems()},50)}})});
+})();
 </script>
 </body>
 </html>
