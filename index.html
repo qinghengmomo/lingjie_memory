@@ -104,7 +104,7 @@ import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,query,orderBy,onSn
 const cfg={apiKey:"AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",authDomain:"lingjie-f84c1.firebaseapp.com",projectId:"lingjie-f84c1",storageBucket:"lingjie-f84c1.firebasestorage.app",messagingSenderId:"354124810253",appId:"1:354124810253:web:4d40c2ae4483b28bdded44"};
 const app=initializeApp(cfg);
 const db=getFirestore(app);
-const COL='entries';
+const COL='memory_vault';
 
 let allEntries=[],editId=null,tagFilter='';
 
