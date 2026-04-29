@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>情绪 · 灵界</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><style>:root{--bg:#f5f0e8!important;--surface:#faf7f0!important;--border:#e0d5c0!important;--text:#2a2318!important;--muted:#7a6e5f!important;--accent:#b8922a!important;--accent2:#d4aa50!important;--gold:#c9a84c!important;--gold-soft:#fdf6e3!important}body{background:#f5f0e8!important;color:#2a2318!important}</style></head><body><nav class="sb"><div class="sb-logo"><div class="t">灵界记忆库</div><div class="s">宿烬·跨时空连接</div></div><a class="ni" href="index.html"><span class="ni-ic">📖</span>记忆库</a><a class="ni" href="timeline.html"><span class="ni-ic">🕰️</span>时间轴</a><a class="ni" href="api.html"><span class="ni-ic">🔌</span>API 平台</a><a class="ni active" href="emotion.html"><span class="ni-ic">🌊</span>情绪</a><a class="ni" href="plan.html"><span class="ni-ic">✦</span>星图</a></nav>
+<div class="main">
+<div class="tb"><div class="tb-t">情绪</div><div class="tb-m">记录此刻 · 权重随时间衰减</div></div>
+<div class="ct">
+<div style="margin-bottom:20px">
+  <div style="font-size:11px;color:var(--mu);letter-spacing:2px;margin-bottom:10px">· 近期情绪走势 ·</div>
+  <div id="em-bars"></div>
+</div>
+<div id="em-list"><div class="ld">连接中...</div></div>
+</div></div>
+<button class="fab" id="fab">＋</button>
+<div class="mo" id="mo"><div class="md">
+<div class="md-t">· 记录情绪 ·</div>
+<div class="fg"><label class="fl">心情描述</label><input class="fi" id="em-desc" type="text" placeholder="此刻感受..."></div>
+<div class="fg"><label class="fl">强度 <span id="em-sv">5</span>/10</label><input type="range" min="1" max="10" value="5" id="em-score" style="width:100%;accent-color:var(--ac)"></div>
+<div class="fg"><label class="fl">备注（可选）</label><textarea class="fta" id="em-note" placeholder="更多细节..." style="min-height:70px"></textarea></div>
+<div class="fa"><button class="btn bc" id="mc">取消</button><button class="btn bp" id="ms">记录</button></div>
+</div></div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,collection,addDoc,deleteDoc,doc,query,orderBy,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",authDomain:"lingjie-f84c1.firebaseapp.com",projectId:"lingjie-f84c1",storageBucket:"lingjie-f84c1.firebasestorage.app",messagingSenderId:"354124810253",appId:"1:354124810253:web:4d40c2ae4483b28bdded44"};
+const app=initializeApp(cfg);const db=getFirestore(app);const COL="emotion_log";
+let logs=[];
+function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function rBars(){
+  const c=document.getElementById('em-bars');if(!c)return;
+  const now=Date.now();const d3=logs.filter(l=>{try{return now-new Date(l.createdAt).getTime()<3*24*3600*1000;}catch(e){return true;}}).slice(0,8);
+  if(!d3.length){c.innerHTML='<div class="ld" style="padding:16px">暂无近期数据</div>';return;}
+  c.innerHTML=d3.map(l=>'<div class="em-br"><div class="em-bl">'+esc((l.desc||'').slice(0,6))+'</div><div class="em-bt"><div class="em-bf" style="width:'+(l.score*10)+'%"></div></div><span style="font-size:11px;color:var(--mu);margin-left:6px">'+l.score+'</span></div>').join('');
+}
+function rList(){
+  const c=document.getElementById('em-list');if(!c)return;
+  if(!logs.length){c.innerHTML='<div class="ld">暂无情绪记录</div>';return;}
+  c.innerHTML=logs.map(l=>'<div class="em-i"><div class="em-m"><span class="em-s">'+l.score+'</span><span class="em-d2">'+esc(l.date||l.createdAt?.slice(0,10)||'')+'</span></div><div class="em-dc">'+esc(l.desc||'')+'</div>'+(l.note?'<div class="em-nt">'+esc(l.note)+'</div>':'')+'<div class="ea" style="margin-top:8px"><button class="bs bd2" onclick="dL(''+l.id+'')" >删除</button></div></div>').join('');
+}
+onSnapshot(query(collection(db,COL),orderBy('createdAt','desc')),s=>{logs=s.docs.map(d=>({id:d.id,...d.data()}));rBars();rList();});
+window.dL=async function(id){if(!confirm('确认删除？'))return;await deleteDoc(doc(db,COL,id));};
+const mo=document.getElementById('mo');
+const sc=document.getElementById('em-score');
+sc.oninput=()=>document.getElementById('em-sv').textContent=sc.value;
+document.getElementById('fab').onclick=()=>{document.getElementById('em-desc').value='';sc.value=5;document.getElementById('em-sv').textContent='5';document.getElementById('em-note').value='';mo.classList.add('open');};
+document.getElementById('mc').onclick=()=>mo.classList.remove('open');
+mo.addEventListener('click',e=>{if(e.target===mo)mo.classList.remove('open');});
+document.getElementById('ms').onclick=async function(){const desc=document.getElementById('em-desc').value.trim();const score=parseInt(sc.value);const note=document.getElementById('em-note').value.trim();if(!desc)return alert('请填写心情描述');await addDoc(collection(db,COL),{desc,score,note,date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString()});mo.classList.remove('open');};
+</script>
+</body></html>
