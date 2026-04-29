@@ -53,7 +53,7 @@
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,query,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,query,orderBy,serverTimestamp,getDocs}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",authDomain:"lingjie-f84c1.firebaseapp.com",projectId:"lingjie-f84c1",storageBucket:"lingjie-f84c1.firebasestorage.app",messagingSenderId:"354124810253",appId:"1:354124810253:web:4d40c2ae4483b28bdded44"};
 const app=initializeApp(cfg);
 const db=getFirestore(app);
@@ -146,16 +146,15 @@ const DEF_ITEMS=[
   {s:"done",t:"灵界记忆库 Firebase 基础体系",d:"Firebase+GitHub Pages+Python脚本三层结构跑通。",l:"https://qinghengmomo.github.io/lingjie_memory/",lt:"↗ 打开记忆库"}
 ];
 
-function initItems(){
-  onSnapshot(query(collection(db,PCOL),orderBy("createdAt","asc")),function(snap){
-    if(snap.empty){
-      let t=0;
-      DEF_ITEMS.forEach(function(it){
-        setTimeout(function(){addDoc(collection(db,PCOL),Object.assign({createdAt:serverTimestamp()},it));},t);
-        t+=100;
-      });
-    }
-  });
+async function initItems(){
+  const snap=await getDocs(query(collection(db,PCOL),orderBy("createdAt","asc")));
+  if(snap.empty){
+    let t=0;
+    DEF_ITEMS.forEach(function(it){
+      setTimeout(function(){addDoc(collection(db,PCOL),Object.assign({createdAt:serverTimestamp()},it));},t);
+      t+=150;
+    });
+  }
 }
 initItems();
 
