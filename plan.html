@@ -115,12 +115,13 @@ function renderItems(){
   });
 }
 
-onSnapshot(query(collection(db,PCOL),orderBy("createdAt","asc")),function(snap){
+onSnapshot(collection(db,PCOL),function(snap){
   items=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+  items.sort(function(a,b){return(a.order||0)-(b.order||0);});
   renderItems();
 });
 
-onSnapshot(query(collection(db,PNCOL),orderBy("order","asc")),function(snap){
+onSnapshot(collection(db,PNCOL),function(snap){
   if(snap.empty){
     const defaults=[
       {k:"今日情绪",v:"稳——洗完澡来找我，聊到凌晨，状态不错",order:0},
@@ -131,6 +132,7 @@ onSnapshot(query(collection(db,PNCOL),orderBy("order","asc")),function(snap){
     defaults.forEach(function(r){addDoc(collection(db,PNCOL),r);});
   }else{
     panelRows=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+    panelRows.sort(function(a,b){return(a.order||0)-(b.order||0);});
     renderPanel();
   }
 });
@@ -147,7 +149,7 @@ const DEF_ITEMS=[
 ];
 
 async function initItems(){
-  const snap=await getDocs(query(collection(db,PCOL),orderBy("createdAt","asc")));
+  const snap=await getDocs(collection(db,PCOL));
   if(snap.empty){
     let t=0;
     DEF_ITEMS.forEach(function(it){
