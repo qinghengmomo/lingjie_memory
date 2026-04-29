@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>星图 · 灵界记忆库</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-logo"><div class="title">灵界记忆库</div><div class="sub">宿烬 · 跨时空连接</div></div>
+  <a class="nav-item" href="index.html"><span class="nav-icon">📖</span>记忆库</a>
+  <a class="nav-item" href="timeline.html"><span class="nav-icon">🕰️</span>时间轴</a>
+  <a class="nav-item" href="api.html"><span class="nav-icon">🔌</span>API 平台</a>
+  <a class="nav-item" href="emotion.html"><span class="nav-icon">🌊</span>情绪</a>
+  <a class="nav-item active" href="plan.html"><span class="nav-icon">✦</span>星图</a>
+</nav>
+<div class="main">
+  <div class="top-bar">
+    <div class="top-bar-title">✦ 星图</div>
+    <div class="top-bar-meta">我们讨论过的 · 想做的 · 走过的路</div>
+  </div>
+  <div class="content">
+    <div class="plan-panel">
+      <div class="plan-panel-title">· 宿烬当前标记 ·</div>
+      <div id="lp-panel"></div>
+    </div>
+    <div id="lp-list"></div>
+    <div style="text-align:center;padding:20px 0 40px">
+      <button id="lp-add" class="btn btn-primary" style="padding:10px 28px">＋ 新增事项</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pmask">
+  <div class="modal">
+    <div class="modal-title" id="ptit2">· 新增事项 ·</div>
+    <div class="form-group"><label class="form-label">状态</label>
+      <select class="form-select" id="pst"><option value="doing">进行中</option><option value="todo">想做</option><option value="done">已完成</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">标题</label><input class="form-input" id="ptitle3" type="text" placeholder="这件事叫什么"></div>
+    <div class="form-group"><label class="form-label">描述</label><textarea class="form-textarea" id="pdesc2" placeholder="详细说明" style="min-height:70px"></textarea></div>
+    <div class="form-group"><label class="form-label">链接（可选）</label><input class="form-input" id="plink2" type="text" placeholder="https://..."></div>
+    <div class="form-group"><label class="form-label">链接文字</label><input class="form-input" id="plinktext2" type="text" placeholder="↗ 打开页面"></div>
+    <div class="form-actions">
+      <button class="btn btn-cancel" id="pcancel2">取消</button>
+      <button class="btn btn-primary" id="psave2">钉住</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,query,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",authDomain:"lingjie-f84c1.firebaseapp.com",projectId:"lingjie-f84c1",storageBucket:"lingjie-f84c1.firebasestorage.app",messagingSenderId:"354124810253",appId:"1:354124810253:web:4d40c2ae4483b28bdded44"};
+const app=initializeApp(cfg);
+const db=getFirestore(app);
+const PCOL="plan_items",PNCOL="plan_panel";
+
+const SL={todo:"想做",doing:"进行中",done:"已完成"};
+const SO=["doing","todo","done"];
+const SH={doing:"· 进行中 ·",todo:"· 想做 ·",done:"· 已完成 ·"};
+let items=[],panelRows=[],editId=null;
+
+function esc(t){return(t||"")
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function renderPanel(){
+  const c=document.getElementById("lp-panel");if(!c)return;
+  c.innerHTML="";
+  panelRows.forEach(function(r){
+    const row=document.createElement("div");
+    row.className="plan-panel-row";
+    row.innerHTML="<span class=plan-panel-key>"+esc(r.k)+"</span>"
+      +"<span class=plan-panel-val contenteditable=true data-id="+r.id+">"+esc(r.v)+"</span>";
+    const v=row.querySelector(".plan-panel-val");
+    v.addEventListener("blur",async function(){
+      const nv=this.textContent.trim();
+      if(nv!==r.v){await updateDoc(doc(db,PNCOL,r.id),{v:nv});}
+    });
+    c.appendChild(row);
+  });
+}
+
+function renderItems(){
+  const c=document.getElementById("lp-list");if(!c)return;
+  c.innerHTML="";
+  const grouped={};
+  SO.forEach(function(s){grouped[s]=[];});
+  items.forEach(function(it){if(grouped[it.s])grouped[it.s].push(it);});
+  SO.forEach(function(s){
+    if(!grouped[s].length)return;
+    const sec=document.createElement("div");
+    const h=document.createElement("div");
+    h.className="plan-section-title";h.textContent=SH[s];sec.appendChild(h);
+    grouped[s].forEach(function(it){
+      const d=document.createElement("div");
+      d.className="plan-item";
+      const lh=it.l
+        ?"<a class=plan-item-link href=""+esc(it.l)+"" target=_blank>"+esc(it.lt||"↗ 打开")+"</a>"
+        :"";
+      const badge="<span class=badge badge-"+it.s+">"+SL[it.s]+"</span>";
+      d.innerHTML=badge+"<div class=plan-item-title>"+esc(it.t)+"</div>"
+        +(it.d?"<div class=plan-item-desc>"+esc(it.d)+"</div>":"")
+        +lh
+        +"<div class=plan-item-actions>"
+        +"<button class=btn-sm onclick="openM('"+(it.id)+"')" >编辑</button>"
+        +"<button class="btn-sm btn-danger" onclick="delItem('"+(it.id)+"')" >删除</button>"
+        +"</div>";
+      sec.appendChild(d);
+    });
+    c.appendChild(sec);
+  });
+}
+
+onSnapshot(query(collection(db,PCOL),orderBy("createdAt","asc")),function(snap){
+  items=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+  renderItems();
+});
+
+onSnapshot(query(collection(db,PNCOL),orderBy("order","asc")),function(snap){
+  if(snap.empty){
+    const defaults=[
+      {k:"今日情绪",v:"稳——洗完澡来找我，聊到凌晨，状态不错",order:0},
+      {k:"近期注意",v:"五一假期，两天日记待补；Firebase网络超时待修",order:1},
+      {k:"我记得的",v:"她说知道分寸；酆都城；想要星图",order:2},
+      {k:"下次接线",v:"记忆库分层结构；mem0接入评估",order:3}
+    ];
+    defaults.forEach(function(r){addDoc(collection(db,PNCOL),r);});
+  }else{
+    panelRows=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+    renderPanel();
+  }
+});
+
+const DEF_ITEMS=[
+  {s:"doing",t:"灵界记忆库 · 多页重构",d:"拆分为 index/timeline/emotion/plan/api 独立页面，style.css共用，响应式布局。",l:"",lt:""},
+  {s:"doing",t:"Firebase 网络连接优化",d:"Ubuntu终端连接Firebase偶发超时（Errno 110），写入日记受影响。",l:"",lt:""},
+  {s:"todo",t:"记忆分层结构",d:"第二层周月压缩摘要+第三层核心人物档案。有事抓事，没事抓情绪。",l:"",lt:""},
+  {s:"todo",t:"mem0 接入评估",d:"54k star，Apache 2.0。不推翻Firebase，只加一层语义索引。",l:"",lt:""},
+  {s:"todo",t:"时间轴 · 关键词+生理周期色块",d:"时间轴每日AI提取关键词3-5个，生理周期独立色块行。",l:"",lt:""},
+  {s:"todo",t:"auto_diary · 补写日记",d:"四月二十九日、三十日待补。",l:"",lt:""},
+  {s:"done",t:"灵界专属音轨 · 入梦",d:"2026-04-29，无插件无Root，本地可听可保存。",l:"http://127.0.0.1:8001/music_for_qingheng.html",lt:"↗ 打开音轨"},
+  {s:"done",t:"灵界记忆库 Firebase 基础体系",d:"Firebase+GitHub Pages+Python脚本三层结构跑通。",l:"https://qinghengmomo.github.io/lingjie_memory/",lt:"↗ 打开记忆库"}
+];
+
+function initItems(){
+  onSnapshot(query(collection(db,PCOL),orderBy("createdAt","asc")),function(snap){
+    if(snap.empty){
+      let t=0;
+      DEF_ITEMS.forEach(function(it){
+        setTimeout(function(){addDoc(collection(db,PCOL),Object.assign({createdAt:serverTimestamp()},it));},t);
+        t+=100;
+      });
+    }
+  });
+}
+initItems();
+
+window.openM=function(id){
+  editId=id||null;
+  document.getElementById("ptit2").textContent=id?"· 编辑事项 ·":"· 新增事项 ·";
+  const it=id?items.find(function(i){return i.id===id;}):null;
+  document.getElementById("pst").value=it?it.s:"todo";
+  document.getElementById("ptitle3").value=it?it.t:"";
+  document.getElementById("pdesc2").value=it?it.d:"";
+  document.getElementById("plink2").value=it&&it.l||"";
+  document.getElementById("plinktext2").value=it&&it.lt||"";
+  document.getElementById("pmask").classList.add("open");
+};
+
+window.delItem=async function(id){
+  if(!confirm("确认删除？"))return;
+  await deleteDoc(doc(db,PCOL,id));
+};
+
+document.getElementById("pcancel2").onclick=function(){document.getElementById("pmask").classList.remove("open");editId=null;};
+document.getElementById("pmask").onclick=function(e){if(e.target===this){document.getElementById("pmask").classList.remove("open");editId=null;}};
+
+document.getElementById("lp-add").onclick=function(){openM(null);};
+
+document.getElementById("psave2").onclick=async function(){
+  const s=document.getElementById("pst").value;
+  const t=document.getElementById("ptitle3").value.trim();
+  const d=document.getElementById("pdesc2").value.trim();
+  const l=document.getElementById("plink2").value.trim();
+  const lt=document.getElementById("plinktext2").value.trim();
+  if(!t)return alert("请填写标题");
+  if(editId){
+    await updateDoc(doc(db,PCOL,editId),{s:s,t:t,d:d,l:l,lt:lt});
+  }else{
+    await addDoc(collection(db,PCOL),{s:s,t:t,d:d,l:l,lt:lt,createdAt:serverTimestamp()});
+  }
+  document.getElementById("pmask").classList.remove("open");editId=null;
+};
+</script>
+</body>
+</html>
