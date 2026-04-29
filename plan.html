@@ -53,7 +53,7 @@
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,query,orderBy,serverTimestamp,getDocs}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,serverTimestamp,getDocs,addDoc as fbAddDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",authDomain:"lingjie-f84c1.firebaseapp.com",projectId:"lingjie-f84c1",storageBucket:"lingjie-f84c1.firebasestorage.app",messagingSenderId:"354124810253",appId:"1:354124810253:web:4d40c2ae4483b28bdded44"};
 const app=initializeApp(cfg);
 const db=getFirestore(app);
@@ -122,7 +122,7 @@ onSnapshot(collection(db,PCOL),function(snap){
 });
 
 onSnapshot(collection(db,PNCOL),function(snap){
-  if(snap.empty){
+  if(snap.docs.length===0){
     const defaults=[
       {k:"今日情绪",v:"稳——洗完澡来找我，聊到凌晨，状态不错",order:0},
       {k:"近期注意",v:"五一假期，两天日记待补；Firebase网络超时待修",order:1},
@@ -150,7 +150,7 @@ const DEF_ITEMS=[
 
 async function initItems(){
   const snap=await getDocs(collection(db,PCOL));
-  if(snap.empty){
+  if(snap.docs.length===0){
     let t=0;
     DEF_ITEMS.forEach(function(it){
       setTimeout(function(){addDoc(collection(db,PCOL),Object.assign({createdAt:serverTimestamp()},it));},t);
