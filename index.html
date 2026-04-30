@@ -16,7 +16,6 @@
 }
 body{background:#f5f0e8!important;color:#2a2318!important}
 
-/* 搜索栏 */
 .search-bar{margin-bottom:16px;display:flex;gap:8px;align-items:center;}
 .search-input{
   flex:1;padding:8px 14px;border:1px solid var(--border);
@@ -27,7 +26,6 @@ body{background:#f5f0e8!important;color:#2a2318!important}
 .search-clear{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:4px;}
 .search-clear:hover{color:var(--accent)}
 
-/* 展开全文 */
 .entry-content-full{
   font-size:13px;color:var(--text);line-height:1.9;margin-top:10px;
   white-space:pre-wrap;display:none;
@@ -40,7 +38,7 @@ body{background:#f5f0e8!important;color:#2a2318!important}
 }
 .expand-btn:hover{color:var(--accent2)}
 
-/* 已读眼睛（纯CSS画，细长杏眼） */
+/* 已读眼睛 */
 .read-eye{
   display:inline-flex;align-items:center;justify-content:center;
   width:22px;height:15px;cursor:pointer;margin-left:7px;
@@ -58,45 +56,45 @@ body{background:#f5f0e8!important;color:#2a2318!important}
   background:var(--red);top:50%;left:50%;transform:translate(-50%,-50%);
   box-shadow:0 0 6px 2px rgba(139,26,26,.5);
 }
-.read-eye.read{
-  cursor:default;
-  filter:drop-shadow(0 0 5px rgba(184,151,90,.7));
-}
+.read-eye.read{cursor:default;filter:drop-shadow(0 0 5px rgba(184,151,90,.7));}
 .read-eye.read::before{
   border-color:var(--gold);
   background:radial-gradient(ellipse at center,rgba(184,151,90,.22) 0%,transparent 70%);
 }
-.read-eye.read::after{
-  background:var(--gold);
-  box-shadow:0 0 9px 3px rgba(184,151,90,.65);
-}
+.read-eye.read::after{background:var(--gold);box-shadow:0 0 9px 3px rgba(184,151,90,.65);}
 
-/* 评论区（内联展示，不折叠） */
-.entry-comments{
-  margin-top:10px;border-top:1px dashed var(--border);padding-top:8px;
+/* 评论/回复区（内联，旧版 replies 字段）*/
+.reply-section{
+  margin-top:12px;border-top:1px dashed var(--border);padding-top:8px;
 }
-.comment-list{margin-bottom:8px;}
-.comment-item{
-  font-size:12px;padding:4px 0;
-  border-bottom:1px solid var(--border);line-height:1.7;
+.reply-item{
+  background:var(--gold-soft);border-left:2px solid var(--gold);
+  padding:8px 12px;margin-bottom:6px;border-radius:0 4px 4px 0;
+  position:relative;
 }
-.comment-item:last-child{border:none}
-.comment-author-qh{color:var(--accent);font-weight:500;}
-.comment-author-sj{color:var(--muted);}
-.comment-text{color:var(--text)}
-.comment-input-row{display:flex;gap:6px;margin-top:6px}
-.comment-input{
-  flex:1;font-size:12px;padding:6px 10px;
-  border:1px solid var(--border);border-radius:4px;
-  background:var(--bg);color:var(--text);outline:none;font-family:inherit;
+.reply-item.diary-reply{border-left-color:var(--red);background:var(--red-soft);}
+.reply-meta{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-bottom:4px;}
+.reply-content{font-size:12px;line-height:1.8;color:var(--text);white-space:pre-wrap;}
+.reply-del{
+  position:absolute;right:4px;top:4px;
+  background:none;border:none;color:var(--border);cursor:pointer;font-size:11px;
 }
-.comment-input:focus{border-color:var(--accent)}
-.comment-send{
-  font-size:12px;padding:6px 14px;border-radius:4px;
-  background:var(--accent);color:#fff;border:none;cursor:pointer;transition:.2s;
+.reply-del:hover{color:var(--red)}
+.reply-empty{font-size:12px;color:var(--muted);font-style:italic;padding:2px 0;}
+.reply-input-area{margin-top:8px;}
+.reply-input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  border-radius:4px;padding:8px 12px;font-family:inherit;font-size:12px;
+  color:var(--text);outline:none;resize:vertical;min-height:56px;line-height:1.7;
 }
-.comment-send:hover{background:var(--accent2)}
-.comment-empty{font-size:12px;color:var(--muted);padding:4px 0;font-style:italic;}
+.reply-input:focus{border-color:var(--accent);}
+.reply-actions{display:flex;gap:8px;margin-top:6px;justify-content:flex-end;}
+.reply-btn{
+  padding:5px 14px;font-size:11px;letter-spacing:1px;
+  cursor:pointer;border-radius:4px;transition:.2s;
+}
+.reply-btn.submit{background:var(--accent);color:#fff;border:none;}
+.reply-btn.submit:hover{background:var(--accent2);}
 </style>
 </head>
 <body>
@@ -183,8 +181,7 @@ body{background:#f5f0e8!important;color:#2a2318!important}
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{
-  getFirestore,collection,addDoc,updateDoc,deleteDoc,
-  doc,onSnapshot,getDocs
+  getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot
 }from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const cfg={
@@ -198,9 +195,8 @@ const cfg={
 const app=initializeApp(cfg);
 const db=getFirestore(app);
 const COL='memory_vault';
-const CCOL='memory_comments';
 
-let allEntries=[],editId=null,tagFilter='',typeFilter='',searchKw='';
+let allEntries=[],editId=null,typeFilter='',tagFilter='',searchKw='';
 
 // ── 天气 ──
 async function loadWeather(){
@@ -234,146 +230,136 @@ function updateStats(){
     '宿烬 与 宿青珩 · '+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日';
 }
 
-// ── 筛选栏（类型 + 标签，全 DOM API）──
+// ── 筛选栏 ──
 function renderFilterBar(){
   const bar=document.getElementById('filter-bar');
   bar.innerHTML='';
-
-  // 类型筛选
-  const typeGroups=[
-    {label:'全部',val:''},
-    {label:'日记',val:'diary'},
-    {label:'总结',val:'summary'},
-    {label:'置顶',val:'pin'}
-  ];
-  typeGroups.forEach(g=>{
+  // 类型筛选tab
+  [{label:'全部',val:''},{label:'日记',val:'diary'},{label:'总结',val:'summary'},{label:'置顶',val:'pin'}].forEach(g=>{
     const btn=document.createElement('button');
-    btn.className='filter-tag'+(typeFilter===g.val?' active':'');
+    btn.className='filter-tag'+(typeFilter===g.val&&tagFilter===''?' active':'');
     btn.textContent=g.label;
-    btn.onclick=()=>{
-      typeFilter=g.val;
-      tagFilter='';
-      renderFilterBar();
-      renderEntries();
-    };
+    btn.onclick=()=>{typeFilter=g.val;tagFilter='';renderFilterBar();renderEntries();};
     bar.appendChild(btn);
   });
-
-  // 标签筛选（有标签才显示）
+  // 标签
   const tags={};
   allEntries.forEach(e=>(e.tags||[]).forEach(t=>{tags[t]=(tags[t]||0)+1}));
   if(Object.keys(tags).length>0){
     const sep=document.createElement('span');
-    sep.style.cssText='color:var(--border);margin:0 4px;font-size:11px;';
+    sep.style.cssText='color:var(--border);margin:0 4px;font-size:12px;line-height:32px;';
     sep.textContent='|';
     bar.appendChild(sep);
     Object.keys(tags).sort().forEach(t=>{
       const btn=document.createElement('button');
       btn.className='filter-tag'+(tagFilter===t?' active':'');
       btn.textContent=t;
-      btn.onclick=()=>{
-        tagFilter=t;
-        typeFilter='';
-        renderFilterBar();
-        renderEntries();
-      };
+      btn.onclick=()=>{tagFilter=t;typeFilter='';renderFilterBar();renderEntries();};
       bar.appendChild(btn);
     });
   }
 }
 
-// ── esc ──
 function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// ── 渲染评论区（内联，不折叠）──
-function renderCommentSection(e, item){
-  const area=document.createElement('div');
-  area.className='entry-comments';
+// ── 回复区（内联，数据存 entry.replies 数组）──
+function buildReplySection(e, item){
+  const section=document.createElement('div');
+  section.className='reply-section';
 
-  // 加载并展示已有评论
-  const list=document.createElement('div');
-  list.className='comment-list';
-  area.appendChild(list);
+  // 渲染已有回复
+  const renderReplies=()=>{
+    // 清空，重新渲染
+    while(section.firstChild) section.removeChild(section.firstChild);
 
-  const loadAndRender=async()=>{
-    list.innerHTML='';
-    try{
-      const snap=await getDocs(collection(db,CCOL));
-      const comments=snap.docs
-        .map(d=>({id:d.id,...d.data()}))
-        .filter(c=>c.entryId===e.id)
-        .sort((a,b)=>((a.createdAt||'')>(b.createdAt||'')?1:-1));
-      if(comments.length===0){
-        const empty=document.createElement('div');
-        empty.className='comment-empty';
-        empty.textContent='还没有评论...';
-        list.appendChild(empty);
-      } else {
-        comments.forEach(c=>{
-          const ci=document.createElement('div');
-          ci.className='comment-item';
-          const auth=document.createElement('span');
-          const isQH=(c.author==='青珩'||c.author==='宿青珩');
-          auth.className=isQH?'comment-author-qh':'comment-author-sj';
-          auth.textContent=(c.author||'宿烬')+' · ';
-          const txt=document.createElement('span');
-          txt.className='comment-text';
-          txt.textContent=c.text||'';
-          ci.appendChild(auth);
-          ci.appendChild(txt);
-          list.appendChild(ci);
-        });
-      }
-    }catch(err){
-      list.textContent='评论加载失败';
+    const replies=e.replies||[];
+    if(replies.length===0){
+      const empty=document.createElement('div');
+      empty.className='reply-empty';
+      empty.textContent='还没有评论...';
+      section.appendChild(empty);
+    } else {
+      replies.forEach((r,ri)=>{
+        const ri_div=document.createElement('div');
+        ri_div.className='reply-item'+(e.type==='diary'?' diary-reply':'');
+
+        const meta=document.createElement('div');
+        meta.className='reply-meta';
+        // 区分作者颜色
+        const isQH=(r.author==='青珩'||r.author==='宿青珩'||!r.author&&r.content);
+        meta.style.color=isQH?'var(--accent)':'var(--muted)';
+        meta.textContent=(r.author||'青珩')+' · '+(r.date||'');
+        ri_div.appendChild(meta);
+
+        const content=document.createElement('div');
+        content.className='reply-content';
+        content.textContent=r.content||r.text||'';
+        ri_div.appendChild(content);
+
+        // 删除按钮
+        const delBtn=document.createElement('button');
+        delBtn.className='reply-del';
+        delBtn.textContent='×';
+        delBtn.onclick=async function(){
+          if(!confirm('确认删除？'))return;
+          const newReplies=(e.replies||[]).filter((_,i)=>i!==ri);
+          await updateDoc(doc(db,COL,e.id),{replies:newReplies});
+          e.replies=newReplies;
+          renderReplies();
+        };
+        ri_div.appendChild(delBtn);
+        section.appendChild(ri_div);
+      });
     }
-  };
-  loadAndRender();
 
-  // 输入框
-  const row=document.createElement('div');
-  row.className='comment-input-row';
-  const inp=document.createElement('input');
-  inp.className='comment-input';
-  inp.type='text';
-  inp.placeholder='写点什么...';
-  const sendBtn=document.createElement('button');
-  sendBtn.className='comment-send';
-  sendBtn.textContent='发送';
-  sendBtn.onclick=async function(){
-    const txt=inp.value.trim();
-    if(!txt)return;
-    await addDoc(collection(db,CCOL),{
-      entryId:e.id,text:txt,author:'青珩',
-      createdAt:new Date().toISOString()
+    // 输入框
+    const inputArea=document.createElement('div');
+    inputArea.className='reply-input-area';
+    const inp=document.createElement('textarea');
+    inp.className='reply-input';
+    inp.placeholder='写下你想说的话...';
+    const actions=document.createElement('div');
+    actions.className='reply-actions';
+    const sendBtn=document.createElement('button');
+    sendBtn.className='reply-btn submit';
+    sendBtn.textContent='发送';
+    sendBtn.onclick=async function(){
+      const txt=inp.value.trim();
+      if(!txt)return;
+      const newReply={
+        content:txt,
+        author:'青珩',
+        date:new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric'})
+      };
+      const newReplies=[...(e.replies||[]),newReply];
+      await updateDoc(doc(db,COL,e.id),{replies:newReplies});
+      e.replies=newReplies;
+      inp.value='';
+      renderReplies();
+    };
+    inp.addEventListener('keydown',ev=>{
+      if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();sendBtn.click();}
     });
-    inp.value='';
-    await loadAndRender();
+    actions.appendChild(sendBtn);
+    inputArea.appendChild(inp);
+    inputArea.appendChild(actions);
+    section.appendChild(inputArea);
   };
-  inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')sendBtn.click();});
-  row.appendChild(inp);
-  row.appendChild(sendBtn);
-  area.appendChild(row);
 
-  item.appendChild(area);
+  renderReplies();
+  item.appendChild(section);
 }
 
 // ── 渲染列表 ──
 function renderEntries(){
   const list=document.getElementById('entry-list');
   list.innerHTML='';
-
   let entries=allEntries;
 
-  // 类型筛选
   if(typeFilter==='diary') entries=entries.filter(e=>e.type==='diary');
   else if(typeFilter==='summary') entries=entries.filter(e=>e.type==='summary');
   else if(typeFilter==='pin') entries=entries.filter(e=>!!e.pinNote);
-
-  // 标签筛选
   if(tagFilter) entries=entries.filter(e=>(e.tags||[]).includes(tagFilter));
-
-  // 关键词搜索
   if(searchKw){
     const kw=searchKw.toLowerCase();
     entries=entries.filter(e=>
@@ -383,7 +369,6 @@ function renderEntries(){
       ||(e.tags||[]).some(t=>t.toLowerCase().includes(kw))
     );
   }
-
   if(!entries.length){
     const empty=document.createElement('div');
     empty.className='empty';
@@ -391,65 +376,54 @@ function renderEntries(){
     list.appendChild(empty);
     return;
   }
-
   entries.forEach(e=>{
     const item=document.createElement('div');
     item.className='entry-item';
-
     // 标签行
     const tagRow=document.createElement('div');
-    // 类型标签
     const typeSpan=document.createElement('span');
     typeSpan.className='entry-tag '+(e.type==='diary'?'tag-diary':'tag-summary');
     typeSpan.textContent=e.type==='diary'?'日记':'总结';
     tagRow.appendChild(typeSpan);
-    // 自定义标签
     (e.tags||[]).forEach(t=>{
       const ts=document.createElement('span');
       ts.className='entry-tag tag-diary';
       ts.textContent=t;
       tagRow.appendChild(ts);
     });
-    // 置顶
     if(e.pinNote){
       const ps=document.createElement('span');
       ps.className='entry-tag tag-pin';
       ps.textContent='📌 '+e.pinNote;
       tagRow.appendChild(ps);
     }
-    // 已读眼睛（纯CSS，单向）
+    // 已读眼睛
     const eye=document.createElement('span');
     eye.className='read-eye'+(e.isRead?' read':'');
     eye.title=e.isRead?'已读':'点击标记已读';
     if(!e.isRead){
       eye.onclick=async function(){
-        eye.classList.add('read');
-        eye.onclick=null;
-        eye.title='已读';
+        eye.classList.add('read');eye.onclick=null;eye.title='已读';
         await updateDoc(doc(db,COL,e.id),{isRead:true});
       };
     }
     tagRow.appendChild(eye);
     item.appendChild(tagRow);
-
     // 标题
     const title=document.createElement('div');
     title.className='entry-title';
     title.textContent=e.title||e.date||'';
     item.appendChild(title);
-
     // 日期
     const date=document.createElement('div');
     date.className='entry-date';
     date.textContent=e.date||'';
     item.appendChild(date);
-
     // 预览
     const preview=document.createElement('div');
     preview.className='entry-preview';
     preview.textContent=e.content||'';
     item.appendChild(preview);
-
     // 展开全文
     const fullContent=document.createElement('div');
     fullContent.className='entry-content-full';
@@ -461,18 +435,10 @@ function renderEntries(){
     let expanded=false;
     expandBtn.onclick=function(){
       expanded=!expanded;
-      if(expanded){
-        fullContent.classList.add('open');
-        preview.style.display='none';
-        expandBtn.textContent='▾ 收起';
-      }else{
-        fullContent.classList.remove('open');
-        preview.style.display='';
-        expandBtn.textContent='▸ 展开全文';
-      }
+      if(expanded){fullContent.classList.add('open');preview.style.display='none';expandBtn.textContent='▾ 收起';}
+      else{fullContent.classList.remove('open');preview.style.display='';expandBtn.textContent='▸ 展开全文';}
     };
     item.appendChild(expandBtn);
-
     // 操作按钮
     const acts=document.createElement('div');
     acts.className='entry-actions';
@@ -490,23 +456,18 @@ function renderEntries(){
     acts.appendChild(editBtn);
     acts.appendChild(delBtn);
     item.appendChild(acts);
-
-    // 评论区（内联展示）
-    renderCommentSection(e,item);
-
+    // 回复区（内联，旧数据兼容）
+    buildReplySection(e,item);
     list.appendChild(item);
   });
 }
 
 // ── 搜索 ──
 document.getElementById('search-input').addEventListener('input',function(){
-  searchKw=this.value.trim();
-  renderEntries();
+  searchKw=this.value.trim();renderEntries();
 });
 document.getElementById('search-clear').onclick=function(){
-  searchKw='';
-  document.getElementById('search-input').value='';
-  renderEntries();
+  searchKw='';document.getElementById('search-input').value='';renderEntries();
 };
 
 // ── Firestore 实时监听 ──
@@ -563,6 +524,7 @@ document.getElementById('modal-save').onclick=async function(){
     await updateDoc(doc(db,COL,editId),data);
   }else{
     data.createdAt=new Date().toISOString();
+    data.replies=[];
     await addDoc(collection(db,COL),data);
   }
   modal.classList.remove('open');
