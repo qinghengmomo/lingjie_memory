@@ -692,14 +692,40 @@ document.getElementById('search-clear').onclick=function(){
   searchKw='';document.getElementById('search-input').value='';renderEntries();
 };
 
+// ── 连接状态控制 ──
+function updateSyncStatus(status) {
+  const dot = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  if (!dot || !text) return;
+  dot.className = 'sync-dot';
+  if (status === 'connected') {
+    dot.classList.add('connected');
+    text.innerText = '已连接';
+  } else if (status === 'syncing') {
+    dot.classList.add('syncing');
+    text.innerText = '同步中...';
+  } else if (status === 'error') {
+    dot.classList.add('error');
+    text.innerText = '断开连接';
+  } else {
+    dot.classList.add('syncing');
+    text.innerText = '连接中...';
+  }
+}
+
 // ── Firestore 实时监听 ──
-onSnapshot(collection(db,COL),snap=>{
+updateSyncStatus('syncing');
+onSnapshot(collection(db,COL), snap=>{
   allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
   allEntries.sort((a,b)=>((a.date||'')>(b.date||'')?-1:1));
   updateStats();
-  renderFilterBar();   // 首次建类型按钮（幂等）
-  appendTagButtons();  // 每次更新自定义标签
+  renderFilterBar();
+  appendTagButtons();
   renderEntries();
+  updateSyncStatus('connected');
+}, err=>{
+  console.error('Firestore error:', err);
+  updateSyncStatus('error');
 });
 
 // ── Modal ──
