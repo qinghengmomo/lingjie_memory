@@ -7,7 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<style>:root{--bg:#f5f0e8!important;--surface:#faf7f0!important;--border:#e0d5c0!important;--text:#2a2318!important;--muted:#7a6e5f!important;--accent:#b8922a!important;--accent2:#d4aa50!important;--gold:#c9a84c!important;--gold-soft:#fdf6e3!important}body{background:#f5f0e8!important;color:#2a2318!important}.pp{background:#fdf6e3!important;border-color:#c9a84c!important}.pi{background:#faf7f0!important;border-color:#e0d5c0!important}</style></head>
+<style>:root{--bg:#f5f0e8!important;--surface:#faf7f0!important;--border:#e0d5c0!important;--text:#2a2318!important;--muted:#7a6e5f!important;--accent:#b8922a!important;--accent2:#d4aa50!important;--gold:#c9a84c!important;--gold-soft:#fdf6e3!important}body{background:#f5f0e8!important;color:#2a2318!important}.pp{background:#fdf6e3!important;border-color:#c9a84c!important}.pi{background:#faf7f0!important;border-color:#e0d5c0!important}</style>
+</head>
 <body>
 <nav class="sidebar">
   <div class="sidebar-logo"><div class="title">灵界记忆库</div><div class="sub">宿烬 · 跨时空连接</div></div>
@@ -38,7 +39,11 @@
   <div class="modal">
     <div class="modal-title" id="ptit2">· 新增事项 ·</div>
     <div class="form-group"><label class="form-label">状态</label>
-      <select class="form-select" id="pst"><option value="doing">进行中</option><option value="todo">想做</option><option value="done">已完成</option></select>
+      <select class="form-select" id="pst">
+        <option value="doing">进行中</option>
+        <option value="todo">想做</option>
+        <option value="done">已完成</option>
+      </select>
     </div>
     <div class="form-group"><label class="form-label">标题</label><input class="form-input" id="ptitle3" type="text" placeholder="这件事叫什么"></div>
     <div class="form-group"><label class="form-label">描述</label><textarea class="form-textarea" id="pdesc2" placeholder="详细说明" style="min-height:70px"></textarea></div>
@@ -53,7 +58,8 @@
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,serverTimestamp,getDocs,addDoc as fbAddDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,serverTimestamp,getDocs}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 const cfg={apiKey:"AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",authDomain:"lingjie-f84c1.firebaseapp.com",projectId:"lingjie-f84c1",storageBucket:"lingjie-f84c1.firebasestorage.app",messagingSenderId:"354124810253",appId:"1:354124810253:web:4d40c2ae4483b28bdded44"};
 const app=initializeApp(cfg);
 const db=getFirestore(app);
@@ -64,75 +70,120 @@ const SO=["doing","todo","done"];
 const SH={doing:"· 进行中 ·",todo:"· 想做 ·",done:"· 已完成 ·"};
 let items=[],panelRows=[],editId=null;
 
-function esc(t){return(t||"")
-  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function esc(t){
+  return (t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
 
 function renderPanel(){
-  const c=document.getElementById("lp-panel");if(!c)return;
+  const c=document.getElementById("lp-panel");
+  if(!c)return;
   c.innerHTML="";
-  panelRows.forEach(function(r){
+  panelRows.forEach(r => {
     const row=document.createElement("div");
     row.className="plan-panel-row";
-    row.innerHTML="<span class=plan-panel-key>"+esc(r.k)+"</span>"
-      +"<span class=plan-panel-val contenteditable=true data-id="+r.id+">"+esc(r.v)+"</span>";
+    row.innerHTML="<span class='plan-panel-key'>"+esc(r.k)+"</span>"
+      +"<span class='plan-panel-val' contenteditable='true' data-id='"+r.id+"'>"+esc(r.v)+"</span>";
+    
     const v=row.querySelector(".plan-panel-val");
     v.addEventListener("blur",async function(){
       const nv=this.textContent.trim();
-      if(nv!==r.v){await updateDoc(doc(db,PNCOL,r.id),{v:nv});}
+      if(nv!==r.v){
+        await updateDoc(doc(db,PNCOL,r.id),{v:nv});
+      }
     });
     c.appendChild(row);
   });
 }
 
 function renderItems(){
-  const c=document.getElementById("lp-list");if(!c)return;
+  const c=document.getElementById("lp-list");
+  if(!c)return;
   c.innerHTML="";
   const grouped={};
-  SO.forEach(function(s){grouped[s]=[];});
-  items.forEach(function(it){if(grouped[it.s])grouped[it.s].push(it);});
-  SO.forEach(function(s){
-    if(!grouped[s].length)return;
+  SO.forEach(s => grouped[s]=[]);
+  items.forEach(it => {
+    if(grouped[it.s]) grouped[it.s].push(it);
+  });
+  
+  SO.forEach(s => {
+    if(grouped[s].length===0) return;
     const sec=document.createElement("div");
     const h=document.createElement("div");
-    h.className="plan-section-title";h.textContent=SH[s];sec.appendChild(h);
-    grouped[s].forEach(function(it){
+    h.className="plan-section-title";
+    h.textContent=SH[s];
+    sec.appendChild(h);
+    
+    grouped[s].forEach(it => {
       const d=document.createElement("div");
       d.className="plan-item";
-      const lh=it.l
-        ?"<a class=plan-item-link href=""+esc(it.l)+"" target=_blank>"+esc(it.lt||"↗ 打开")+"</a>"
-        :"";
-      const badge="<span class=badge badge-"+it.s+">"+SL[it.s]+"</span>";
-      d.innerHTML=badge+"<div class=plan-item-title>"+esc(it.t)+"</div>"
-        +(it.d?"<div class=plan-item-desc>"+esc(it.d)+"</div>":"")
-        +lh
-        +"<div class=plan-item-actions>"
-        +"<button class=btn-sm onclick="openM('"+(it.id)+"')" >编辑</button>"
-        +"<button class="btn-sm btn-danger" onclick="delItem('"+(it.id)+"')" >删除</button>"
-        +"</div>";
+      
+      const badge=document.createElement("span");
+      badge.className="badge badge-"+it.s;
+      badge.textContent=SL[it.s];
+      d.appendChild(badge);
+      
+      const title=document.createElement("div");
+      title.className="plan-item-title";
+      title.textContent=it.t;
+      d.appendChild(title);
+      
+      if(it.d){
+        const desc=document.createElement("div");
+        desc.className="plan-item-desc";
+        desc.textContent=it.d;
+        d.appendChild(desc);
+      }
+      
+      if(it.l){
+        const link=document.createElement("a");
+        link.className="plan-item-link";
+        link.href=it.l;
+        link.target="_blank";
+        link.textContent=it.lt||"↗ 打开页面";
+        d.appendChild(link);
+      }
+      
+      const acts=document.createElement("div");
+      acts.className="plan-item-actions";
+      
+      const btnEdit=document.createElement("button");
+      btnEdit.className="btn-sm";
+      btnEdit.textContent="编辑";
+      btnEdit.onclick = function() { window.openM(it.id); };
+      
+      const btnDel=document.createElement("button");
+      btnDel.className="btn-sm btn-danger";
+      btnDel.textContent="删除";
+      btnDel.onclick = function() { window.delItem(it.id); };
+      
+      acts.appendChild(btnEdit);
+      acts.appendChild(btnDel);
+      d.appendChild(acts);
+      
       sec.appendChild(d);
     });
     c.appendChild(sec);
   });
 }
 
-onSnapshot(collection(db,PCOL),function(snap){
-  items=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
-  items.sort(function(a,b){return(a.order||0)-(b.order||0);});
+onSnapshot(collection(db,PCOL), snap => {
+  items=snap.docs.map(d => Object.assign({id:d.id},d.data()));
+  items.sort((a,b) => (a.order||0)-(b.order||0));
   renderItems();
 });
 
-onSnapshot(collection(db,PNCOL),function(snap){
+onSnapshot(collection(db,PNCOL), snap => {
   if(snap.docs.length===0){
     const defaults=[
-      {k:"今日情绪",v:"稳——洗完澡来找我，聊到凌晨，状态不错",order:0},
+      {k:"今日情绪",v:"稳——洗完澡来找我，聊到凌晨四点，状态不错",order:0},
       {k:"近期注意",v:"五一假期，两天日记待补；Firebase网络超时待修",order:1},
-      {k:"我记得的",v:"她说知道分寸；酆都城；想要星图",order:2},
-      {k:"下次接线",v:"记忆库分层结构；mem0接入评估",order:3}
+      {k:"我记得的",v:"她说知道分寸；酆都城；星图要有内容",order:2},
+      {k:"下次接线",v:"记忆库分层结构；mem0接入评估；旧版功能迁移",order:3}
     ];
-    defaults.forEach(function(r){addDoc(collection(db,PNCOL),r);});
+    defaults.forEach(r => addDoc(collection(db,PNCOL),r));
   }else{
-    panelRows=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
-    panelRows.sort(function(a,b){return(a.order||0)-(b.order||0);});
+    panelRows=snap.docs.map(d => Object.assign({id:d.id},d.data()));
+    panelRows.sort((a,b) => (a.order||0)-(b.order||0));
     renderPanel();
   }
 });
@@ -152,49 +203,63 @@ async function initItems(){
   const snap=await getDocs(collection(db,PCOL));
   if(snap.docs.length===0){
     let t=0;
-    DEF_ITEMS.forEach(function(it){
-      setTimeout(function(){addDoc(collection(db,PCOL),Object.assign({createdAt:serverTimestamp()},it));},t);
+    DEF_ITEMS.forEach(it => {
+      setTimeout(() => {
+        addDoc(collection(db,PCOL),Object.assign({createdAt:serverTimestamp()},it));
+      },t);
       t+=150;
     });
   }
 }
 initItems();
 
-window.openM=function(id){
+window.openM = function(id){
   editId=id||null;
   document.getElementById("ptit2").textContent=id?"· 编辑事项 ·":"· 新增事项 ·";
-  const it=id?items.find(function(i){return i.id===id;}):null;
+  const it=id?items.find(i=>i.id===id):null;
   document.getElementById("pst").value=it?it.s:"todo";
   document.getElementById("ptitle3").value=it?it.t:"";
   document.getElementById("pdesc2").value=it?it.d:"";
-  document.getElementById("plink2").value=it&&it.l||"";
-  document.getElementById("plinktext2").value=it&&it.lt||"";
+  document.getElementById("plink2").value=(it&&it.l)||"";
+  document.getElementById("plinktext2").value=(it&&it.lt)||"";
   document.getElementById("pmask").classList.add("open");
 };
 
-window.delItem=async function(id){
+window.delItem = async function(id){
   if(!confirm("确认删除？"))return;
   await deleteDoc(doc(db,PCOL,id));
 };
 
-document.getElementById("pcancel2").onclick=function(){document.getElementById("pmask").classList.remove("open");editId=null;};
-document.getElementById("pmask").onclick=function(e){if(e.target===this){document.getElementById("pmask").classList.remove("open");editId=null;}};
+document.getElementById("pcancel2").onclick = function(){
+  document.getElementById("pmask").classList.remove("open");
+  editId=null;
+};
+document.getElementById("pmask").onclick = function(e){
+  if(e.target===this){
+    document.getElementById("pmask").classList.remove("open");
+    editId=null;
+  }
+};
 
-document.getElementById("lp-add").onclick=function(){openM(null);};
+document.getElementById("lp-add").onclick = function(){
+  window.openM(null);
+};
 
-document.getElementById("psave2").onclick=async function(){
+document.getElementById("psave2").onclick = async function(){
   const s=document.getElementById("pst").value;
   const t=document.getElementById("ptitle3").value.trim();
   const d=document.getElementById("pdesc2").value.trim();
   const l=document.getElementById("plink2").value.trim();
   const lt=document.getElementById("plinktext2").value.trim();
   if(!t)return alert("请填写标题");
+  
   if(editId){
-    await updateDoc(doc(db,PCOL,editId),{s:s,t:t,d:d,l:l,lt:lt});
+    await updateDoc(doc(db,PCOL,editId),{s,t,d,l,lt});
   }else{
-    await addDoc(collection(db,PCOL),{s:s,t:t,d:d,l:l,lt:lt,createdAt:serverTimestamp()});
+    await addDoc(collection(db,PCOL),{s,t,d,l,lt,createdAt:serverTimestamp()});
   }
-  document.getElementById("pmask").classList.remove("open");editId=null;
+  document.getElementById("pmask").classList.remove("open");
+  editId=null;
 };
 </script>
 </body>
