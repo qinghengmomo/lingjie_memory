@@ -474,7 +474,10 @@ document.getElementById('search-clear').onclick=function(){
 onSnapshot(collection(db,COL),snap=>{
   allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
   allEntries.sort((a,b)=>((a.date||'')>(b.date||'')?-1:1));
-  updateStats();renderFilterBar();renderEntries();
+  updateStats();
+  const fb=document.getElementById('filter-bar');
+  if(!fb.firstChild){renderFilterBar();}
+  renderEntries();
 });
 
 // ── Modal ──
