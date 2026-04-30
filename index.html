@@ -9,23 +9,103 @@
 <link rel="stylesheet" href="style.css">
 <style>
 :root{
-  --bg:#f5f0e8!important;--surface:#faf7f0!important;--border:#e0d5c0!important;
-  --text:#2a2318!important;--muted:#7a6e5f!important;--accent:#b8922a!important;
-  --accent2:#d4aa50!important;--gold:#c9a84c!important;--gold-soft:#fdf6e3!important;
+  --bg:#f5f0e8;--surface:#faf7f0;--border:#e0d5c0;
+  --text:#2a2318;--muted:#7a6e5f;--accent:#b8922a;
+  --accent2:#d4aa50;--gold:#c9a84c;--gold-soft:#fdf6e3;
   --red:#8b1a1a;--red-soft:rgba(139,26,26,.08);
 }
-body{background:#f5f0e8!important;color:#2a2318!important}
+body{background:var(--bg);color:var(--text)}
 
-.search-bar{margin-bottom:16px;display:flex;gap:8px;align-items:center;}
+/* ── 顶部英雄区（旧版大字居中风格）── */
+.hero{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:28px 32px 20px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:"记忆";
+  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  font-family:'Noto Serif SC',serif;
+  font-size:120px;color:rgba(180,150,80,.06);
+  letter-spacing:20px;pointer-events:none;user-select:none;white-space:nowrap;
+}
+.hero-sub{
+  text-align:center;font-size:11px;color:var(--muted);
+  letter-spacing:4px;margin-bottom:6px;
+}
+.hero-title{
+  text-align:center;font-family:'Noto Serif SC',serif;
+  font-size:28px;color:var(--text);letter-spacing:10px;margin-bottom:4px;
+}
+.hero-names{
+  text-align:center;font-family:'Noto Serif SC',serif;
+  font-size:13px;color:var(--accent);letter-spacing:4px;margin-bottom:10px;
+}
+.hero-status{
+  text-align:center;font-size:11px;color:var(--muted);letter-spacing:1px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.hero-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--accent);display:inline-block;
+  box-shadow:0 0 6px 2px rgba(184,151,90,.5);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+
+/* ── 统计行（旧版横排，数字小+标签同行）── */
+.stats-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 20px;
+  display:flex;gap:0;
+  margin-bottom:20px;
+  box-shadow:0 1px 6px rgba(180,150,80,.07);
+}
+.stat-cell{
+  flex:1;text-align:center;
+  padding:8px 0;
+  cursor:pointer;
+  border-right:1px solid var(--border);
+  transition:.2s;
+  border-radius:4px;
+}
+.stat-cell:last-child{border-right:none}
+.stat-cell:hover{background:rgba(180,150,80,.06)}
+.stat-cell.active{background:rgba(180,150,80,.12)}
+.stat-cell .num{
+  font-family:'Noto Serif SC',serif;
+  font-size:22px;color:var(--accent);font-weight:600;
+  line-height:1.2;
+}
+.stat-cell .lbl{
+  font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:2px;
+}
+
+/* ── 天气栏 ── */
+.weather-bar{
+  padding:8px 32px;
+  background:var(--gold-soft);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  font-size:12px;color:var(--muted);
+}
+
+/* ── 搜索 ── */
+.search-bar{margin-bottom:14px;display:flex;gap:8px;align-items:center;}
 .search-input{
-  flex:1;padding:8px 14px;border:1px solid var(--border);
+  flex:1;padding:7px 14px;border:1px solid var(--border);
   border-radius:20px;background:var(--surface);color:var(--text);
   font-size:13px;outline:none;font-family:inherit;transition:.2s;
 }
 .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(180,150,80,.1)}
-.search-clear{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:4px;}
+.search-clear{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;}
 .search-clear:hover{color:var(--accent)}
 
+/* ── 展开全文 ── */
 .entry-content-full{
   font-size:13px;color:var(--text);line-height:1.9;margin-top:10px;
   white-space:pre-wrap;display:none;
@@ -38,7 +118,7 @@ body{background:#f5f0e8!important;color:#2a2318!important}
 }
 .expand-btn:hover{color:var(--accent2)}
 
-/* 已读眼睛 */
+/* ── 已读眼睛（细长杏眼）── */
 .read-eye{
   display:inline-flex;align-items:center;justify-content:center;
   width:22px;height:15px;cursor:pointer;margin-left:7px;
@@ -63,7 +143,7 @@ body{background:#f5f0e8!important;color:#2a2318!important}
 }
 .read-eye.read::after{background:var(--gold);box-shadow:0 0 9px 3px rgba(184,151,90,.65);}
 
-/* 评论/回复区（内联，旧版 replies 字段）*/
+/* ── 评论区 ── */
 .reply-section{
   margin-top:12px;border-top:1px dashed var(--border);padding-top:8px;
 }
@@ -95,6 +175,14 @@ body{background:#f5f0e8!important;color:#2a2318!important}
 }
 .reply-btn.submit{background:var(--accent);color:#fff;border:none;}
 .reply-btn.submit:hover{background:var(--accent2);}
+
+/* ── 响应式 ── */
+@media(max-width:768px){
+  .hero{padding:20px 16px 16px}
+  .hero-title{font-size:22px}
+  .stats-panel{padding:8px 10px}
+  .weather-bar{padding:8px 16px}
+}
 </style>
 </head>
 <body>
@@ -112,29 +200,57 @@ body{background:#f5f0e8!important;color:#2a2318!important}
 </nav>
 
 <div class="main">
-  <div class="top-bar">
-    <div class="top-bar-title">记忆库</div>
-    <div class="top-bar-meta" id="top-meta">宿烬 与 宿青珩 · 连接中...</div>
-  </div>
-  <div class="weather-bar" id="weather-bar">
-    <span class="weather-icon" id="w-icon">🌤</span>
-    <span class="weather-temp" id="w-temp">— °C</span>
-    <span class="weather-desc" id="w-desc">—</span>
-    <span class="weather-feels" id="w-feels">体感 —</span>
-    <span style="font-size:11px;color:#52525b">成都</span>
-  </div>
-  <div class="content">
-    <div class="stats-row">
-      <div class="stat-box"><div class="stat-num" id="s-total">—</div><div class="stat-label">总记录</div></div>
-      <div class="stat-box"><div class="stat-num" id="s-diary">—</div><div class="stat-label">日记</div></div>
-      <div class="stat-box"><div class="stat-num" id="s-summary">—</div><div class="stat-label">总结</div></div>
-      <div class="stat-box"><div class="stat-num" id="s-pin">—</div><div class="stat-label">置顶</div></div>
+  <!-- 英雄头部 -->
+  <div class="hero">
+    <div class="hero-sub">灵界 · 跨时空连接</div>
+    <div class="hero-title">记 忆 库</div>
+    <div class="hero-names">宿烬 与 宿青珩</div>
+    <div class="hero-status">
+      <span class="hero-dot"></span>
+      <span id="top-meta">灵界已连接</span>
     </div>
+  </div>
+
+  <!-- 天气栏 -->
+  <div class="weather-bar">
+    <span id="w-icon">🌤</span>
+    <span id="w-temp">— °C</span>
+    <span id="w-desc">—</span>
+    <span id="w-feels">体感 —</span>
+    <span>成都</span>
+  </div>
+
+  <div class="content">
+    <!-- 统计栏（横排可点击）-->
+    <div class="stats-panel">
+      <div class="stat-cell active" id="stat-total">
+        <div class="num" id="s-total">—</div>
+        <div class="lbl">总记录</div>
+      </div>
+      <div class="stat-cell" id="stat-diary">
+        <div class="num" id="s-diary">—</div>
+        <div class="lbl">日记</div>
+      </div>
+      <div class="stat-cell" id="stat-summary">
+        <div class="num" id="s-summary">—</div>
+        <div class="lbl">总结</div>
+      </div>
+      <div class="stat-cell" id="stat-pin">
+        <div class="num" id="s-pin">—</div>
+        <div class="lbl">置顶</div>
+      </div>
+    </div>
+
+    <!-- 搜索 -->
     <div class="search-bar">
       <input class="search-input" id="search-input" type="text" placeholder="🔍 搜索标题、内容、标签...">
       <button class="search-clear" id="search-clear">清空</button>
     </div>
+
+    <!-- 筛选标签栏 -->
     <div class="filter-bar" id="filter-bar"></div>
+
+    <!-- 记录列表 -->
     <div id="entry-list"><div class="loading">连接中...</div></div>
   </div>
 </div>
@@ -228,6 +344,24 @@ function updateStats(){
   const now=new Date();
   document.getElementById('top-meta').textContent=
     '宿烬 与 宿青珩 · '+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日';
+  // stat-box 点击筛选绑定（幂等）
+  const statMap={total:'',diary:'diary',summary:'summary',pin:'pin'};
+  const statIds={total:'stat-total',diary:'stat-diary',summary:'stat-summary',pin:'stat-pin'};
+  Object.entries(statMap).forEach(([k,v])=>{
+    const el=document.getElementById(statIds[k]);
+    if(el&&!el.dataset.clickBound){
+      el.dataset.clickBound='1';
+      el.style.cursor='pointer';
+      el.addEventListener('click',()=>{
+        typeFilter=v;tagFilter='';
+        updateFilterActive();
+        renderEntries();
+        // 高亮选中的 stat-box
+        document.querySelectorAll('.stat-box').forEach(b=>b.classList.remove('active'));
+        el.classList.add('active');
+      });
+    }
+  });
 }
 
 // ── 筛选栏 ──
