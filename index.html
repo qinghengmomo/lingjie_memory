@@ -19,7 +19,7 @@
     --api-accent: #4a6fa5; --api-soft: #4a6fa512;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--paper); color: var(--ink); font-family: 'Noto Sans SC', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body { display: block !important; background: var(--paper); color: var(--ink); font-family: 'Noto Sans SC', sans-serif; min-height: 100vh; overflow-x: hidden; }
   body::before { content:''; position:fixed; inset:0; background-image: radial-gradient(ellipse at 20% 10%,#e8ddd088 0%,transparent 50%), radial-gradient(ellipse at 80% 90%,#d4c9be55 0%,transparent 50%); pointer-events:none; z-index:0; }
 
   /* 导航 */
@@ -394,9 +394,9 @@ function renderFilterBar(){
   const bar=document.getElementById('filter-bar');
   // 首次建立按钮
   if(!bar.firstChild){
-    [{label:'全部',val:''},{label:'日记',val:'diary'},{label:'总结',val:'summary'},{label:'置顶',val:'pin'}].forEach(g=>{
+    [{label:'全部',val:''},{label:'日记',val:'diary'},{label:'总结',val:'summary'},{label:'📌 置顶',val:'pin'}].forEach(g=>{
       const btn=document.createElement('button');
-      btn.className='filter-tag'+(typeFilter===g.val&&tagFilter===''?' active':'');
+      btn.className='filter-btn '+(g.val==='pin'?'pinned':g.val)+(typeFilter===g.val&&tagFilter===''?' active':'');
       btn.textContent=g.label;
       btn.dataset.type=g.val;
       btn.addEventListener('click',()=>{
@@ -413,10 +413,10 @@ function renderFilterBar(){
 function updateFilterActive(){
   const bar=document.getElementById('filter-bar');
   bar.querySelectorAll('button[data-type]').forEach(b=>{
-    b.className='filter-tag'+(typeFilter===b.dataset.type&&tagFilter===''?' active':'');
+    b.className='filter-btn '+(b.dataset.type==='pin'?'pinned':b.dataset.type)+(typeFilter===b.dataset.type&&tagFilter===''?' active':'');
   });
   bar.querySelectorAll('button[data-tag]').forEach(b=>{
-    b.className='filter-tag'+(tagFilter===b.dataset.tag?' active':'');
+    b.className='tag-chip'+(tagFilter===b.dataset.tag?' active':'');
   });
 }
 function appendTagButtons(){
@@ -433,7 +433,7 @@ function appendTagButtons(){
     bar.appendChild(sep);
     Object.keys(tags).sort().forEach(t=>{
       const btn=document.createElement('button');
-      btn.className='filter-tag'+(tagFilter===t?' active':'');
+      btn.className='tag-chip'+(tagFilter===t?' active':'');
       btn.textContent=t;
       btn.dataset.tag=t;
       btn.addEventListener('click',()=>{
