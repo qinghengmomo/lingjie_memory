@@ -357,7 +357,7 @@ function updateStats(){
         updateFilterActive();
         renderEntries();
         // 高亮选中的 stat-box
-        document.querySelectorAll('.stat-box').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.stat-cell').forEach(b=>b.classList.remove('active'));
         el.classList.add('active');
       });
     }
