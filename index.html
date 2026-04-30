@@ -564,26 +564,78 @@ function renderEntries(){
   }
   entries.forEach(e=>{
     const item=document.createElement('div');
-    item.className='entry-item';
-    // 标签行
-    const tagRow=document.createElement('div');
-    const typeSpan=document.createElement('span');
-    typeSpan.className='entry-tag '+(e.type==='diary'?'tag-diary':'tag-summary');
-    typeSpan.textContent=e.type==='diary'?'日记':'总结';
-    tagRow.appendChild(typeSpan);
-    (e.tags||[]).forEach(t=>{
-      const ts=document.createElement('span');
-      ts.className='entry-tag tag-diary';
-      ts.textContent=t;
-      tagRow.appendChild(ts);
-    });
-    if(e.pinNote){
-      const ps=document.createElement('span');
-      ps.className='entry-tag tag-pin';
-      ps.textContent='📌 '+e.pinNote;
-      tagRow.appendChild(ps);
+    item.className='entry'+(e.type==='diary'?' diary':'')+(e.pinNote?' pinned-entry':'');
+
+    // 右上角操作按钮
+    const actions=document.createElement('div');
+    actions.className='entry-actions';
+    // 置顶按钮
+    const pinBtn=document.createElement('button');
+    pinBtn.className='action-btn pin-btn'+(e.pinNote?' pinned':'');
+    pinBtn.title=e.pinNote?'取消置顶':'置顶';
+    pinBtn.textContent=e.pinNote?'📌':'📍';
+    pinBtn.onclick=async function(){
+      if(e.pinNote){
+        await updateDoc(doc(db,COL,e.id),{pinNote:''});
+      } else {
+        const note=prompt('置顶备注（可留空）:','');
+        if(note===null)return;
+        await updateDoc(doc(db,COL,e.id),{pinNote:note||' '});
+      }
+    };
+    actions.appendChild(pinBtn);
+    // 编辑按钮
+    const editBtn=document.createElement('button');
+    editBtn.className='action-btn';
+    editBtn.textContent='编辑';
+    editBtn.onclick=()=>openEdit(e.id);
+    actions.appendChild(editBtn);
+    // 删除按钮
+    const delBtn=document.createElement('button');
+    delBtn.className='action-btn del';
+    delBtn.textContent='删除';
+    delBtn.onclick=async function(){
+      if(!confirm('确认删除这条记录？'))return;
+      await deleteDoc(doc(db,COL,e.id));
+    };
+    actions.appendChild(delBtn);
+    item.appendChild(actions);
+
+    // meta行：类型标签 + 日期 + 自定义标签 + 置顶badge + 已读眼
+    const meta=document.createElement('div');
+    meta.className='entry-meta';
+    // 类型标签
+    const typeLabel=document.createElement('span');
+    typeLabel.className='entry-tag-label '+(e.type==='diary'?'diary':'summary');
+    typeLabel.textContent=e.type==='diary'?'日记':'总结';
+    meta.appendChild(typeLabel);
+    // 日期 + 时间戳
+    const dateSpan=document.createElement('span');
+    dateSpan.className='entry-date';
+    let dateStr=e.date||'';
+    if(e.createdAt){
+      try{
+        const d=new Date(e.createdAt);
+        dateStr+=` ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+      }catch(_){}
     }
-    // 已读眼睛
+    dateSpan.textContent=dateStr;
+    meta.appendChild(dateSpan);
+    // 置顶badge
+    if(e.pinNote&&e.pinNote.trim()){
+      const pb=document.createElement('span');
+      pb.className='pin-badge';
+      pb.textContent='📌 '+e.pinNote.trim();
+      meta.appendChild(pb);
+    }
+    // 自定义tags
+    (e.tags||[]).forEach(t=>{
+      const tc=document.createElement('span');
+      tc.className='custom-tag';
+      tc.textContent=t;
+      meta.appendChild(tc);
+    });
+    // 已读眼
     const eye=document.createElement('span');
     eye.className='read-eye'+(e.isRead?' read':'');
     eye.title=e.isRead?'已读':'点击标记已读';
@@ -593,24 +645,20 @@ function renderEntries(){
         await updateDoc(doc(db,COL,e.id),{isRead:true});
       };
     }
-    tagRow.appendChild(eye);
-    item.appendChild(tagRow);
+    meta.appendChild(eye);
+    item.appendChild(meta);
+
     // 标题
     const title=document.createElement('div');
     title.className='entry-title';
     title.textContent=e.title||e.date||'';
     item.appendChild(title);
-    // 日期
-    const date=document.createElement('div');
-    date.className='entry-date';
-    date.textContent=e.date||'';
-    item.appendChild(date);
-    // 预览
+
+    // 正文预览 + 展开
     const preview=document.createElement('div');
     preview.className='entry-preview';
     preview.textContent=e.content||'';
     item.appendChild(preview);
-    // 展开全文
     const fullContent=document.createElement('div');
     fullContent.className='entry-content-full';
     fullContent.textContent=e.content||'';
@@ -625,7 +673,8 @@ function renderEntries(){
       else{fullContent.classList.remove('open');preview.style.display='';expandBtn.textContent='▸ 展开全文';}
     };
     item.appendChild(expandBtn);
-    // 回复区（内联，旧数据兼容）
+
+    // 回复区
     buildReplySection(e,item);
     list.appendChild(item);
   });
