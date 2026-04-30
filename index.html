@@ -233,20 +233,42 @@ function updateStats(){
 // ── 筛选栏 ──
 function renderFilterBar(){
   const bar=document.getElementById('filter-bar');
-  bar.innerHTML='';
-  // 类型筛选tab
-  [{label:'全部',val:''},{label:'日记',val:'diary'},{label:'总结',val:'summary'},{label:'置顶',val:'pin'}].forEach(g=>{
-    const btn=document.createElement('button');
-    btn.className='filter-tag'+(typeFilter===g.val&&tagFilter===''?' active':'');
-    btn.textContent=g.label;
-    btn.onclick=()=>{typeFilter=g.val;tagFilter='';renderFilterBar();renderEntries();};
-    bar.appendChild(btn);
+  // 首次建立按钮
+  if(!bar.firstChild){
+    [{label:'全部',val:''},{label:'日记',val:'diary'},{label:'总结',val:'summary'},{label:'置顶',val:'pin'}].forEach(g=>{
+      const btn=document.createElement('button');
+      btn.className='filter-tag'+(typeFilter===g.val&&tagFilter===''?' active':'');
+      btn.textContent=g.label;
+      btn.dataset.type=g.val;
+      btn.addEventListener('click',()=>{
+        typeFilter=g.val;tagFilter='';
+        updateFilterActive();
+        renderEntries();
+      });
+      bar.appendChild(btn);
+    });
+  }
+  // 更新 active 状态
+  updateFilterActive();
+}
+function updateFilterActive(){
+  const bar=document.getElementById('filter-bar');
+  bar.querySelectorAll('button[data-type]').forEach(b=>{
+    b.className='filter-tag'+(typeFilter===b.dataset.type&&tagFilter===''?' active':'');
   });
-  // 标签
+  bar.querySelectorAll('button[data-tag]').forEach(b=>{
+    b.className='filter-tag'+(tagFilter===b.dataset.tag?' active':'');
+  });
+}
+function appendTagButtons(){
+  const bar=document.getElementById('filter-bar');
+  // 移除旧的 tag 按钮（data-tag）和分隔符
+  bar.querySelectorAll('button[data-tag],span.tag-sep').forEach(el=>el.remove());
   const tags={};
   allEntries.forEach(e=>(e.tags||[]).forEach(t=>{tags[t]=(tags[t]||0)+1}));
   if(Object.keys(tags).length>0){
     const sep=document.createElement('span');
+    sep.className='tag-sep';
     sep.style.cssText='color:var(--border);margin:0 4px;font-size:12px;line-height:32px;';
     sep.textContent='|';
     bar.appendChild(sep);
@@ -254,7 +276,12 @@ function renderFilterBar(){
       const btn=document.createElement('button');
       btn.className='filter-tag'+(tagFilter===t?' active':'');
       btn.textContent=t;
-      btn.onclick=()=>{tagFilter=t;typeFilter='';renderFilterBar();renderEntries();};
+      btn.dataset.tag=t;
+      btn.addEventListener('click',()=>{
+        tagFilter=t;typeFilter='';
+        updateFilterActive();
+        renderEntries();
+      });
       bar.appendChild(btn);
     });
   }
@@ -475,8 +502,8 @@ onSnapshot(collection(db,COL),snap=>{
   allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
   allEntries.sort((a,b)=>((a.date||'')>(b.date||'')?-1:1));
   updateStats();
-  const fb=document.getElementById('filter-bar');
-  if(!fb.firstChild){renderFilterBar();}
+  renderFilterBar();   // 首次建类型按钮（幂等）
+  appendTagButtons();  // 每次更新自定义标签
   renderEntries();
 });
 
