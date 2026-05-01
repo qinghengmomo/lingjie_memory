@@ -97,7 +97,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
   <div class="page-header">
     <div class="page-title">API 平台</div>
     <div class="page-divider"><div class="page-divider-dot"></div></div>
-    <div class="page-subtitle">灵界接口管理 · 跨时空连接层</div>
+    <div class="page-subtitle">AI 平台账号本 · 灵界收录</div>
   </div>
   <div class="sync-status">
     <div class="sync-dot syncing" id="sync-dot"></div>
@@ -113,40 +113,26 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 <button class="fab-btn" id="fab-btn" title="新增接口">＋</button>
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <div class="modal-title" id="modal-title">· 新增接口 ·</div>
+    <div class="modal-title" id="modal-title">· 新增平台 ·</div>
     <div class="form-group">
-      <label class="form-label">接口名称</label>
-      <input class="form-input" id="api-name" type="text" placeholder="例：获取记忆列表">
+      <label class="form-label">平台名称</label>
+      <input class="form-input" id="api-name" type="text" placeholder="例：dataeyes">
     </div>
     <div class="form-group">
-      <label class="form-label">请求方法</label>
-      <select class="form-select" id="api-method">
-        <option value="GET">GET</option>
-        <option value="POST">POST</option>
-        <option value="PUT">PUT</option>
-        <option value="DELETE">DELETE</option>
-        <option value="OTHER">其他</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">接口 URL</label>
+      <label class="form-label">网址</label>
       <input class="form-input" id="api-url" type="text" placeholder="https://...">
     </div>
     <div class="form-group">
-      <label class="form-label">归属平台</label>
-      <input class="form-input" id="api-platform" type="text" placeholder="Firebase / 自建服务 / 第三方">
+      <label class="form-label">账号 / 手机号</label>
+      <input class="form-input" id="api-email" type="text" placeholder="登录邮箱或手机号">
     </div>
     <div class="form-group">
-      <label class="form-label">状态</label>
-      <select class="form-select" id="api-status">
-        <option value="ok">正常</option>
-        <option value="warn">待验证</option>
-        <option value="error">故障</option>
-      </select>
+      <label class="form-label">套餐 / 方案</label>
+      <input class="form-input" id="api-plan" type="text" placeholder="免费版 / Pro / 按量付费...">
     </div>
     <div class="form-group">
       <label class="form-label">备注（可选）</label>
-      <textarea class="form-textarea" id="api-note" placeholder="接口说明、认证方式、使用场景..."></textarea>
+      <textarea class="form-textarea" id="api-note" placeholder="用途说明、到期时间、注意事项..."></textarea>
     </div>
     <div class="form-actions">
       <button class="btn-cancel" id="modal-cancel">取消</button>
@@ -170,29 +156,31 @@ function updateSyncStatus(s){
   else if(s==='error'){dot.classList.add('error');text.innerText='断开连接';}
   else{dot.classList.add('syncing');text.innerText='连接中...';}
 }
-const methodCls={GET:'method-get',POST:'method-post',PUT:'method-put',DELETE:'method-delete',OTHER:'method-other'};
-const statusCls={ok:'status-ok',warn:'status-warn',error:'status-error'};
-const statusLbl={ok:'正常',warn:'待验证',error:'故障'};
 function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtTime(ts){
+  if(!ts)return '';
+  // 支持 int64 毫秒时间戳 和 ISO 字符串
+  const d=typeof ts==='number'?new Date(ts):new Date(ts);
+  if(isNaN(d))return '';
+  return d.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
+}
 function renderApis(){
   const grid=document.getElementById('api-grid');
   grid.innerHTML='';
   if(!allApis.length){
-    grid.innerHTML='<div class="empty-state"><div class="empty-icon">🔌</div><div class="empty-text">暂无接口记录<br>点击右下角 ＋ 添加</div></div>';
+    grid.innerHTML='<div class="empty-state"><div class="empty-icon">🔌</div><div class="empty-text">暂无平台记录<br>点击右下角 ＋ 添加</div></div>';
     return;
   }
   allApis.forEach((a,i)=>{
     const card=document.createElement('div');
     card.className='api-card';
     card.style.animationDelay=(i*0.05)+'s';
-    const method=(a.method||'GET').toUpperCase();
-    const status=a.status||'ok';
-    let html=`<div class="api-card-header"><div class="api-card-name">${esc(a.name||'未命名接口')}</div><div class="api-card-actions"><button class="api-action-btn" data-edit="${a.id}">编辑</button><button class="api-action-btn del" data-del="${a.id}">删除</button></div></div>`;
-    html+=`<span class="api-card-method ${methodCls[method]||'method-other'}">${method}</span>`;
+    let html=`<div class="api-card-header"><div class="api-card-name">${esc(a.name||'未命名平台')}</div><div class="api-card-actions"><button class="api-action-btn" data-edit="${a.id}">编辑</button><button class="api-action-btn del" data-del="${a.id}">删除</button></div></div>`;
     if(a.url) html+=`<a class="api-card-url" href="${esc(a.url)}" target="_blank">${esc(a.url)}</a>`;
-    if(a.platform) html+=`<div class="api-card-row"><span class="api-card-label">平台</span><span class="api-card-value">${esc(a.platform)}</span></div>`;
-    html+=`<div class="api-card-row"><span class="api-card-label">状态</span><span class="status-badge ${statusCls[status]||''}">${statusLbl[status]||status}</span></div>`;
-    if(a.updatedAt) html+=`<div class="api-card-row"><span class="api-card-label">更新</span><span class="api-card-value">${new Date(a.updatedAt).toLocaleDateString('zh-CN')}</span></div>`;
+    if(a.email) html+=`<div class="api-card-row"><span class="api-card-label">账号</span><span class="api-card-value">${esc(a.email)}</span></div>`;
+    if(a.plan) html+=`<div class="api-card-row"><span class="api-card-label">套餐</span><span class="api-card-value">${esc(a.plan)}</span></div>`;
+    const ts=fmtTime(a.createdAt);
+    if(ts) html+=`<div class="api-card-row"><span class="api-card-label">收录</span><span class="api-card-value">${ts}</span></div>`;
     if(a.note) html+=`<div class="api-card-note">${esc(a.note)}</div>`;
     card.innerHTML=html;
     card.querySelector('[data-edit]').onclick=()=>openEdit(a.id);
@@ -204,17 +192,16 @@ function openEdit(id){
   const a=allApis.find(x=>x.id===id);
   if(!a)return;
   editId=id;
-  document.getElementById('modal-title').textContent='· 编辑接口 ·';
+  document.getElementById('modal-title').textContent='· 编辑平台 ·';
   document.getElementById('api-name').value=a.name||'';
-  document.getElementById('api-method').value=a.method||'GET';
   document.getElementById('api-url').value=a.url||'';
-  document.getElementById('api-platform').value=a.platform||'';
-  document.getElementById('api-status').value=a.status||'ok';
+  document.getElementById('api-email').value=a.email||'';
+  document.getElementById('api-plan').value=a.plan||'';
   document.getElementById('api-note').value=a.note||'';
   document.getElementById('modal').classList.add('open');
 }
 async function delApi(id){
-  if(!confirm('确认删除这条接口记录？'))return;
+  if(!confirm('确认删除这条平台记录？'))return;
   await deleteDoc(doc(db,COL,id));
 }
 updateSyncStatus('syncing');
@@ -230,25 +217,23 @@ onSnapshot(collection(db,COL),snap=>{
 const modal=document.getElementById('modal');
 document.getElementById('fab-btn').onclick=function(){
   editId=null;
-  document.getElementById('modal-title').textContent='· 新增接口 ·';
-  ['api-name','api-url','api-platform','api-note'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('api-method').value='GET';
-  document.getElementById('api-status').value='ok';
+  document.getElementById('modal-title').textContent='· 新增平台 ·';
+  ['api-name','api-url','api-email','api-plan','api-note'].forEach(id=>document.getElementById(id).value='');
   modal.classList.add('open');
 };
 document.getElementById('modal-cancel').onclick=()=>modal.classList.remove('open');
 modal.addEventListener('click',ev=>{if(ev.target===modal)modal.classList.remove('open');});
 document.getElementById('modal-save').onclick=async function(){
   const name=document.getElementById('api-name').value.trim();
-  const method=document.getElementById('api-method').value;
   const url=document.getElementById('api-url').value.trim();
-  const platform=document.getElementById('api-platform').value.trim();
-  const status=document.getElementById('api-status').value;
+  const email=document.getElementById('api-email').value.trim();
+  const plan=document.getElementById('api-plan').value.trim();
   const note=document.getElementById('api-note').value.trim();
-  if(!name||!url)return alert('接口名称和URL不能为空');
-  const data={name,method,url,platform,status,note,updatedAt:new Date().toISOString()};
-  if(editId){await updateDoc(doc(db,COL,editId),data);}
-  else{data.createdAt=new Date().toISOString();await addDoc(collection(db,COL),data);}
+  if(!name||!url)return alert('平台名称和网址不能为空');
+  const now=Date.now();
+  const data={name,url,email,plan,note};
+  if(editId){data.updatedAt=now;await updateDoc(doc(db,COL,editId),data);}
+  else{data.createdAt=now;await addDoc(collection(db,COL),data);}
   modal.classList.remove('open');
 };
 </script>
