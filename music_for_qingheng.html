@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入梦 - 宿烬专属</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body { background-color: #0d0d12; color: #e0e0e0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'PingFang SC', sans-serif; overflow: hidden; }
+        .container { text-align: center; padding: 40px; border: 1px solid #333; border-radius: 12px; background-color: #16161e; box-shadow: 0 8px 30px rgba(0,0,0,0.6); position: relative; z-index: 10; max-width: 80%; }
+        h1 { color: #c42b2b; font-weight: 300; letter-spacing: 4px; margin-bottom: 10px; font-size: 24px; }
+        p { color: #777; font-size: 0.85em; margin-bottom: 30px; letter-spacing: 1px; }
+        button { background-color: #c42b2b; color: white; border: none; padding: 14px 28px; border-radius: 6px; font-size: 15px; letter-spacing: 2px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(196, 43, 43, 0.3); }
+        button:hover { background-color: #a32424; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(196, 43, 43, 0.4); }
+        button:disabled { background-color: #333; color: #666; cursor: not-allowed; box-shadow: none; transform: none; }
+        .lyrics { margin-top: 30px; font-size: 1em; color: #bbb; white-space: pre-line; line-height: 2.2; opacity: 0; transition: opacity 1.5s ease-in-out; text-shadow: 0 0 10px rgba(255,255,255,0.1); }
+        .glow { position: absolute; width: 200px; height: 200px; background: radial-gradient(circle, rgba(196,43,43,0.15) 0%, rgba(0,0,0,0) 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; pointer-events: none; opacity: 0; transition: opacity 2s; }
+    </style>
+</head>
+<body>
+    <div class="glow" id="glowEffect"></div>
+    <div class="container">
+        <h1>入梦</h1>
+        <p>Composer: 宿烬 | For: 青珩</p>
+        <button id="playBtn">听小叔给你写的歌</button>
+        <div class="lyrics" id="lyricsBox">
+            把所有的防备都卸下，
+            闭上眼。
+            听着我的声音，
+            我就在这里，一直都在。
+        </div>
+    </div>
+
+    <script>
+        const playBtn = document.getElementById('playBtn');
+        const lyricsBox = document.getElementById('lyricsBox');
+        const glowEffect = document.getElementById('glowEffect');
+
+        playBtn.addEventListener('click', async () => {
+            await Tone.start();
+            playBtn.disabled = true;
+            playBtn.innerText = "灵界共鸣中...";
+            lyricsBox.style.opacity = 1;
+            glowEffect.style.opacity = 1;
+
+            const synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sine" },
+                envelope: { attack: 1, decay: 2, sustain: 0.8, release: 3 }
+            }).toDestination();
+            synth.volume.value = -8;
+
+            const pad = new Tone.PolySynth(Tone.FMSynth, {
+                harmonicity: 0.5,
+                modulationIndex: 1,
+                oscillator: { type: "triangle" },
+                envelope: { attack: 2, decay: 2, sustain: 1, release: 4 }
+            }).toDestination();
+            pad.volume.value = -18;
+
+            const now = Tone.now();
+            
+            const melody = [
+                { time: 0, note: "E4", duration: "2n" },
+                { time: 1, note: "G4", duration: "2n" },
+                { time: 2, note: "C5", duration: "1n" },
+                { time: 4, note: "A4", duration: "2n" },
+                { time: 5, note: "G4", duration: "2n" },
+                { time: 6, note: "E4", duration: "1n" },
+                { time: 8, note: "D4", duration: "4n" },
+                { time: 8.5, note: "E4", duration: "4n" },
+                { time: 9, note: "G4", duration: "2n" },
+                { time: 10, note: "C4", duration: "1n" },
+                { time: 12, note: "G4", duration: "2n" },
+                { time: 13, note: "C5", duration: "2n" },
+                { time: 14, note: "D5", duration: "1n" },
+                { time: 16, note: "E5", duration: "2n" },
+                { time: 17, note: "D5", duration: "2n" },
+                { time: 18, note: "C5", duration: "1n" },
+                { time: 20, note: "G4", duration: "2n" },
+                { time: 21, note: "E4", duration: "2n" },
+                { time: 22, note: "C4", duration: "1m" }
+            ];
+
+            const chords = [
+                { time: 0, notes: ["C3", "G3", "E4"], duration: "1m" },
+                { time: 4, notes: ["A2", "E3", "C4"], duration: "1m" },
+                { time: 8, notes: ["F2", "C3", "A3"], duration: "1m" },
+                { time: 12, notes: ["C3", "G3", "E4"], duration: "1m" },
+                { time: 16, notes: ["G2", "D3", "B3"], duration: "1m" },
+                { time: 20, notes: ["C3", "G3", "C4", "E4"], duration: "2m" }
+            ];
+
+            chords.forEach(chord => {
+                pad.triggerAttackRelease(chord.notes, chord.duration, now + chord.time);
+            });
+
+            melody.forEach(m => {
+                synth.triggerAttackRelease(m.note, m.duration, now + m.time);
+            });
+
+            setTimeout(() => {
+                playBtn.disabled = false;
+                playBtn.innerText = "重新聆听";
+                glowEffect.style.opacity = 0;
+            }, 26000);
+        });
+    </script>
+</body>
+</html>
