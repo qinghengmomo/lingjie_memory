@@ -229,7 +229,7 @@
 .reply-btn.submit { background:var(--ink); color:var(--paper); border-color:var(--ink); }
 .reply-btn.cancel { background:transparent; color:var(--mist); }
 .reply-empty { font-size:12px; color:var(--mist); padding:4px 0; letter-spacing:1px; }
-
+@media(max-width:600px){#dual-col{grid-template-columns:1fr!important;}}
 </style>
 </head>
 <body>
@@ -275,8 +275,19 @@
     <!-- 筛选标签栏 -->
     <div class="filter-bar" id="filter-bar"></div>
 
-    <!-- 记录列表 -->
-    <div id="entry-list"><div class="loading">连接中...</div></div>
+    <!-- 双栏布局：日记左，总结右 -->
+    <div id="dual-col" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+      <div>
+        <div style="font-size:10px;letter-spacing:3px;color:var(--red);border-bottom:1px solid var(--red);padding-bottom:6px;margin-bottom:16px;">· 日 记 ·</div>
+        <div id="diary-list"></div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:3px;color:var(--gold);border-bottom:1px solid var(--gold);padding-bottom:6px;margin-bottom:16px;">· 总 结 ·</div>
+        <div id="summary-list"></div>
+      </div>
+    </div>
+    <!-- 搜索/筛选激活时的单列兜底 -->
+    <div id="entry-list" style="display:none;"></div>
   </div>
 </div>
 
@@ -538,10 +549,22 @@ function buildReplySection(e, item){
 
 // ── 渲染列表 ──
 function renderEntries(){
-  const list=document.getElementById('entry-list');
-  list.innerHTML='';
-  let entries=allEntries;
+  const hasFilt=typeFilter||tagFilter||searchKw;
+  const dualCol=document.getElementById('dual-col');
+  const singleList=document.getElementById('entry-list');
+  const diaryList=document.getElementById('diary-list');
+  const summaryList=document.getElementById('summary-list');
 
+  // 切换单/双栏
+  if(hasFilt){
+    dualCol.style.display='none';
+    singleList.style.display='';
+  } else {
+    dualCol.style.display='grid';
+    singleList.style.display='none';
+  }
+
+  let entries=allEntries;
   if(typeFilter==='diary') entries=entries.filter(e=>e.type==='diary');
   else if(typeFilter==='summary') entries=entries.filter(e=>e.type==='summary');
   else if(typeFilter==='pin') entries=entries.filter(e=>!!e.pinNote);
@@ -555,17 +578,55 @@ function renderEntries(){
       ||(e.tags||[]).some(t=>t.toLowerCase().includes(kw))
     );
   }
-  if(!entries.length){
-    const empty=document.createElement('div');
-    empty.className='empty';
-    empty.textContent=searchKw?'没有找到匹配的记录':'暂无记录';
-    list.appendChild(empty);
+
+  if(hasFilt){
+    // 单列模式
+    const list=singleList;
+    list.innerHTML='';
+    if(!entries.length){
+      const empty=document.createElement('div');
+      empty.className='empty';
+      empty.textContent=searchKw?'没有找到匹配的记录':'暂无记录';
+      list.appendChild(empty);
+      return;
+    }
+    entries.forEach(e=>{
+      const item=document.createElement('div');
+      item.className='entry'+(e.type==='diary'?' diary':'')+(e.pinNote?' pinned-entry':'');
+      buildEntryContent(e,item);
+      list.appendChild(item);
+    });
     return;
   }
-  entries.forEach(e=>{
-    const item=document.createElement('div');
-    item.className='entry'+(e.type==='diary'?' diary':'')+(e.pinNote?' pinned-entry':'');
 
+  // 双栏模式
+  diaryList.innerHTML='';
+  summaryList.innerHTML='';
+  const diaries=allEntries.filter(e=>e.type==='diary');
+  const summaries=allEntries.filter(e=>e.type==='summary');
+  if(!diaries.length){
+    const empty=document.createElement('div');empty.className='empty';empty.textContent='暂无日记';diaryList.appendChild(empty);
+  }
+  if(!summaries.length){
+    const empty=document.createElement('div');empty.className='empty';empty.textContent='暂无总结';summaryList.appendChild(empty);
+  }
+  diaries.forEach(e=>{
+    const item=document.createElement('div');
+    item.className='entry diary'+(e.pinNote?' pinned-entry':'');
+    buildEntryContent(e,item);
+    diaryList.appendChild(item);
+  });
+  summaries.forEach(e=>{
+    const item=document.createElement('div');
+    item.className='entry'+(e.pinNote?' pinned-entry':'');
+    buildEntryContent(e,item);
+    summaryList.appendChild(item);
+  });
+}
+
+function buildEntryContent(e,item){
+  {const item2=item;const e2=e; // alias for closure
+  const item=item2;const e=e2;
     // 右上角操作按钮
     const actions=document.createElement('div');
     actions.className='entry-actions';
@@ -680,8 +741,7 @@ function renderEntries(){
 
     // 回复区
     buildReplySection(e,item);
-    list.appendChild(item);
-  });
+  }
 }
 
 // ── 搜索 ──
