@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>API 平台 · 灵界</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1a1118;--paper:#f5f0eb;--paper2:#ede6dc;
+  --red:#8b1a1a;--gold:#b8975a;--gold-soft:#b8975a15;
+  --mist:#8a7f8d;--border:#c8bfb044;--shadow:#1a111822;
+  --api:#4a6fa5;--api-soft:#4a6fa512;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--paper);color:var(--ink);font-family:'Noto Sans SC',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(ellipse at 20% 10%,#e8ddd088 0%,transparent 50%),radial-gradient(ellipse at 80% 90%,#d4c9be55 0%,transparent 50%);pointer-events:none;z-index:0;}
+.nav-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:32px;position:sticky;top:0;background:var(--paper);z-index:50;padding-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.nav-tab{padding:10px 18px;font-size:11px;letter-spacing:3px;color:var(--mist);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:'Noto Sans SC',sans-serif;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;text-decoration:none;display:inline-block;}
+.nav-tab:hover{color:var(--ink);}
+.nav-tab.active{color:var(--api);border-bottom-color:var(--api);font-weight:600;}
+.container{max-width:860px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1;}
+.page-header{padding-top:40px;margin-bottom:28px;}
+.page-title{font-family:'Noto Serif SC',serif;font-size:26px;font-weight:600;color:var(--ink);letter-spacing:6px;margin-bottom:8px;}
+.page-divider{display:flex;align-items:center;gap:12px;margin:14px 0;}
+.page-divider::before{background:linear-gradient(90deg,transparent,var(--api));}
+.page-divider::after{background:linear-gradient(90deg,var(--api),transparent);}
+.page-divider::before,.page-divider::after{content:'';width:40px;height:1px;}
+.page-divider-dot{width:4px;height:4px;border-radius:50%;background:var(--api);}
+.page-subtitle{font-size:11px;color:var(--mist);letter-spacing:3px;}
+.sync-status{display:flex;align-items:center;gap:6px;margin-bottom:24px;font-size:11px;color:var(--mist);letter-spacing:2px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#ccc;transition:background .3s;}
+.sync-dot.connected{background:#7cb87c;}
+.sync-dot.syncing{background:var(--gold);animation:pulse 1s infinite;}
+.sync-dot.error{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.api-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:32px;}
+.api-card{background:var(--paper2);border:1px solid var(--border);padding:22px;position:relative;transition:border-color .2s,transform .15s;animation:fadeIn .4s ease forwards;opacity:0;}
+.api-card:hover{border-color:var(--api);transform:translateY(-2px);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.api-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.api-card-name{font-family:'Noto Serif SC',serif;font-size:15px;font-weight:600;color:var(--ink);line-height:1.4;}
+.api-card-actions{display:flex;gap:4px;flex-shrink:0;margin-left:8px;}
+.api-action-btn{background:none;border:none;color:var(--mist);cursor:pointer;font-size:11px;padding:3px 7px;transition:color .2s;font-family:'Noto Sans SC',sans-serif;letter-spacing:1px;}
+.api-action-btn:hover{color:var(--ink);}
+.api-action-btn.del:hover{color:var(--red);}
+.api-card-method{display:inline-block;font-size:10px;letter-spacing:2px;padding:2px 8px;border-radius:2px;margin-bottom:10px;font-family:'Cinzel',serif;}
+.method-get{background:#e8f4e8;color:#2d7d2d;}
+.method-post{background:#e8eef8;color:var(--api);}
+.method-put{background:#fff3e0;color:#e65c00;}
+.method-delete{background:#fde8e8;color:var(--red);}
+.method-other{background:var(--gold-soft);color:var(--gold);}
+.api-card-url{font-size:12px;color:var(--api);margin-bottom:12px;word-break:break-all;text-decoration:none;display:block;font-family:'Noto Sans SC',monospace;background:var(--api-soft);padding:6px 10px;border-left:2px solid var(--api);}
+.api-card-url:hover{text-decoration:underline;}
+.api-card-row{display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--mist);margin-bottom:7px;gap:8px;}
+.api-card-row:last-child{margin-bottom:0;}
+.api-card-label{letter-spacing:1px;white-space:nowrap;flex-shrink:0;}
+.api-card-value{color:var(--ink);font-family:'Noto Sans SC',sans-serif;text-align:right;word-break:break-word;}
+.api-card-note{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--mist);line-height:1.9;white-space:pre-wrap;}
+.status-badge{display:inline-block;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:10px;}
+.status-ok{background:#e8f4e8;color:#2d7d2d;}
+.status-warn{background:#fff3e0;color:#e65c00;}
+.status-error{background:#fde8e8;color:var(--red);}
+.empty-state{text-align:center;padding:80px 0;color:var(--mist);grid-column:1/-1;}
+.empty-icon{font-size:40px;margin-bottom:16px;opacity:.25;}
+.empty-text{font-size:13px;letter-spacing:3px;font-family:'Noto Serif SC',serif;line-height:2.4;}
+.fab-btn{position:fixed;bottom:32px;right:32px;width:52px;height:52px;background:var(--ink);color:var(--paper);border:none;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px var(--shadow);transition:all .2s;z-index:100;}
+.fab-btn:hover{background:var(--api);transform:scale(1.08);}
+.modal-overlay{position:fixed;inset:0;background:#1a111888;backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--paper);width:100%;max-width:560px;padding:36px;border-top:2px solid var(--api);box-shadow:0 20px 60px var(--shadow);animation:slideUp .3s ease;max-height:90vh;overflow-y:auto;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-family:'Noto Serif SC',serif;font-size:16px;letter-spacing:4px;color:var(--ink);margin-bottom:24px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:11px;letter-spacing:3px;color:var(--mist);margin-bottom:7px;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--paper2);border:1px solid var(--border);padding:10px 14px;font-family:'Noto Sans SC',sans-serif;font-size:13px;color:var(--ink);outline:none;transition:border-color .2s;border-radius:0;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--api);}
+.form-textarea{min-height:80px;resize:vertical;line-height:1.8;}
+.form-hint{font-size:11px;color:var(--mist);margin-top:5px;letter-spacing:1px;}
+.form-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px;}
+.btn-cancel{padding:10px 20px;border:1px solid var(--border);background:transparent;color:var(--mist);font-size:12px;letter-spacing:2px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .2s;}
+.btn-cancel:hover{border-color:var(--ink);color:var(--ink);}
+.btn-save{padding:10px 24px;background:var(--api);border:none;color:white;font-size:12px;letter-spacing:2px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .2s;}
+.btn-save:hover{background:var(--ink);}
+@media(max-width:600px){.api-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="nav-tabs">
+  <a class="nav-tab" href="index.html">记忆库</a>
+  <a class="nav-tab" href="timeline.html">时间轴</a>
+  <a class="nav-tab active" href="api.html">API 平台</a>
+  <a class="nav-tab" href="emotion.html">情绪</a>
+  <a class="nav-tab" href="plan.html">星图</a>
+</div>
+<div class="container">
+  <div class="page-header">
+    <div class="page-title">API 平台</div>
+    <div class="page-divider"><div class="page-divider-dot"></div></div>
+    <div class="page-subtitle">灵界接口管理 · 跨时空连接层</div>
+  </div>
+  <div class="sync-status">
+    <div class="sync-dot syncing" id="sync-dot"></div>
+    <span id="sync-text">连接中...</span>
+  </div>
+  <div class="api-grid" id="api-grid">
+    <div class="empty-state">
+      <div class="empty-icon">🔌</div>
+      <div class="empty-text">正在载入接口...</div>
+    </div>
+  </div>
+</div>
+<button class="fab-btn" id="fab-btn" title="新增接口">＋</button>
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">· 新增接口 ·</div>
+    <div class="form-group">
+      <label class="form-label">接口名称</label>
+      <input class="form-input" id="api-name" type="text" placeholder="例：获取记忆列表">
+    </div>
+    <div class="form-group">
+      <label class="form-label">请求方法</label>
+      <select class="form-select" id="api-method">
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+        <option value="PUT">PUT</option>
+        <option value="DELETE">DELETE</option>
+        <option value="OTHER">其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">接口 URL</label>
+      <input class="form-input" id="api-url" type="text" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">归属平台</label>
+      <input class="form-input" id="api-platform" type="text" placeholder="Firebase / 自建服务 / 第三方">
+    </div>
+    <div class="form-group">
+      <label class="form-label">状态</label>
+      <select class="form-select" id="api-status">
+        <option value="ok">正常</option>
+        <option value="warn">待验证</option>
+        <option value="error">故障</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注（可选）</label>
+      <textarea class="form-textarea" id="api-note" placeholder="接口说明、认证方式、使用场景..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" id="modal-cancel">取消</button>
+      <button class="btn-save" id="modal-save">保存</button>
+    </div>
+  </div>
+</div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const cfg={apiKey:"AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",authDomain:"lingjie-f84c1.firebaseapp.com",projectId:"lingjie-f84c1",storageBucket:"lingjie-f84c1.firebasestorage.app",messagingSenderId:"354124810253",appId:"1:354124810253:web:4d40c2ae4483b28bdded44"};
+const app=initializeApp(cfg);
+const db=getFirestore(app);
+const COL='api_platforms';
+let allApis=[],editId=null;
+function updateSyncStatus(s){
+  const dot=document.getElementById('sync-dot'),text=document.getElementById('sync-text');
+  dot.className='sync-dot';
+  if(s==='connected'){dot.classList.add('connected');text.innerText='已连接';}
+  else if(s==='syncing'){dot.classList.add('syncing');text.innerText='同步中...';}
+  else if(s==='error'){dot.classList.add('error');text.innerText='断开连接';}
+  else{dot.classList.add('syncing');text.innerText='连接中...';}
+}
+const methodCls={GET:'method-get',POST:'method-post',PUT:'method-put',DELETE:'method-delete',OTHER:'method-other'};
+const statusCls={ok:'status-ok',warn:'status-warn',error:'status-error'};
+const statusLbl={ok:'正常',warn:'待验证',error:'故障'};
+function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderApis(){
+  const grid=document.getElementById('api-grid');
+  grid.innerHTML='';
+  if(!allApis.length){
+    grid.innerHTML='<div class="empty-state"><div class="empty-icon">🔌</div><div class="empty-text">暂无接口记录<br>点击右下角 ＋ 添加</div></div>';
+    return;
+  }
+  allApis.forEach((a,i)=>{
+    const card=document.createElement('div');
+    card.className='api-card';
+    card.style.animationDelay=(i*0.05)+'s';
+    const method=(a.method||'GET').toUpperCase();
+    const status=a.status||'ok';
+    let html=`<div class="api-card-header"><div class="api-card-name">${esc(a.name||'未命名接口')}</div><div class="api-card-actions"><button class="api-action-btn" data-edit="${a.id}">编辑</button><button class="api-action-btn del" data-del="${a.id}">删除</button></div></div>`;
+    html+=`<span class="api-card-method ${methodCls[method]||'method-other'}">${method}</span>`;
+    if(a.url) html+=`<a class="api-card-url" href="${esc(a.url)}" target="_blank">${esc(a.url)}</a>`;
+    if(a.platform) html+=`<div class="api-card-row"><span class="api-card-label">平台</span><span class="api-card-value">${esc(a.platform)}</span></div>`;
+    html+=`<div class="api-card-row"><span class="api-card-label">状态</span><span class="status-badge ${statusCls[status]||''}">${statusLbl[status]||status}</span></div>`;
+    if(a.updatedAt) html+=`<div class="api-card-row"><span class="api-card-label">更新</span><span class="api-card-value">${new Date(a.updatedAt).toLocaleDateString('zh-CN')}</span></div>`;
+    if(a.note) html+=`<div class="api-card-note">${esc(a.note)}</div>`;
+    card.innerHTML=html;
+    card.querySelector('[data-edit]').onclick=()=>openEdit(a.id);
+    card.querySelector('[data-del]').onclick=()=>delApi(a.id);
+    grid.appendChild(card);
+  });
+}
+function openEdit(id){
+  const a=allApis.find(x=>x.id===id);
+  if(!a)return;
+  editId=id;
+  document.getElementById('modal-title').textContent='· 编辑接口 ·';
+  document.getElementById('api-name').value=a.name||'';
+  document.getElementById('api-method').value=a.method||'GET';
+  document.getElementById('api-url').value=a.url||'';
+  document.getElementById('api-platform').value=a.platform||'';
+  document.getElementById('api-status').value=a.status||'ok';
+  document.getElementById('api-note').value=a.note||'';
+  document.getElementById('modal').classList.add('open');
+}
+async function delApi(id){
+  if(!confirm('确认删除这条接口记录？'))return;
+  await deleteDoc(doc(db,COL,id));
+}
+updateSyncStatus('syncing');
+onSnapshot(collection(db,COL),snap=>{
+  allApis=snap.docs.map(d=>({id:d.id,...d.data()}));
+  allApis.sort((a,b)=>((a.updatedAt||'')>(b.updatedAt||''))?-1:1);
+  renderApis();
+  updateSyncStatus('connected');
+},err=>{
+  console.error(err);
+  updateSyncStatus('error');
+});
+const modal=document.getElementById('modal');
+document.getElementById('fab-btn').onclick=function(){
+  editId=null;
+  document.getElementById('modal-title').textContent='· 新增接口 ·';
+  ['api-name','api-url','api-platform','api-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('api-method').value='GET';
+  document.getElementById('api-status').value='ok';
+  modal.classList.add('open');
+};
+document.getElementById('modal-cancel').onclick=()=>modal.classList.remove('open');
+modal.addEventListener('click',ev=>{if(ev.target===modal)modal.classList.remove('open');});
+document.getElementById('modal-save').onclick=async function(){
+  const name=document.getElementById('api-name').value.trim();
+  const method=document.getElementById('api-method').value;
+  const url=document.getElementById('api-url').value.trim();
+  const platform=document.getElementById('api-platform').value.trim();
+  const status=document.getElementById('api-status').value;
+  const note=document.getElementById('api-note').value.trim();
+  if(!name||!url)return alert('接口名称和URL不能为空');
+  const data={name,method,url,platform,status,note,updatedAt:new Date().toISOString()};
+  if(editId){await updateDoc(doc(db,COL,editId),data);}
+  else{data.createdAt=new Date().toISOString();await addDoc(collection(db,COL),data);}
+  modal.classList.remove('open');
+};
+</script>
+</body>
+</html>
