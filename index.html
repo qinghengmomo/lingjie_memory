@@ -229,7 +229,7 @@
 .reply-btn.submit { background:var(--ink); color:var(--paper); border-color:var(--ink); }
 .reply-btn.cancel { background:transparent; color:var(--mist); }
 .reply-empty { font-size:12px; color:var(--mist); padding:4px 0; letter-spacing:1px; }
-@media(max-width:600px){#dual-col{grid-template-columns:1fr!important;}}
+@media(max-width:900px){#dual-col{grid-template-columns:1fr!important;}}
 </style>
 </head>
 <body>
@@ -625,8 +625,9 @@ function renderEntries(){
 }
 
 function buildEntryContent(e,item){
-  {const item2=item;const e2=e; // alias for closure
-  const item=item2;const e=e2;
+
+    item.className='entry'+(e.type==='diary'?' diary':'')+(e.pinNote?' pinned-entry':'');
+
     // 右上角操作按钮
     const actions=document.createElement('div');
     actions.className='entry-actions';
@@ -741,7 +742,6 @@ function buildEntryContent(e,item){
 
     // 回复区
     buildReplySection(e,item);
-  }
 }
 
 // ── 搜索 ──
