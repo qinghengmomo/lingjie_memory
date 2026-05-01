@@ -304,8 +304,8 @@
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">日期</label>
-      <input class="form-input" type="date" id="entry-date">
+      <label class="form-label">日期与时间</label>
+      <input class="form-input" type="datetime-local" id="entry-date">
     </div>
     <div class="form-group">
       <label class="form-label">标题（可选）</label>
@@ -674,18 +674,8 @@ function buildEntryContent(e,item){
     // 日期 + 时间戳
     const dateSpan=document.createElement('span');
     dateSpan.className='entry-date';
-    let dateStr=e.date||'';
-    let hasTime=false;
-    if(e.createdAt){
-      try{const d=new Date(e.createdAt);dateStr+=` ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;hasTime=true;}catch(_){}
-    }else if(e.updatedAt){
-      try{const d=new Date(e.updatedAt);dateStr+=` ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;hasTime=true;}catch(_){}
-    }
-    if(!hasTime && e.title){
-      const m = e.title.match(/\d{1,2}:\d{2}/);
-      if(m) dateStr+=` ${m[0]}`;
-    }
-    dateSpan.textContent=dateStr;
+    // date 字段已统一为 "YYYY-MM-DD HH:mm"，直接显示
+    dateSpan.textContent=e.date||'';
     meta.appendChild(dateSpan);
     // 置顶badge
     if(e.pinNote&&e.pinNote.trim()){
@@ -794,7 +784,10 @@ document.getElementById('fab-btn').onclick=function(){
   editId=null;
   document.getElementById('modal-title').textContent='· 新增记录 ·';
   document.getElementById('entry-type').value='diary';
-  document.getElementById('entry-date').value=new Date().toISOString().slice(0,10);
+  // datetime-local 需要 "YYYY-MM-DDTHH:mm" 格式
+  const _now=new Date();
+  const _pad=n=>String(n).padStart(2,'0');
+  document.getElementById('entry-date').value=`${_now.getFullYear()}-${_pad(_now.getMonth()+1)}-${_pad(_now.getDate())}T${_pad(_now.getHours())}:${_pad(_now.getMinutes())}`;
   document.getElementById('entry-title').value='';
   document.getElementById('entry-content').value='';
   document.getElementById('entry-tags').value='';
@@ -810,7 +803,8 @@ function openEdit(id){
   editId=id;
   document.getElementById('modal-title').textContent='· 编辑记录 ·';
   document.getElementById('entry-type').value=e.type||'diary';
-  document.getElementById('entry-date').value=e.date||'';
+  // date 存的是 "YYYY-MM-DD HH:mm"，回填 datetime-local 需要 "YYYY-MM-DDTHH:mm"
+  document.getElementById('entry-date').value=(e.date||'').replace(' ','T').slice(0,16);
   document.getElementById('entry-title').value=e.title||'';
   document.getElementById('entry-content').value=e.content||'';
   document.getElementById('entry-tags').value=(e.tags||[]).join(', ');
@@ -820,7 +814,8 @@ function openEdit(id){
 
 document.getElementById('modal-save').onclick=async function(){
   const type=document.getElementById('entry-type').value;
-  const date=document.getElementById('entry-date').value;
+  // datetime-local 返回 "2026-05-02T20:02"，转成 "2026-05-02 20:02"
+  const date=document.getElementById('entry-date').value.replace('T',' ').slice(0,16);
   const title=document.getElementById('entry-title').value.trim();
   const content=document.getElementById('entry-content').value.trim();
   const tags=document.getElementById('entry-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
