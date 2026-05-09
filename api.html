@@ -143,9 +143,23 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import{getAuth,signInWithEmailAndPassword}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 const cfg={apiKey:"AIzaSyCKu3KreoxJEfY9Ur9xilowhbFDtALYitE",authDomain:"lingjie-f84c1.firebaseapp.com",projectId:"lingjie-f84c1",storageBucket:"lingjie-f84c1.firebasestorage.app",messagingSenderId:"354124810253",appId:"1:354124810253:web:4d40c2ae4483b28bdded44"};
 const app=initializeApp(cfg);
 const db=getFirestore(app);
+const auth=getAuth(app);
+async function ensureAuth(){
+  if(auth.currentUser)return true;
+  const pwd=prompt('· 灵界验证 · 请输入访问密码');
+  if(!pwd)return false;
+  try{
+    await signInWithEmailAndPassword(auth,'qinghengmomo@gmail.com',pwd);
+    return true;
+  }catch(e){
+    alert('密码错误，无法写入');
+    return false;
+  }
+}
 const COL='api_platforms';
 let allApis=[],editId=null;
 function updateSyncStatus(s){
@@ -159,7 +173,6 @@ function updateSyncStatus(s){
 function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmtTime(ts){
   if(!ts)return '';
-  // 支持 int64 毫秒时间戳 和 ISO 字符串
   const d=typeof ts==='number'?new Date(ts):new Date(ts);
   if(isNaN(d))return '';
   return d.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
@@ -202,6 +215,7 @@ function openEdit(id){
 }
 async function delApi(id){
   if(!confirm('确认删除这条平台记录？'))return;
+  if(!await ensureAuth())return;
   await deleteDoc(doc(db,COL,id));
 }
 updateSyncStatus('syncing');
@@ -215,7 +229,8 @@ onSnapshot(collection(db,COL),snap=>{
   updateSyncStatus('error');
 });
 const modal=document.getElementById('modal');
-document.getElementById('fab-btn').onclick=function(){
+document.getElementById('fab-btn').onclick=async function(){
+  if(!await ensureAuth())return;
   editId=null;
   document.getElementById('modal-title').textContent='· 新增平台 ·';
   ['api-name','api-url','api-email','api-plan','api-note'].forEach(id=>document.getElementById(id).value='');
