@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 // 灵界记忆库 · pages/plan.js — 星图页签（待办事项）
 // 数据源：Firestore 集合 plan_items
-// 功能：待办列表、三种状态（待办/进行中/已完成）、新增/编辑/删除、筛选、看板视图
+// 字段映射：t=title, d=desc, s=status, l=link, lt=linkText, order=排序
 // ═══════════════════════════════════════════════════════
 
 let db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,requireAuth;
@@ -54,7 +54,7 @@ function render(){
       <div class="form-group"><label class="form-label">标题</label><input class="form-input" type="text" id="p-title" placeholder="要做什么..."></div>
       <div class="form-group"><label class="form-label">描述（可选）</label><textarea class="form-textarea" id="p-desc" placeholder="详细说明、注意事项..."></textarea></div>
       <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="p-status"><option value="todo">待办</option><option value="doing">进行中</option><option value="done">已完成</option></select></div>
-      <div class="form-group"><label class="form-label">优先级（可选）</label><select class="form-select" id="p-priority"><option value="">无</option><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select></div>
+      <div class="form-group"><label class="form-label">链接（可选）</label><input class="form-input" type="text" id="p-link" placeholder="https://..."></div>
       <div class="form-actions"><button class="btn-cancel" id="p-modal-cancel">取消</button><button class="btn-save" id="p-modal-save">保存</button></div>
     </div>
   </div>`;
@@ -62,7 +62,6 @@ function render(){
 }
 
 function bindEvents(){
-  // 统计栏点击
   container.querySelectorAll('#p-stats .stat-cell').forEach(cell=>{
     cell.style.cursor='pointer';
     cell.addEventListener('click',()=>{
@@ -73,7 +72,6 @@ function bindEvents(){
       renderList();
     });
   });
-  // 筛选栏
   container.querySelectorAll('#p-filter-bar .filter-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       statusFilter=btn.dataset.status;
@@ -84,7 +82,6 @@ function bindEvents(){
       if(matchCell)matchCell.classList.add('active');
     });
   });
-  // FAB
   container.querySelector('#p-fab').addEventListener('click',()=>openModal());
   container.querySelector('#p-modal-cancel').addEventListener('click',()=>closeModal());
   container.querySelector('#p-modal').addEventListener('click',ev=>{if(ev.target.id==='p-modal')closeModal();});
@@ -96,12 +93,13 @@ function startListener(){
   setSyncStatus('syncing');
   onSnapshot(collection(db,COL),snap=>{
     allPlans=snap.docs.map(d=>({id:d.id,...d.data()}));
-    // 排序：doing > todo > done，同状态按更新时间倒序
+    // 排序：doing > todo > done，同状态按 order 字段
     const order={doing:0,todo:1,done:2};
     allPlans.sort((a,b)=>{
-      const oa=(order[a.status]??1),ob=(order[b.status]??1);
+      const sa=getStatus(a),sb=getStatus(b);
+      const oa=(order[sa]??1),ob=(order[sb]??1);
       if(oa!==ob)return oa-ob;
-      return ((a.updatedAt||a.createdAt||'')>(b.updatedAt||b.createdAt||''))?-1:1;
+      return (getOrder(a))-(getOrder(b));
     });
     updateStats();
     renderList();
@@ -111,6 +109,14 @@ function startListener(){
     setSyncStatus('error');
   });
 }
+
+// 兼容字段：s 或 status
+function getStatus(p){return p.s||p.status||'todo';}
+function getTitle(p){return p.t||p.title||p.name||'未命名';}
+function getDesc(p){return p.d||p.desc||p.description||'';}
+function getLink(p){return p.l||p.link||'';}
+function getLinkText(p){return p.lt||p.linkText||'';}
+function getOrder(p){return typeof p.order==='number'?p.order:999;}
 
 function setSyncStatus(s){
   const dot=container.querySelector('#p-sync-dot'),text=container.querySelector('#p-sync-text');
@@ -125,9 +131,9 @@ function setSyncStatus(s){
 function updateStats(){
   const el=id=>container.querySelector('#'+id);
   el('p-s-total').textContent=allPlans.length;
-  el('p-s-todo').textContent=allPlans.filter(p=>p.status==='todo').length;
-  el('p-s-doing').textContent=allPlans.filter(p=>p.status==='doing').length;
-  el('p-s-done').textContent=allPlans.filter(p=>p.status==='done').length;
+  el('p-s-todo').textContent=allPlans.filter(p=>getStatus(p)==='todo').length;
+  el('p-s-doing').textContent=allPlans.filter(p=>getStatus(p)==='doing').length;
+  el('p-s-done').textContent=allPlans.filter(p=>getStatus(p)==='done').length;
 }
 
 function updateFilterActive(){
@@ -142,7 +148,7 @@ function renderList(){
   const list=container.querySelector('#p-list');
   list.innerHTML='';
   let items=allPlans;
-  if(statusFilter) items=items.filter(p=>p.status===statusFilter);
+  if(statusFilter) items=items.filter(p=>getStatus(p)===statusFilter);
   if(!items.length){
     list.innerHTML='<div class="empty-state"><div class="empty-text">'+(statusFilter?'该分类暂无事项':'暂无待办事项<br>点击右下角 ＋ 添加')+'</div></div>';
     return;
@@ -152,25 +158,28 @@ function renderList(){
     el.className='plan-item';
     el.style.animationDelay=(i*0.04)+'s';
     const statusLabel={todo:'待办',doing:'进行中',done:'已完成'};
-    const statusClass=p.status||'todo';
+    const status=getStatus(p);
+    const title=getTitle(p);
+    const desc=getDesc(p);
+    const link=getLink(p);
+    const linkText=getLinkText(p);
     let html=`<div class="plan-item-header">
-      <div class="plan-item-title">${esc(p.title||p.name||'未命名')}</div>
+      <div class="plan-item-title">${esc(title)}</div>
       <div class="plan-item-actions">
         <button class="action-btn" data-edit="${p.id}">编辑</button>
         <button class="action-btn del" data-del="${p.id}">删除</button>
       </div>
     </div>`;
-    html+=`<div style="margin-bottom:8px;"><span class="plan-badge ${statusClass}">${statusLabel[statusClass]||'待办'}</span></div>`;
-    if(p.desc||p.description) html+=`<div class="plan-item-desc">${esc(p.desc||p.description)}</div>`;
-    if(p.link) html+=`<div style="margin-top:6px;"><a href="${esc(p.link)}" target="_blank" style="font-size:12px;color:var(--api-accent);text-decoration:none;">🔗 ${esc(p.link)}</a></div>`;
-    // 快捷状态切换按钮
+    html+=`<div style="margin-bottom:8px;"><span class="plan-badge ${status}">${statusLabel[status]||'待办'}</span></div>`;
+    if(desc) html+=`<div class="plan-item-desc">${esc(desc)}</div>`;
+    if(link) html+=`<div style="margin-top:6px;"><a href="${esc(link)}" target="_blank" style="font-size:12px;color:var(--api-accent);text-decoration:none;">🔗 ${esc(linkText||link)}</a></div>`;
+    // 快捷状态切换
     html+=`<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">`;
-    if(p.status!=='todo') html+=`<button class="action-btn" data-to="todo" data-id="${p.id}">→ 待办</button>`;
-    if(p.status!=='doing') html+=`<button class="action-btn" data-to="doing" data-id="${p.id}">→ 进行中</button>`;
-    if(p.status!=='done') html+=`<button class="action-btn" data-to="done" data-id="${p.id}">→ 已完成</button>`;
+    if(status!=='todo') html+=`<button class="action-btn" data-to="todo" data-id="${p.id}">→ 待办</button>`;
+    if(status!=='doing') html+=`<button class="action-btn" data-to="doing" data-id="${p.id}">→ 进行中</button>`;
+    if(status!=='done') html+=`<button class="action-btn" data-to="done" data-id="${p.id}">→ 已完成</button>`;
     html+=`</div>`;
     el.innerHTML=html;
-    // 绑定事件
     el.querySelector('[data-edit]').onclick=()=>openModal(p.id);
     el.querySelector('[data-del]').onclick=async()=>{
       if(!confirm('确认删除？'))return;if(!requireAuth())return;
@@ -179,7 +188,7 @@ function renderList(){
     el.querySelectorAll('[data-to]').forEach(btn=>{
       btn.onclick=async()=>{
         if(!requireAuth())return;
-        await updateDoc(doc(db,'plan_items',btn.dataset.id),{status:btn.dataset.to,updatedAt:new Date().toISOString()});
+        await updateDoc(doc(db,'plan_items',btn.dataset.id),{s:btn.dataset.to});
       };
     });
     list.appendChild(el);
@@ -193,30 +202,30 @@ function openModal(id){
     const p=allPlans.find(x=>x.id===id);if(!p)return;
     editId=id;
     container.querySelector('#p-modal-title').textContent='· 编辑待办 ·';
-    container.querySelector('#p-title').value=p.title||p.name||'';
-    container.querySelector('#p-desc').value=p.desc||p.description||'';
-    container.querySelector('#p-status').value=p.status||'todo';
-    container.querySelector('#p-priority').value=p.priority||'';
+    container.querySelector('#p-title').value=getTitle(p);
+    container.querySelector('#p-desc').value=getDesc(p);
+    container.querySelector('#p-status').value=getStatus(p);
+    container.querySelector('#p-link').value=getLink(p);
   }else{
     editId=null;
     container.querySelector('#p-modal-title').textContent='· 新增待办 ·';
     container.querySelector('#p-title').value='';
     container.querySelector('#p-desc').value='';
     container.querySelector('#p-status').value='todo';
-    container.querySelector('#p-priority').value='';
+    container.querySelector('#p-link').value='';
   }
   modal.classList.add('open');
 }
 function closeModal(){container.querySelector('#p-modal').classList.remove('open');}
 
 async function savePlan(){
-  const title=container.querySelector('#p-title').value.trim();
-  const desc=container.querySelector('#p-desc').value.trim();
-  const status=container.querySelector('#p-status').value;
-  const priority=container.querySelector('#p-priority').value;
-  if(!title)return alert('标题不能为空');
-  const data={title,desc,status,priority,updatedAt:new Date().toISOString()};
+  const t=container.querySelector('#p-title').value.trim();
+  const d=container.querySelector('#p-desc').value.trim();
+  const s=container.querySelector('#p-status').value;
+  const l=container.querySelector('#p-link').value.trim();
+  if(!t)return alert('标题不能为空');
+  const data={t,d,s,l};
   if(editId){await updateDoc(doc(db,'plan_items',editId),data);}
-  else{data.createdAt=new Date().toISOString();await addDoc(collection(db,'plan_items'),data);}
+  else{data.order=allPlans.length;await addDoc(collection(db,'plan_items'),data);}
   closeModal();
 }
