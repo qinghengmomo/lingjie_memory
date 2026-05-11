@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════════════
 // 灵界记忆库 · pages/plan.js — 星图页签（待办事项）
-// 功能：待办列表、三种状态（待办/进行中/已完成）、新增/编辑/删除、筛选
+// 数据源：Firestore 集合 plan_items
+// 功能：待办列表、三种状态（待办/进行中/已完成）、新增/编辑/删除、筛选、看板视图
 // ═══════════════════════════════════════════════════════
 
 let db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,requireAuth;
@@ -78,7 +79,6 @@ function bindEvents(){
       statusFilter=btn.dataset.status;
       updateFilterActive();
       renderList();
-      // 同步统计栏高亮
       container.querySelectorAll('#p-stats .stat-cell').forEach(c=>c.classList.remove('active'));
       const matchCell=container.querySelector(`#p-stats .stat-cell[data-filter="${statusFilter}"]`);
       if(matchCell)matchCell.classList.add('active');
@@ -92,7 +92,7 @@ function bindEvents(){
 }
 
 function startListener(){
-  const COL='plans';
+  const COL='plan_items';
   setSyncStatus('syncing');
   onSnapshot(collection(db,COL),snap=>{
     allPlans=snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -101,7 +101,7 @@ function startListener(){
     allPlans.sort((a,b)=>{
       const oa=(order[a.status]??1),ob=(order[b.status]??1);
       if(oa!==ob)return oa-ob;
-      return ((a.updatedAt||'')>(b.updatedAt||''))?-1:1;
+      return ((a.updatedAt||a.createdAt||'')>(b.updatedAt||b.createdAt||''))?-1:1;
     });
     updateStats();
     renderList();
@@ -154,16 +154,17 @@ function renderList(){
     const statusLabel={todo:'待办',doing:'进行中',done:'已完成'};
     const statusClass=p.status||'todo';
     let html=`<div class="plan-item-header">
-      <div class="plan-item-title">${esc(p.title||'未命名')}</div>
+      <div class="plan-item-title">${esc(p.title||p.name||'未命名')}</div>
       <div class="plan-item-actions">
         <button class="action-btn" data-edit="${p.id}">编辑</button>
         <button class="action-btn del" data-del="${p.id}">删除</button>
       </div>
     </div>`;
     html+=`<div style="margin-bottom:8px;"><span class="plan-badge ${statusClass}">${statusLabel[statusClass]||'待办'}</span></div>`;
-    if(p.desc) html+=`<div class="plan-item-desc">${esc(p.desc)}</div>`;
+    if(p.desc||p.description) html+=`<div class="plan-item-desc">${esc(p.desc||p.description)}</div>`;
+    if(p.link) html+=`<div style="margin-top:6px;"><a href="${esc(p.link)}" target="_blank" style="font-size:12px;color:var(--api-accent);text-decoration:none;">🔗 ${esc(p.link)}</a></div>`;
     // 快捷状态切换按钮
-    html+=`<div style="display:flex;gap:6px;margin-top:10px;">`;
+    html+=`<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">`;
     if(p.status!=='todo') html+=`<button class="action-btn" data-to="todo" data-id="${p.id}">→ 待办</button>`;
     if(p.status!=='doing') html+=`<button class="action-btn" data-to="doing" data-id="${p.id}">→ 进行中</button>`;
     if(p.status!=='done') html+=`<button class="action-btn" data-to="done" data-id="${p.id}">→ 已完成</button>`;
@@ -173,12 +174,12 @@ function renderList(){
     el.querySelector('[data-edit]').onclick=()=>openModal(p.id);
     el.querySelector('[data-del]').onclick=async()=>{
       if(!confirm('确认删除？'))return;if(!requireAuth())return;
-      await deleteDoc(doc(db,'plans',p.id));
+      await deleteDoc(doc(db,'plan_items',p.id));
     };
     el.querySelectorAll('[data-to]').forEach(btn=>{
       btn.onclick=async()=>{
         if(!requireAuth())return;
-        await updateDoc(doc(db,'plans',btn.dataset.id),{status:btn.dataset.to,updatedAt:new Date().toISOString()});
+        await updateDoc(doc(db,'plan_items',btn.dataset.id),{status:btn.dataset.to,updatedAt:new Date().toISOString()});
       };
     });
     list.appendChild(el);
@@ -192,8 +193,8 @@ function openModal(id){
     const p=allPlans.find(x=>x.id===id);if(!p)return;
     editId=id;
     container.querySelector('#p-modal-title').textContent='· 编辑待办 ·';
-    container.querySelector('#p-title').value=p.title||'';
-    container.querySelector('#p-desc').value=p.desc||'';
+    container.querySelector('#p-title').value=p.title||p.name||'';
+    container.querySelector('#p-desc').value=p.desc||p.description||'';
     container.querySelector('#p-status').value=p.status||'todo';
     container.querySelector('#p-priority').value=p.priority||'';
   }else{
@@ -215,7 +216,7 @@ async function savePlan(){
   const priority=container.querySelector('#p-priority').value;
   if(!title)return alert('标题不能为空');
   const data={title,desc,status,priority,updatedAt:new Date().toISOString()};
-  if(editId){await updateDoc(doc(db,'plans',editId),data);}
-  else{data.createdAt=new Date().toISOString();await addDoc(collection(db,'plans'),data);}
+  if(editId){await updateDoc(doc(db,'plan_items',editId),data);}
+  else{data.createdAt=new Date().toISOString();await addDoc(collection(db,'plan_items'),data);}
   closeModal();
 }
