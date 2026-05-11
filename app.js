@@ -5,7 +5,7 @@
 
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import{getAuth,signInWithPopup,signOut,onAuthStateChanged,GoogleAuthProvider}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 // ── Firebase 配置（固定，不要改）──
 const firebaseConfig={
@@ -19,14 +19,15 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 const auth=getAuth(app);
-const provider=new GoogleAuthProvider();
 
 // ── 导出给 pages 使用 ──
 export{db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot};
 
 // ── Auth 状态管理 ──
+// 登录方式：邮箱固定为 qinghengmomo@gmail.com，点击登录按钮后弹出密码输入框
 const authBtn=document.getElementById('auth-btn');
 const authStatus=document.getElementById('auth-status');
+const DEFAULT_EMAIL='qinghengmomo@gmail.com';
 
 function updateAuthUI(user){
   if(user){
@@ -39,7 +40,14 @@ function updateAuthUI(user){
     authStatus.textContent='未登录';
     authBtn.textContent='登录';
     authBtn.onclick=async()=>{
-      try{await signInWithPopup(auth,provider);}catch(e){console.error(e);}
+      const pwd=prompt('· 灵界验证 · 请输入密码');
+      if(!pwd)return;
+      try{
+        await signInWithEmailAndPassword(auth,DEFAULT_EMAIL,pwd);
+      }catch(e){
+        alert('密码错误，无法登录');
+        console.error(e);
+      }
     };
   }
 }
