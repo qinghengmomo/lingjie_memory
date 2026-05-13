@@ -3,10 +3,13 @@
 // 粒子可视化 / 情绪热力图 / 语义搜索 / 记忆浮现
 // ═══════════════════════════════════════════════════════
 
-import { db, collection, onSnapshot } from '../app.js';
+import { db, auth, collection, onSnapshot } from '../app.js';
+import { query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 let container = null;
-let memories = [];
+let rawMemories = []; // all docs from Firestore
+let memories = []; // merged by day
 let particles = [];
 let canvas, ctx;
 let W, H;
@@ -17,12 +20,12 @@ let animId = null;
 
 // ── 情绪颜色映射 ──
 function emotionColor(valence, arousal) {
-  if (valence > 0.7 && arousal > 0.6) return '#e8845f'; // 高正面高唤醒：热烈
-  if (valence > 0.7) return '#a3be8c'; // 高正面低唤醒：温暖
-  if (valence > 0.5 && arousal > 0.5) return '#f0c27f'; // 中正面高唤醒：兴奋
-  if (valence > 0.5) return '#88c0d0'; // 中正面低唤醒：平静
-  if (arousal > 0.6) return '#bf616a'; // 低正面高唤醒：激烈
-  if (valence > 0.3) return '#b48ead'; // 中性：沉思
+  if (valence > 0.7 && arousal > 0.6) return '#e8845f'; // 热烈
+  if (valence > 0.7) return '#a3be8c'; // 温暖
+  if (valence > 0.5 && arousal > 0.5) return '#f0c27f'; // 兴奋
+  if (valence > 0.5) return '#88c0d0'; // 平静
+  if (arousal > 0.6) return '#bf616a'; // 激烈
+  if (valence > 0.3) return '#b48ead'; // 沉思
   return '#4c566a'; // 低调
 }
 
@@ -31,6 +34,14 @@ export function init(el, ctx_) {
   container = el;
   render();
   loadData();
+  // 监听登录状态
+  onAuthStateChanged(auth, user => {
+    const el = document.getElementById('galaxyAuthHint');
+    if (el) {
+      el.textContent = user ? '' : '未登录 · 数据可能不完整';
+      el.style.display = user ? 'none' : 'block';
+    }
+  });
 }
 
 function render() {
@@ -42,6 +53,7 @@ function render() {
           <h1 class="galaxy-title">记 忆 星 河</h1>
           <div class="galaxy-stats" id="galaxyStats">加载中...</div>
         </div>
+        <div class="galaxy-auth-hint" id="galaxyAuthHint" style="display:none;text-align:center;font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:6px;"></div>
         <div class="galaxy-search">
           <input type="text" class="galaxy-search-input" id="galaxySearch" placeholder="搜索记忆… 试试「生理期」「灵界」「五一」">
         </div>
@@ -78,7 +90,6 @@ function render() {
     </div>
   `;
 
-  // bindEvents
   canvas = document.getElementById('galaxyCanvas');
   ctx = canvas.getContext('2d');
   resize();
@@ -96,18 +107,19 @@ function render() {
 
 function resize() {
   if (!canvas) return;
-  W = canvas.width = canvas.parentElement.clientWidth;
-  H = canvas.height = canvas.parentElement.clientHeight;
+  const parent = canvas.parentElement;
+  W = canvas.width = parent.clientWidth || window.innerWidth;
+  H = canvas.height = parent.clientHeight || (window.innerHeight - 42);
 }
 
 // ── 数据加载 ──
 function loadData() {
   const colRef = collection(db, 'memory_vault');
   onSnapshot(colRef, snapshot => {
-    memories = [];
+    rawMemories = [];
     snapshot.forEach(doc => {
       const d = doc.data();
-      memories.push({
+      rawMemories.push({
         id: doc.id,
         title: d.title || '',
         date: d.date || '',
@@ -121,23 +133,73 @@ function loadData() {
         pinned: d.pinned || false
       });
     });
-    // 按日期排序
-    memories.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    // 按天合并
+    mergeByDay();
     initParticles();
     updateStats();
     updateSurface();
     updateTimeline();
+  }, error => {
+    console.error('Galaxy loadData error:', error);
+    const el = document.getElementById('galaxyStats');
+    if (el) el.textContent = '加载失败，请登录后重试';
+  });
+}
+
+// ── 按天合并 ──
+function mergeByDay() {
+  const dayMap = {};
+  rawMemories.forEach(m => {
+    const day = (m.date || '').split(' ')[0];
+    if (!day) return;
+    if (!dayMap[day]) dayMap[day] = [];
+    dayMap[day].push(m);
+  });
+
+  memories = Object.keys(dayMap).sort((a, b) => b.localeCompare(a)).map(day => {
+    const items = dayMap[day];
+    // 取content最长的作为主体
+    items.sort((a, b) => (b.content || '').length - (a.content || '').length);
+    const primary = items[0];
+    // 合并所有tags和keywords
+    const allTags = [...new Set(items.flatMap(m => m.tags || []))];
+    const allKeywords = [...new Set(items.flatMap(m => m.keywords || []))];
+    // 情绪取平均
+    const avgValence = items.reduce((s, m) => s + m.valence, 0) / items.length;
+    const avgArousal = items.reduce((s, m) => s + m.arousal, 0) / items.length;
+    // 强度取最大
+    const maxStrength = Math.max(...items.map(m => m.strength));
+    // 类型标注
+    const types = [...new Set(items.map(m => m.type))];
+    const typeLabel = types.length > 1 ? '日记+总结' : (types[0] === 'diary' ? '日记' : '总结');
+
+    return {
+      id: primary.id,
+      day: day,
+      title: primary.title || '',
+      date: primary.date || day,
+      type: typeLabel,
+      content: primary.content || '',
+      secondaryContent: items.length > 1 ? items[1].content || '' : '',
+      tags: allTags,
+      keywords: allKeywords,
+      valence: Math.round(avgValence * 100) / 100,
+      arousal: Math.round(avgArousal * 100) / 100,
+      strength: maxStrength,
+      pinned: items.some(m => m.pinned),
+      itemCount: items.length
+    };
   });
 }
 
 function initParticles() {
   particles = memories.map((m, i) => ({
-    x: 0.1 + Math.random() * 0.8,
-    y: 0.12 + Math.random() * 0.6,
-    size: 2 + m.strength * 4,
-    baseAlpha: 0.3 + m.strength * 0.6,
-    speed: 0.06 + Math.random() * 0.12,
-    phase: Math.random() * Math.PI * 2,
+    x: 0.08 + (Math.sin(i * 2.1 + 0.5) * 0.5 + 0.5) * 0.84,
+    y: 0.1 + (Math.cos(i * 1.7 + 0.3) * 0.5 + 0.5) * 0.65,
+    size: 2.5 + m.strength * 4.5,
+    baseAlpha: 0.35 + m.strength * 0.55,
+    speed: 0.05 + (i % 7) * 0.015,
+    phase: (i * 1.618) % (Math.PI * 2),
     color: emotionColor(m.valence, m.arousal)
   }));
 }
@@ -145,22 +207,23 @@ function initParticles() {
 function updateStats() {
   const el = document.getElementById('galaxyStats');
   if (el) {
-    const dates = [...new Set(memories.map(m => (m.date || '').split(' ')[0]))];
-    el.textContent = `${memories.length} memories · ${dates.length} days`;
+    el.textContent = `${rawMemories.length} 条记忆 · ${memories.length} 天`;
   }
 }
 
 function updateSurface() {
   const list = document.getElementById('galaxySurfaceList');
   if (!list) return;
-  // 取 strength 最高的3条
   const top = [...memories].sort((a, b) => b.strength - a.strength).slice(0, 3);
-  list.innerHTML = top.map((m, i) => `
+  list.innerHTML = top.map((m, i) => {
+    const snippet = (m.content || '').replace(/[\n\r]/g, ' ').substring(0, 20);
+    return `
     <div class="galaxy-surface-item" data-idx="${memories.indexOf(m)}" style="border-color:${emotionColor(m.valence, m.arousal)}">
-      <div class="galaxy-surface-date">${(m.date || '').split(' ')[0].slice(5)}</div>
-      <div class="galaxy-surface-text">${(m.title || '').substring(0, 16)}</div>
+      <div class="galaxy-surface-date">${m.day.slice(5)} · ${m.type}</div>
+      <div class="galaxy-surface-text">${snippet}…</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
   list.querySelectorAll('.galaxy-surface-item').forEach(item => {
     item.addEventListener('click', () => showDetail(parseInt(item.dataset.idx)));
   });
@@ -171,34 +234,21 @@ function updateTimeline() {
   const startEl = document.getElementById('galaxyTimeStart');
   const endEl = document.getElementById('galaxyTimeEnd');
   if (!timeline) return;
+  if (memories.length === 0) return;
 
-  // 按日期分组
-  const dayMap = {};
-  memories.forEach(m => {
-    const day = (m.date || '').split(' ')[0];
-    if (!day) return;
-    if (!dayMap[day]) dayMap[day] = [];
-    dayMap[day].push(m);
-  });
-  const days = Object.keys(dayMap).sort();
-  if (days.length === 0) return;
+  const sorted = [...memories].sort((a, b) => a.day.localeCompare(b.day));
+  startEl.textContent = sorted[0].day.slice(5);
+  endEl.textContent = sorted[sorted.length - 1].day.slice(5);
 
-  startEl.textContent = days[0].slice(5);
-  endEl.textContent = days[days.length - 1].slice(5);
-
-  timeline.innerHTML = days.map((day, i) => {
-    const dayMems = dayMap[day];
-    const maxStrength = Math.max(...dayMems.map(m => m.strength));
-    const avgValence = dayMems.reduce((s, m) => s + m.valence, 0) / dayMems.length;
-    const avgArousal = dayMems.reduce((s, m) => s + m.arousal, 0) / dayMems.length;
-    const color = emotionColor(avgValence, avgArousal);
-    const height = 14 + maxStrength * 26;
-    const showLabel = i % 5 === 0 || i === days.length - 1;
-    const d = new Date(day);
+  timeline.innerHTML = sorted.map((m, i) => {
+    const color = emotionColor(m.valence, m.arousal);
+    const height = 14 + m.strength * 26;
+    const showLabel = i % 5 === 0 || i === sorted.length - 1;
+    const d = new Date(m.day);
     const label = showLabel ? `${d.getMonth() + 1}/${d.getDate()}` : '';
     return `
-      <div class="galaxy-timeline-day" data-day="${day}">
-        <div class="galaxy-timeline-bar" style="height:${height}px;background:${color};opacity:${0.3 + maxStrength * 0.6}"></div>
+      <div class="galaxy-timeline-day" data-idx="${memories.indexOf(m)}">
+        <div class="galaxy-timeline-bar" style="height:${height}px;background:${color};opacity:${0.3 + m.strength * 0.6}"></div>
         <div class="galaxy-timeline-label ${showLabel ? 'show' : ''}">${label}</div>
       </div>
     `;
@@ -206,13 +256,11 @@ function updateTimeline() {
 
   timeline.querySelectorAll('.galaxy-timeline-day').forEach(el => {
     el.addEventListener('click', () => {
-      const day = el.dataset.day;
-      const idx = memories.findIndex(m => (m.date || '').startsWith(day));
+      const idx = parseInt(el.dataset.idx);
       if (idx >= 0) showDetail(idx);
     });
   });
 
-  // 滚动到最右
   setTimeout(() => { timeline.scrollLeft = timeline.scrollWidth; }, 100);
 }
 
@@ -223,7 +271,11 @@ function startAnimation() {
 }
 
 function animate() {
-  if (!ctx || !canvas) return;
+  if (!ctx || !canvas || W === 0 || H === 0) {
+    resize();
+    animId = requestAnimationFrame(animate);
+    return;
+  }
   ctx.fillStyle = 'rgba(6,6,16,0.18)';
   ctx.fillRect(0, 0, W, H);
 
@@ -249,7 +301,7 @@ function animate() {
     const pulseSize = isSelected ? size * (1.4 + Math.sin(time * 3) * 0.2) : size;
 
     const px = p.x * W + Math.sin(time * p.speed + p.phase) * 18;
-    const py = p.y * (H * 0.65) + 60 + Math.cos(time * p.speed * 0.7 + p.phase) * 12;
+    const py = p.y * (H * 0.65) + 50 + Math.cos(time * p.speed * 0.7 + p.phase) * 12;
     positions.push({ px, py });
 
     // 光晕
@@ -275,7 +327,8 @@ function animate() {
       ctx.font = `${isSelected ? 11 : 9}px -apple-system, "PingFang SC", sans-serif`;
       ctx.fillStyle = `rgba(255,255,255,${isSelected ? 0.8 : 0.35})`;
       ctx.textAlign = 'center';
-      ctx.fillText((mem.title || '').substring(0, 8), px, py + pulseSize + 12);
+      const label = mem.day.slice(5) + ' ' + (mem.content || '').replace(/[\n\r]/g,'').substring(0, 6);
+      ctx.fillText(label, px, py + pulseSize + 12);
     }
   });
 
@@ -307,7 +360,8 @@ function matchSearch(mem) {
   return (mem.title || '').toLowerCase().includes(q) ||
     (mem.keywords || []).some(k => k.includes(q)) ||
     (mem.tags || []).some(t => t.includes(q)) ||
-    (mem.content || '').toLowerCase().includes(q);
+    (mem.content || '').toLowerCase().includes(q) ||
+    (mem.day || '').includes(q);
 }
 
 function handleCanvasClick(e) {
@@ -318,7 +372,7 @@ function handleCanvasClick(e) {
   let hitIdx = -1;
   particles.forEach((p, i) => {
     const px = p.x * W + Math.sin(time * p.speed + p.phase) * 18;
-    const py = p.y * (H * 0.65) + 60 + Math.cos(time * p.speed * 0.7 + p.phase) * 12;
+    const py = p.y * (H * 0.65) + 50 + Math.cos(time * p.speed * 0.7 + p.phase) * 12;
     if (Math.hypot(cx - px, cy - py) < Math.max(p.size * 3, 22)) {
       hitIdx = i;
     }
@@ -333,10 +387,10 @@ function showDetail(idx) {
   selectedIdx = idx;
   const m = memories[idx];
   const p = particles[idx];
-  document.getElementById('gdDate').textContent = m.date || '';
-  document.getElementById('gdType').textContent = m.type === 'diary' ? '日记' : m.type === 'summary' ? '总结' : m.type;
-  document.getElementById('gdTitle').textContent = m.title || '';
-  document.getElementById('gdContent').textContent = (m.content || '').substring(0, 500);
+  document.getElementById('gdDate').textContent = m.day + (m.itemCount > 1 ? ` (${m.itemCount}条)` : '');
+  document.getElementById('gdType').textContent = m.type;
+  document.getElementById('gdTitle').textContent = m.title || m.day;
+  document.getElementById('gdContent').textContent = (m.content || '').substring(0, 600);
   document.getElementById('gdTags').innerHTML = (m.tags || []).map(t => `<span class="galaxy-tag">${t}</span>`).join('');
   const fill = document.getElementById('gdStrength');
   fill.style.width = (m.strength * 100) + '%';
