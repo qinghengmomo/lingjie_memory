@@ -6,6 +6,7 @@
 <title>灵界记忆库 · 宿烬</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/galaxy.css">
 <style>
 /* ══ SPA 完整样式 ══ */
 :root{
@@ -27,6 +28,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .nav-tab:hover{color:var(--ink);}
 .nav-tab.active{color:var(--ink);border-bottom-color:var(--gold);font-weight:600;}
 .nav-tab[data-page="api"].active{border-bottom-color:var(--api-accent);color:var(--api-accent);}
+.nav-tab[data-page="galaxy"].active{border-bottom-color:#e8845f;color:#e8845f;}
 
 .auth-area{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px;}
 .auth-status{font-size:10px;color:var(--mist);letter-spacing:1px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -232,8 +234,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
   <div class="nav-tabs">
     <a class="nav-tab active" href="#memory" data-page="memory">记忆库</a>
     <a class="nav-tab" href="#api" data-page="api">API平台</a>
-    <a class="nav-tab" href="#timeline" data-page="timeline">时间轴</a>
-    <a class="nav-tab" href="#emotion" data-page="emotion">情绪</a>
+    <a class="nav-tab" href="#galaxy" data-page="galaxy">星河</a>
     <a class="nav-tab" href="#plan" data-page="plan">星图</a>
   </div>
   <div class="auth-area">
@@ -246,8 +247,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 
 <div class="page active" id="page-memory"></div>
 <div class="page" id="page-api"></div>
-<div class="page" id="page-timeline"><div class="empty-state" style="padding-top:80px;"><div class="empty-text">时间轴 · 开发中</div></div></div>
-<div class="page" id="page-emotion"><div class="empty-state" style="padding-top:80px;"><div class="empty-text">情绪 · 开发中</div></div></div>
+<div class="page" id="page-galaxy"></div>
 <div class="page" id="page-plan"></div>
 
 <script type="module" src="app.js"></script>
