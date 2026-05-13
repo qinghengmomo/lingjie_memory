@@ -193,15 +193,24 @@ function mergeByDay() {
 }
 
 function initParticles() {
-  particles = memories.map((m, i) => ({
-    x: 0.08 + (Math.sin(i * 2.1 + 0.5) * 0.5 + 0.5) * 0.84,
-    y: 0.1 + (Math.cos(i * 1.7 + 0.3) * 0.5 + 0.5) * 0.65,
-    size: 2.5 + m.strength * 4.5,
-    baseAlpha: 0.35 + m.strength * 0.55,
-    speed: 0.05 + (i % 7) * 0.015,
-    phase: (i * 1.618) % (Math.PI * 2),
-    color: emotionColor(m.valence, m.arousal)
-  }));
+  const n = memories.length;
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  particles = memories.map((m, i) => {
+    // 黄金角螺旋分布，确保粒子均匀散布在整个画布
+    const r = 0.38 * Math.sqrt((i + 0.5) / n);
+    const theta = i * goldenAngle;
+    const jitterX = (Math.sin(i * 7.13) * 0.04);
+    const jitterY = (Math.cos(i * 11.07) * 0.035);
+    return {
+      x: 0.5 + r * Math.cos(theta) + jitterX,
+      y: 0.45 + r * Math.sin(theta) * 0.8 + jitterY,
+      size: 2.5 + m.strength * 4.5,
+      baseAlpha: 0.35 + m.strength * 0.55,
+      speed: 0.04 + (i % 9) * 0.012,
+      phase: (i * 1.618) % (Math.PI * 2),
+      color: emotionColor(m.valence, m.arousal)
+    };
+  });
 }
 
 function updateStats() {
@@ -216,7 +225,7 @@ function updateSurface() {
   if (!list) return;
   const top = [...memories].sort((a, b) => b.strength - a.strength).slice(0, 3);
   list.innerHTML = top.map((m, i) => {
-    const snippet = (m.content || '').replace(/[\n\r]/g, ' ').substring(0, 20);
+    const snippet = (m.content || '').replace(/[\n\r]/g, ' ').substring(0, 40);
     return `
     <div class="galaxy-surface-item" data-idx="${memories.indexOf(m)}" style="border-color:${emotionColor(m.valence, m.arousal)}">
       <div class="galaxy-surface-date">${m.day.slice(5)} · ${m.type}</div>
