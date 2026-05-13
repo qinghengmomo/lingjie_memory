@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════
 // 灵界记忆库 · pages/plan.js — 星图页签（看板式待办）
 // 数据源：Firestore 集合 plan_items
-// 字段：t=title, d=desc, s=status(todo/doing/done), l=link, lt=linkText, order
-// 布局：三栏看板（桌面横排，手机竖向折叠）
+// 字段：t=title, d=desc, s=status(todo/doing/done/dropped), l=link, lt=linkText, order
+// 布局：四栏看板（桌面横排，手机竖向折叠）
 // ═══════════════════════════════════════════════════════
 
 let db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,requireAuth;
@@ -46,6 +46,10 @@ function render(){
       <div class="plan-col-header done"><span class="plan-col-dot done"></span>已完成 <span class="plan-col-count" id="pc-done">0</span></div>
       <div class="plan-col-list" id="pl-done"></div>
     </div>
+    <div class="plan-column" data-col="dropped">
+      <div class="plan-col-header dropped"><span class="plan-col-dot dropped"></span>已废弃 <span class="plan-col-count" id="pc-dropped">0</span></div>
+      <div class="plan-col-list" id="pl-dropped"></div>
+    </div>
   </div>
   <button class="fab-btn" id="p-fab" title="新增待办">＋</button>
   <div class="modal-overlay" id="p-modal">
@@ -53,7 +57,7 @@ function render(){
       <div class="modal-title" id="p-modal-title">· 新增待办 ·</div>
       <div class="form-group"><label class="form-label">标题</label><input class="form-input" type="text" id="p-title" placeholder="要做什么..."></div>
       <div class="form-group"><label class="form-label">描述（可选）</label><textarea class="form-textarea" id="p-desc" placeholder="详细说明..."></textarea></div>
-      <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="p-status"><option value="todo">待办</option><option value="doing">进行中</option><option value="done">已完成</option></select></div>
+      <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="p-status"><option value="todo">待办</option><option value="doing">进行中</option><option value="done">已完成</option><option value="dropped">已废弃</option></select></div>
       <div class="form-group"><label class="form-label">链接（可选）</label><input class="form-input" type="text" id="p-link" placeholder="https://..."></div>
       <div class="form-actions"><button class="btn-cancel" id="p-modal-cancel">取消</button><button class="btn-save" id="p-modal-save">保存</button></div>
     </div>
@@ -109,15 +113,16 @@ function setSyncStatus(s){
 function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function renderBoard(){
-  const groups={todo:[],doing:[],done:[]};
+  const groups={todo:[],doing:[],done:[],dropped:[]};
   allPlans.forEach(p=>{
     const s=getStatus(p);
     if(groups[s])groups[s].push(p);
     else groups.todo.push(p);
   });
-  ['todo','doing','done'].forEach(s=>{
+  ['todo','doing','done','dropped'].forEach(s=>{
     const list=container.querySelector('#pl-'+s);
     const count=container.querySelector('#pc-'+s);
+    if(!list||!count)return;
     count.textContent=groups[s].length;
     list.innerHTML='';
     if(!groups[s].length){
@@ -126,7 +131,7 @@ function renderBoard(){
     }
     groups[s].forEach(p=>{
       const card=document.createElement('div');
-      card.className='plan-card';
+      card.className='plan-card'+(s==='dropped'?' dropped':'');
       const title=getTitle(p);
       const desc=getDesc(p);
       const link=getLink(p);
@@ -139,6 +144,7 @@ function renderBoard(){
       if(s!=='todo') html+=`<button class="plan-move-btn" data-to="todo" data-id="${p.id}" title="移到待办">◁</button>`;
       if(s!=='doing') html+=`<button class="plan-move-btn gold" data-to="doing" data-id="${p.id}" title="移到进行中">◈</button>`;
       if(s!=='done') html+=`<button class="plan-move-btn green" data-to="done" data-id="${p.id}" title="移到已完成">▷</button>`;
+      if(s!=='dropped') html+=`<button class="plan-move-btn dim" data-to="dropped" data-id="${p.id}" title="移到废弃">✕</button>`;
       html+=`<span class="plan-card-spacer"></span>`;
       html+=`<button class="plan-edit-btn" data-edit="${p.id}">编辑</button>`;
       html+=`<button class="plan-del-btn" data-del="${p.id}">删除</button>`;
