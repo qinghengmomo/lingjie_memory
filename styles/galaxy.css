@@ -1,0 +1,70 @@
+/* ══ 灵界 · 记忆星河 ══ */
+.galaxy-page{position:relative;width:100%;height:calc(100vh - 42px);background:#060610;overflow:hidden;}
+.galaxy-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;}
+.galaxy-overlay{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;pointer-events:none;}
+.galaxy-overlay>*{pointer-events:auto;}
+
+/* 顶部 */
+.galaxy-header{padding:18px 18px 10px;display:flex;align-items:center;justify-content:space-between;}
+.galaxy-title{font-size:14px;font-weight:300;letter-spacing:3px;color:rgba(255,255,255,0.5);font-family:'Noto Serif SC',serif;}
+.galaxy-stats{font-size:11px;color:rgba(255,255,255,0.3);}
+
+/* 搜索 */
+.galaxy-search{margin:0 18px 10px;}
+.galaxy-search-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:10px 16px;color:#fff;font-size:13px;outline:none;font-family:'Noto Sans SC',sans-serif;transition:all .3s;}
+.galaxy-search-input:focus{border-color:rgba(232,132,95,0.4);background:rgba(255,255,255,0.06);box-shadow:0 0 20px rgba(232,132,95,0.08);}
+.galaxy-search-input::placeholder{color:rgba(255,255,255,0.25);}
+
+/* 主画布区 */
+.galaxy-main{flex:1;position:relative;pointer-events:auto;}
+
+/* 浮现面板 */
+.galaxy-surface{position:absolute;top:6px;right:12px;width:180px;background:rgba(12,12,20,0.85);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:11px;}
+.galaxy-surface h3{font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1.5px;margin-bottom:8px;display:flex;align-items:center;gap:5px;font-weight:400;}
+.galaxy-surface-dot{width:4px;height:4px;border-radius:50%;background:#e8845f;animation:gbreathe 2s ease-in-out infinite;}
+@keyframes gbreathe{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+.galaxy-surface-item{padding:7px 9px;background:rgba(255,255,255,0.02);border-radius:7px;margin-bottom:5px;border-left:2px solid;color:rgba(255,255,255,0.55);transition:all .2s;cursor:pointer;}
+.galaxy-surface-item:active{background:rgba(255,255,255,0.05);transform:translateX(3px);}
+.galaxy-surface-date{font-size:9px;color:rgba(255,255,255,0.25);}
+.galaxy-surface-text{font-size:11px;margin-top:2px;line-height:1.4;}
+
+/* 底部热力时间轴 */
+.galaxy-timeline-wrap{padding:8px 14px 18px;background:rgba(12,12,20,0.6);backdrop-filter:blur(6px);}
+.galaxy-timeline-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.galaxy-timeline-header span{font-size:10px;color:rgba(255,255,255,0.25);}
+.galaxy-timeline{display:flex;align-items:flex-end;gap:3px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.galaxy-timeline::-webkit-scrollbar{display:none;}
+.galaxy-timeline-day{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;cursor:pointer;}
+.galaxy-timeline-bar{width:11px;border-radius:3px;transition:all .2s;}
+.galaxy-timeline-bar:active{transform:scaleY(1.2);filter:brightness(1.3);}
+.galaxy-timeline-label{font-size:8px;color:rgba(255,255,255,0.15);}
+.galaxy-timeline-label.show{color:rgba(255,255,255,0.4);}
+
+/* 遮罩 + 详情卡片 */
+.galaxy-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s;}
+.galaxy-backdrop.visible{opacity:1;pointer-events:auto;}
+.galaxy-detail{position:fixed;bottom:0;left:0;right:0;background:rgba(12,12,20,0.95);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,0.06);border-radius:18px 18px 0 0;padding:18px 18px 28px;transform:translateY(100%);transition:transform .4s cubic-bezier(0.16,1,0.3,1);z-index:200;max-height:55vh;overflow-y:auto;}
+.galaxy-detail.visible{transform:translateY(0);}
+.galaxy-detail-handle{width:32px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 14px;}
+.galaxy-detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.galaxy-detail-date{font-size:11px;color:rgba(255,255,255,0.3);}
+.galaxy-detail-type{font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);}
+.galaxy-detail-title{font-size:15px;font-weight:500;margin-bottom:10px;color:rgba(255,255,255,0.9);font-family:'Noto Serif SC',serif;}
+.galaxy-detail-content{font-size:13px;line-height:1.8;color:rgba(255,255,255,0.6);margin-bottom:12px;white-space:pre-wrap;}
+.galaxy-detail-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
+.galaxy-tag{font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45);}
+.galaxy-detail-strength{display:flex;align-items:center;gap:8px;}
+.galaxy-detail-strength-label{font-size:10px;color:rgba(255,255,255,0.3);}
+.galaxy-detail-strength-bar{flex:1;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;}
+.galaxy-detail-strength-fill{height:100%;border-radius:2px;transition:width .6s;}
+
+/* 页签容器覆盖 */
+#page-galaxy{padding:0!important;max-width:none!important;}
+#page-galaxy.active{display:block;}
+.nav-tab[data-page="galaxy"].active{border-bottom-color:#e8845f;color:#e8845f;}
+
+/* 响应式 */
+@media(max-width:900px){
+  .galaxy-surface{width:150px;padding:9px;}
+  .galaxy-surface-text{font-size:10px;}
+}
