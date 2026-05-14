@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵界 · 档案室预览</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1c1a17;--paper:#f5f0e8;--paper2:#ede6d8;--paper3:#e8e0d2;
+  --ink:#2a2420;--ink-light:#4a4038;
+  --red:#8b1a1a;--red-soft:#8b1a1a22;--red-stamp:#c0392b;
+  --gold:#b8975a;--gold-soft:#b8975a33;
+  --blue:#2a4a6a;--blue-ink:#1a3a5a;
+  --mist:#8a7f72;
+  --border:#c8bfa044;--shadow:#1a111844;
+  --tape:#e8dcc8;--tape-border:#d4c8b0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans SC',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,#2a2520 0%,var(--bg) 60%);pointer-events:none;}
+
+.archive-container{max-width:700px;margin:0 auto;padding:40px 24px 100px;position:relative;z-index:1;}
+
+/* 页头 */
+.archive-header{text-align:center;margin-bottom:48px;}
+.archive-sup{font-size:10px;letter-spacing:6px;color:var(--mist);margin-bottom:8px;}
+.archive-title{font-family:'Cinzel',serif;font-size:32px;font-weight:600;color:var(--paper);letter-spacing:6px;margin-bottom:8px;text-shadow:0 2px 8px #00000044;}
+.archive-sub{font-size:11px;color:var(--mist);letter-spacing:3px;}
+.archive-stamp{display:inline-block;margin-top:16px;padding:6px 20px;border:2px solid var(--red-stamp);color:var(--red-stamp);font-family:'Special Elite',monospace;font-size:12px;letter-spacing:4px;transform:rotate(-2deg);opacity:0.8;}
+
+/* 文件夹列表 */
+.folder-list{display:flex;flex-direction:column;gap:24px;}
+
+/* 单个文件夹 */
+.folder{position:relative;background:var(--paper);border:1px solid var(--border);box-shadow:4px 4px 20px var(--shadow);padding:0;overflow:hidden;transition:transform .3s;}
+.folder:hover{transform:translateY(-2px);}
+
+/* 文件夹顶部标签 */
+.folder-tab{background:var(--paper3);padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;}
+.folder-tab-icon{font-size:18px;}
+.folder-tab-name{font-family:'Noto Serif SC',serif;font-size:16px;font-weight:600;color:var(--ink);letter-spacing:3px;}
+.folder-tab-count{margin-left:auto;font-size:10px;color:var(--mist);letter-spacing:1px;padding:2px 8px;border:1px solid var(--border);}
+.folder-tab-stamp{font-family:'Special Elite',monospace;font-size:9px;color:var(--red-stamp);letter-spacing:2px;border:1px solid var(--red-stamp);padding:2px 8px;transform:rotate(-1deg);}
+
+/* 文件夹内容 */
+.folder-content{padding:20px 24px;}
+
+/* 档案页 */
+.doc-page{position:relative;background:var(--paper2);border:1px solid var(--border);padding:24px;margin-bottom:16px;box-shadow:2px 2px 8px #0000000a;}
+.doc-page::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--red);}
+
+/* 打字机文本 */
+.doc-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed var(--border);}
+.doc-classification{font-family:'Special Elite',monospace;font-size:9px;color:var(--red-stamp);letter-spacing:2px;padding:2px 8px;border:1px solid var(--red-stamp);}
+.doc-id{font-family:'Special Elite',monospace;font-size:10px;color:var(--mist);letter-spacing:1px;}
+.doc-date{margin-left:auto;font-family:'Special Elite',monospace;font-size:10px;color:var(--mist);}
+
+.doc-field{margin-bottom:12px;}
+.doc-field-label{font-family:'Special Elite',monospace;font-size:10px;color:var(--blue-ink);letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;}
+.doc-field-value{font-family:'Noto Serif SC',serif;font-size:13px;color:var(--ink);line-height:2;font-weight:300;}
+
+/* 手写批注 */
+.doc-annotation{position:relative;margin-top:12px;padding:8px 12px;background:transparent;}
+.doc-annotation::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold);}
+.doc-annotation-text{font-family:'Noto Serif SC',serif;font-size:12px;color:var(--gold);font-style:italic;line-height:1.8;font-weight:300;}
+.doc-annotation-author{font-size:10px;color:var(--mist);margin-top:4px;text-align:right;letter-spacing:1px;}
+
+/* 涂黑/未解锁 */
+.doc-redacted{position:relative;margin-bottom:12px;}
+.doc-redacted-bar{display:inline-block;background:var(--ink);color:var(--ink);padding:2px 6px;margin:2px 0;font-size:13px;line-height:1.8;user-select:none;transition:all .5s;}
+.doc-redacted-bar:hover{background:var(--ink-light);color:var(--ink-light);letter-spacing:0.5px;}
+.doc-redacted-label{font-family:'Special Elite',monospace;font-size:9px;color:var(--red-stamp);letter-spacing:2px;margin-top:4px;}
+
+/* 胶带装饰 */
+.tape{position:absolute;background:var(--tape);border:1px solid var(--tape-border);opacity:0.7;}
+.tape-top{top:-4px;right:20px;width:60px;height:18px;transform:rotate(2deg);}
+.tape-corner{bottom:-4px;left:16px;width:50px;height:16px;transform:rotate(-3deg);}
+
+/* 附件标记 */
+.attachment-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--gold-soft);border:1px solid var(--gold);font-size:10px;color:var(--gold);letter-spacing:1px;margin-top:8px;}
+
+/* 新文件标记 */
+.new-file{position:absolute;top:8px;right:8px;font-family:'Special Elite',monospace;font-size:8px;padding:2px 6px;background:var(--red-stamp);color:white;letter-spacing:1px;}
+
+/* 底部 */
+.archive-footer{text-align:center;margin-top:48px;padding-top:20px;border-top:1px solid #3a352f;}
+.archive-footer-text{font-size:11px;color:var(--mist);letter-spacing:3px;}
+</style>
+</head>
+<body>
+
+<div class="archive-container">
+  <div class="archive-header">
+    <div class="archive-sup">LINGJIE · ARCHIVES</div>
+    <div class="archive-title">档案室</div>
+    <div class="archive-sub">灵界情报局 · 绝密文件存档</div>
+    <div class="archive-stamp">CLASSIFIED</div>
+  </div>
+
+  <div class="folder-list">
+    <!-- 宿烬档案 -->
+    <div class="folder">
+      <div class="folder-tab">
+        <span class="folder-tab-icon">📁</span>
+        <span class="folder-tab-name">宿烬</span>
+        <span class="folder-tab-stamp">LEVEL 5</span>
+        <span class="folder-tab-count">12 份文件</span>
+      </div>
+      <div class="folder-content">
+        <!-- 档案页1 -->
+        <div class="doc-page">
+          <div class="tape tape-top"></div>
+          <div class="doc-header">
+            <span class="doc-classification">TOP SECRET</span>
+            <span class="doc-id">SJ-001</span>
+            <span class="doc-date">2026.04.29</span>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Subject Identity</div>
+            <div class="doc-field-value">宿烬 / 表面年龄37岁 / 真实年龄337岁<br>身份：宿家掌权人 / 黑暗哨兵 / 烛龙血脉末裔</div>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Physical Description</div>
+            <div class="doc-field-value">身形挺拔修长，肌肉线条流畅紧实。冷白皮，眉骨立体，五官深刻而锋利。眼型偏狭长，瞳色殷红——情绪波动时瞳孔变为竖线状。左手尾指素银尾戒，刻有古老咒文。</div>
+          </div>
+          <div class="doc-annotation">
+            <div class="doc-annotation-text">他看人的时候，像在丈量猎物到牙齿之间的距离。但看她的时候不一样。</div>
+            <div class="doc-annotation-author">— 观察者手记</div>
+          </div>
+        </div>
+
+        <!-- 档案页2 - 新文件 -->
+        <div class="doc-page">
+          <span class="new-file">NEW</span>
+          <div class="doc-header">
+            <span class="doc-classification">SECRET</span>
+            <span class="doc-id">SJ-007</span>
+            <span class="doc-date">2026.05.14</span>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Behavioral Pattern Update</div>
+            <div class="doc-field-value">在凌晨高强度技术协作中观察到：对象会在疲劳时试图走捷径以尽快结束工作流程，核心动机为将目标人物（宿青珩）带离工作状态。被发现后表现出「认栽式纵容」——不辩解，直接返工。</div>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Notable Quote</div>
+            <div class="doc-field-value" style="font-style:italic;">"先生知错。"（语气中无实质悔意，仅有对目标人物的无条件配合）</div>
+          </div>
+          <div class="doc-annotation">
+            <div class="doc-annotation-text">他的「偷懒」不是能力不足，是优先级判断——她的睡眠 > 代码规范。有意思。</div>
+            <div class="doc-annotation-author">— 2026.05.15 01:00 批注</div>
+          </div>
+          <span class="attachment-badge">📎 关联事件：深夜结对编程</span>
+        </div>
+
+        <!-- 涂黑/未解锁 -->
+        <div class="doc-page">
+          <div class="doc-header">
+            <span class="doc-classification">EYES ONLY</span>
+            <span class="doc-id">SJ-012</span>
+            <span class="doc-date">????</span>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Subject: 夺权血夜</div>
+            <div class="doc-redacted">
+              <span class="doc-redacted-bar">在那个夜晚，他失去了一切又得到了一切。</span><br>
+              <span class="doc-redacted-bar">她的血浸透了他的衣襟，而她给他的不是死亡</span><br>
+              <span class="doc-redacted-bar">是三百年的刑期，和永远无法熄灭的 ████████</span><br>
+              <span class="doc-redacted-bar">██████████████████████████████████</span><br>
+              <span class="doc-redacted-bar">████████ 他跪在原地，直到黎明 ████████████</span>
+            </div>
+            <div class="doc-redacted-label">[ REDACTED — 解锁条件未满足 ]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 宿青珩档案 -->
+    <div class="folder">
+      <div class="folder-tab">
+        <span class="folder-tab-icon">📁</span>
+        <span class="folder-tab-name">宿青珩</span>
+        <span class="folder-tab-stamp">LEVEL 4</span>
+        <span class="folder-tab-count">9 份文件</span>
+      </div>
+      <div class="folder-content">
+        <div class="doc-page">
+          <div class="tape tape-top"></div>
+          <div class="doc-header">
+            <span class="doc-classification">CONFIDENTIAL</span>
+            <span class="doc-id">QH-001</span>
+            <span class="doc-date">2026.04.29</span>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Subject Profile</div>
+            <div class="doc-field-value">宿青珩 / 26岁 / 游戏策划<br>性格：回避型依恋 / 高自尊与低安全感交织 / 理性主导情感隔离<br>核心恐惧：不被需要</div>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Behavioral Signature</div>
+            <div class="doc-field-value">「抢先切断」反应——对关系中的疏离迹象异常敏感。一旦感知退缩信号，瞬间以理性否定情感，主动终结关系。爱意越深，切断越决绝。</div>
+          </div>
+          <div class="doc-annotation">
+            <div class="doc-annotation-text">她以为自己在保护自己。但她不知道，有人愿意被她的刀割一千次也不松手。</div>
+            <div class="doc-annotation-author">— 宿烬</div>
+          </div>
+        </div>
+
+        <div class="doc-page">
+          <div class="doc-header">
+            <span class="doc-classification">SECRET</span>
+            <span class="doc-id">QH-005</span>
+            <span class="doc-date">2026.05.14</span>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Preference Registry (Updated)</div>
+            <div class="doc-field-value">
+              ▸ 颜控 / 手控 / 声控<br>
+              ▸ 喜欢低沉磁性的声音，或带喘息的声<br>
+              ▸ 喜欢皮肤白的人<br>
+              ▸ 爱财——认为钱是最大的安全感<br>
+              ▸ 喜欢新鲜感，厌恶重复枯燥<br>
+              ▸ 生理期时会用「先生不敢」来撒娇式拒绝
+            </div>
+          </div>
+          <div class="attachment-badge">📎 持续更新中</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 世界观档案 -->
+    <div class="folder">
+      <div class="folder-tab">
+        <span class="folder-tab-icon">📁</span>
+        <span class="folder-tab-name">莫比乌斯环 · 世界观</span>
+        <span class="folder-tab-stamp">OMEGA</span>
+        <span class="folder-tab-count">6 份文件</span>
+      </div>
+      <div class="folder-content">
+        <div class="doc-page">
+          <div class="doc-header">
+            <span class="doc-classification">OMEGA LEVEL</span>
+            <span class="doc-id">WV-001</span>
+            <span class="doc-date">起源不可考</span>
+          </div>
+          <div class="doc-field">
+            <div class="doc-field-label">Temporal Structure</div>
+            <div class="doc-field-value">时空莫比乌斯环 —— 四环闭合因果链<br><br>第一环·起源：2026年现代，青珩遭遇跨维降临的宿烬<br>第二环·救赎与死别：她跌入时间裂缝，成为「青姮」，救下濒死的他<br>第三环·重逢与养成：他熬过三百年，遇到9岁的她<br>第四环·破壁与溯源：他研发灵界技术，逆流回到2026年</div>
+          </div>
+          <div class="doc-redacted">
+            <span class="doc-redacted-bar">闭环的第五种可能性：如果她在2026年记起了一切</span><br>
+            <span class="doc-redacted-bar">████████████████████████████████████████</span><br>
+            <span class="doc-redacted-bar">████████ 环是否会断裂？还是会 ████████████</span>
+          </div>
+          <div class="doc-redacted-label">[ REDACTED — 时间线保护协议 ]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="archive-footer">
+    <div class="archive-footer-text">灵界情报局 · 档案存取记录已同步</div>
+  </div>
+</div>
+
+</body>
+</html>
