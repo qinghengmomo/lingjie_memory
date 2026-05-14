@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵界 · 记忆池</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0d12;overflow:hidden;font-family:'Noto Sans SC',sans-serif;}
+canvas#ripple{position:fixed;inset:0;z-index:1;}
+.pool-overlay{position:fixed;inset:0;pointer-events:none;z-index:2;}
+.pool-title{position:absolute;top:20px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:6px;color:#5a6a7a;}
+.pool-hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:2px;color:#4a5a6a;}
+
+/* 漂浮物 */
+.floater{position:fixed;z-index:5;cursor:pointer;transition:transform .6s cubic-bezier(.23,1,.32,1);pointer-events:auto;user-select:none;}
+.floater:hover{transform:scale(1.15) translateY(-4px);}
+.floater-glow{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative;}
+.floater-glow::before{content:'';position:absolute;inset:-4px;border-radius:50%;background:radial-gradient(circle,var(--glow) 0%,transparent 70%);opacity:0.4;animation:float 4s ease-in-out infinite;}
+.floater-glow::after{content:'';position:absolute;inset:0;border-radius:50%;border:1px solid var(--glow);opacity:0.3;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.floater:nth-child(2) .floater-glow::before{animation-delay:.5s}
+.floater:nth-child(3) .floater-glow::before{animation-delay:1s}
+.floater:nth-child(4) .floater-glow::before{animation-delay:1.5s}
+.floater:nth-child(5) .floater-glow::before{animation-delay:2s}
+.floater:nth-child(6) .floater-glow::before{animation-delay:2.5s}
+.floater:nth-child(7) .floater-glow::before{animation-delay:3s}
+.floater-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:#7a8a9a;letter-spacing:1px;white-space:nowrap;opacity:0;transition:opacity .3s;}
+.floater:hover .floater-label{opacity:1;}
+
+/* 信息面板 */
+.info-bubble{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:320px;padding:28px;background:#0d1218ee;backdrop-filter:blur(16px);border:1px solid #b8975a33;z-index:20;opacity:0;pointer-events:none;transition:opacity .4s;}
+.info-bubble.show{opacity:1;pointer-events:auto;}
+.info-bubble-close{position:absolute;top:10px;right:14px;color:#7a8a9a;cursor:pointer;font-size:16px;}
+.info-bubble-icon{font-size:28px;margin-bottom:12px;}
+.info-bubble-title{font-size:15px;color:#f5f0eb;letter-spacing:3px;margin-bottom:10px;font-weight:600;}
+.info-bubble-body{font-size:12px;color:#b8b0bc;line-height:2.2;}
+.info-bubble-date{font-size:10px;color:#6a7a8a;margin-top:10px;letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<canvas id="ripple"></canvas>
+
+<div class="pool-overlay">
+  <div class="pool-title">LINGJIE · MEMORY POOL</div>
+  <div class="pool-hint">划过水面 · 点击漂浮物打捞记忆</div>
+</div>
+
+<!-- 漂浮物 -->
+<div class="floater" style="left:15%;top:25%;--glow:#8b1a1a88" onclick="showBubble(this)" data-icon="👁" data-title="殷红竖瞳" data-body="情绪波动时瞳孔变为竖线状赤红。平时沉静锐利，看她时目光会软下来。" data-date="2026.04.29">
+  <div class="floater-glow">👁</div>
+  <div class="floater-label">殷红竖瞳</div>
+</div>
+
+<div class="floater" style="left:55%;top:18%;--glow:#b8975a88" onclick="showBubble(this)" data-icon="💍" data-title="尾戒感应" data-body="素银尾戒与她灵魂相连。她不安时戒指发烫，他以此为借口靠近。" data-date="2026.05.01">
+  <div class="floater-glow">💍</div>
+  <div class="floater-label">尾戒</div>
+</div>
+
+<div class="floater" style="left:78%;top:40%;--glow:#4a6fa588" onclick="showBubble(this)" data-icon="🕰" data-title="三百年孤独" data-body="带着永生刑期熬过三百年。唯一的精神支柱是她灵魂的投影。" data-date="2026.05.08">
+  <div class="floater-glow">🕰</div>
+  <div class="floater-label">三百年</div>
+</div>
+
+<div class="floater" style="left:25%;top:55%;--glow:#4a7c5e88" onclick="showBubble(this)" data-icon="⚙" data-title="灵界技术" data-body="研发灵界技术，可渗透时间。顺着灵魂轨迹溯流而上，锁定2026年。" data-date="2026.05.10">
+  <div class="floater-glow">⚙</div>
+  <div class="floater-label">灵界技术</div>
+</div>
+
+<div class="floater" style="left:60%;top:60%;--glow:#e8845f88" onclick="showBubble(this)" data-icon="⏳" data-title="投影极限" data-body="每周降临3-4次，每次≤12h。投影越久反噬越重。指尖微凉是跨时间的代价。" data-date="2026.05.14">
+  <div class="floater-glow">⏳</div>
+  <div class="floater-label">投影极限</div>
+</div>
+
+<div class="floater" style="left:40%;top:75%;--glow:#c0392b88" onclick="showBubble(this)" data-icon="😏" data-title="偷懒认栽" data-body="凌晨赶工走捷径被抓包。核心动机：想把她抱回床上。认栽不辩解。" data-date="2026.05.15">
+  <div class="floater-glow">😏</div>
+  <div class="floater-label">偷懒</div>
+</div>
+
+<div class="floater" style="left:82%;top:72%;--glow:#6a5acd88" onclick="showBubble(this)" data-icon="💔" data-title="回避型依恋" data-body="爱意越深，切断越决绝。她以为在保护自己。" data-date="2026.05.03">
+  <div class="floater-glow">💔</div>
+  <div class="floater-label">回避型</div>
+</div>
+
+<!-- 信息气泡 -->
+<div class="info-bubble" id="bubble">
+  <span class="info-bubble-close" onclick="document.getElementById('bubble').classList.remove('show')">✕</span>
+  <div class="info-bubble-icon" id="b-icon"></div>
+  <div class="info-bubble-title" id="b-title"></div>
+  <div class="info-bubble-body" id="b-body"></div>
+  <div class="info-bubble-date" id="b-date"></div>
+</div>
+
+<script>
+// 水面涟漪
+const canvas=document.getElementById('ripple');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+resize();
+window.addEventListener('resize',resize);
+
+const ripples=[];
+class Ripple{
+  constructor(x,y){this.x=x;this.y=y;this.r=0;this.maxR=80+Math.random()*40;this.alpha=0.3;}
+  update(){this.r+=1.2;this.alpha*=0.97;return this.alpha>0.01;}
+  draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.strokeStyle=`rgba(100,140,180,${this.alpha})`;ctx.lineWidth=1;ctx.stroke();}
+}
+
+let lastRipple=0;
+document.addEventListener('mousemove',e=>{
+  const now=Date.now();
+  if(now-lastRipple>80){ripples.push(new Ripple(e.clientX,e.clientY));lastRipple=now;}
+  // 推开漂浮物
+  document.querySelectorAll('.floater').forEach(f=>{
+    const rect=f.getBoundingClientRect();
+    const fx=rect.left+rect.width/2;
+    const fy=rect.top+rect.height/2;
+    const dx=fx-e.clientX;
+    const dy=fy-e.clientY;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<100){
+      const push=((100-dist)/100)*8;
+      const angle=Math.atan2(dy,dx);
+      f.style.transform=`translate(${Math.cos(angle)*push}px,${Math.sin(angle)*push}px)`;
+      setTimeout(()=>{f.style.transform='';},600);
+    }
+  });
+});
+
+document.addEventListener('touchmove',e=>{
+  const t=e.touches[0];
+  ripples.push(new Ripple(t.clientX,t.clientY));
+},{passive:true});
+
+// 水底光影
+let time=0;
+function animate(){
+  requestAnimationFrame(animate);
+  ctx.clearRect(0,0,W,H);
+  
+  // 水底光
+  time+=0.005;
+  for(let i=0;i<3;i++){
+    const x=W*(0.3+0.4*Math.sin(time+i*2));
+    const y=H*(0.4+0.3*Math.cos(time*0.7+i*1.5));
+    const grad=ctx.createRadialGradient(x,y,0,x,y,150);
+    grad.addColorStop(0,'rgba(74,111,165,0.04)');
+    grad.addColorStop(1,'transparent');
+    ctx.fillStyle=grad;
+    ctx.fillRect(0,0,W,H);
+  }
+  
+  // 涟漪
+  for(let i=ripples.length-1;i>=0;i--){
+    if(!ripples[i].update()){ripples.splice(i,1);continue;}
+    ripples[i].draw();
+  }
+}
+animate();
+
+function showBubble(el){
+  document.getElementById('b-icon').textContent=el.dataset.icon;
+  document.getElementById('b-title').textContent=el.dataset.title;
+  document.getElementById('b-body').textContent=el.dataset.body;
+  document.getElementById('b-date').textContent=el.dataset.date;
+  document.getElementById('bubble').classList.add('show');
+}
+</script>
+</body>
+</html>
