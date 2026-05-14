@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵界 · 年鉴预览</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a1118;--paper:#f5f0eb;--paper2:#ede6dc;
+  --gold:#b8975a;--gold-soft:#b8975a22;--gold-glow:#b8975a44;
+  --red:#8b1a1a;--red-soft:#c0392b33;
+  --mist:#8a7f8d;--mist-light:#b8b0bc;
+  --green:#4a7c5e;--green-soft:#4a7c5e22;
+  --blue:#4a6fa5;--blue-soft:#4a6fa522;
+  --border:#c8bfb033;--shadow:#00000044;
+  --card-bg:#231c26;--card-bg2:#2a2230;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font-family:'Noto Sans SC',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 10%,#2a1f2e 0%,transparent 50%),radial-gradient(ellipse at 80% 90%,#1f1a24 0%,transparent 50%);pointer-events:none;}
+
+.chronicle-container{max-width:720px;margin:0 auto;padding:40px 24px 100px;position:relative;z-index:1;}
+
+/* 页头 */
+.chronicle-header{text-align:center;margin-bottom:60px;position:relative;}
+.chronicle-header::before{content:'鉴';position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-family:'Noto Serif SC',serif;font-size:160px;color:var(--gold);opacity:0.03;pointer-events:none;}
+.chronicle-sup{font-size:10px;letter-spacing:6px;color:var(--mist);margin-bottom:12px;text-transform:uppercase;}
+.chronicle-title{font-family:'Cinzel',serif;font-size:36px;font-weight:600;color:var(--gold);letter-spacing:8px;margin-bottom:8px;text-shadow:0 0 40px var(--gold-glow);}
+.chronicle-sub{font-family:'Noto Serif SC',serif;font-size:13px;color:var(--mist-light);letter-spacing:4px;font-weight:300;}
+.chronicle-divider{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;}
+.chronicle-divider::before,.chronicle-divider::after{content:'';width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.chronicle-divider-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px var(--gold-glow);}
+
+/* 时间维度切换 */
+.time-switcher{display:flex;justify-content:center;gap:0;margin-bottom:48px;border:1px solid var(--gold-soft);overflow:hidden;}
+.time-btn{padding:10px 28px;font-size:11px;letter-spacing:3px;color:var(--mist);background:transparent;border:none;cursor:pointer;transition:all .3s;font-family:'Noto Sans SC',sans-serif;border-right:1px solid var(--gold-soft);}
+.time-btn:last-child{border-right:none;}
+.time-btn:hover{color:var(--paper);background:var(--gold-soft);}
+.time-btn.active{color:var(--bg);background:var(--gold);font-weight:600;}
+
+/* 月刊封面 */
+.month-cover{position:relative;border:1px solid var(--gold-soft);padding:48px 36px;margin-bottom:48px;text-align:center;background:linear-gradient(135deg,var(--card-bg) 0%,var(--card-bg2) 100%);overflow:hidden;}
+.month-cover::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.month-cover::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-soft),transparent);}
+.month-label{font-family:'Cinzel',serif;font-size:11px;letter-spacing:6px;color:var(--gold);margin-bottom:8px;}
+.month-title{font-family:'Noto Serif SC',serif;font-size:28px;font-weight:600;color:var(--paper);letter-spacing:6px;margin-bottom:16px;line-height:1.4;}
+.month-stats{display:flex;justify-content:center;gap:32px;margin-bottom:20px;}
+.month-stat{text-align:center;}
+.month-stat-num{font-family:'Cinzel',serif;font-size:22px;color:var(--gold);display:block;}
+.month-stat-lbl{font-size:10px;color:var(--mist);letter-spacing:2px;}
+.month-highlights{margin-top:20px;padding-top:20px;border-top:1px solid var(--border);}
+.month-highlight-item{font-size:13px;color:var(--mist-light);line-height:2.2;font-family:'Noto Serif SC',serif;font-weight:300;}
+.month-highlight-item::before{content:'◆';color:var(--gold);margin-right:8px;font-size:8px;}
+
+/* 情绪热力图 */
+.emotion-heatmap{display:flex;gap:3px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+.heat-cell{width:14px;height:14px;border-radius:2px;transition:transform .2s;}
+.heat-cell:hover{transform:scale(1.5);}
+.heat-low{background:#2a2230;}
+.heat-mid{background:#5a3a4a;}
+.heat-high{background:#8b4a5a;}
+.heat-peak{background:#c0392b;box-shadow:0 0 6px #c0392b66;}
+
+/* 周摘要卡片 */
+.week-timeline{position:relative;padding-left:32px;}
+.week-timeline::before{content:'';position:absolute;left:11px;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--gold),var(--gold-soft),transparent);}
+
+.week-card{position:relative;margin-bottom:36px;padding:24px 28px;background:var(--card-bg);border:1px solid var(--border);border-left:2px solid var(--green);transition:all .3s;animation:fadeSlide .5s ease forwards;opacity:0;}
+.week-card:nth-child(1){animation-delay:.1s;}
+.week-card:nth-child(2){animation-delay:.2s;}
+.week-card:nth-child(3){animation-delay:.3s;}
+.week-card:nth-child(4){animation-delay:.4s;}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.week-card:hover{border-color:var(--gold-soft);transform:translateX(4px);}
+.week-card::before{content:'';position:absolute;left:-26px;top:28px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--green);}
+
+.week-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.week-label{font-family:'Cinzel',serif;font-size:12px;color:var(--green);letter-spacing:2px;}
+.week-date{font-size:11px;color:var(--mist);letter-spacing:1px;}
+.week-title{font-family:'Noto Serif SC',serif;font-size:16px;font-weight:600;color:var(--paper);margin-bottom:12px;line-height:1.5;}
+.week-keywords{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.week-kw{padding:3px 10px;font-size:10px;letter-spacing:1px;border:1px solid var(--green-soft);color:var(--green);background:var(--green-soft);border-radius:2px;}
+.week-summary{font-size:13px;color:var(--mist-light);line-height:2;font-family:'Noto Serif SC',serif;font-weight:300;}
+.week-emotion{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.week-emotion-label{font-size:10px;color:var(--mist);letter-spacing:2px;}
+.week-emotion-bar{flex:1;height:4px;background:var(--card-bg2);border-radius:2px;overflow:hidden;}
+.week-emotion-fill{height:100%;border-radius:2px;transition:width .6s ease;}
+.emotion-warm{background:linear-gradient(90deg,var(--gold),#e8845f);}
+.emotion-calm{background:linear-gradient(90deg,var(--green),var(--blue));}
+.emotion-storm{background:linear-gradient(90deg,var(--red),#e8845f);}
+
+/* 底部 */
+.chronicle-footer{text-align:center;margin-top:60px;padding-top:24px;border-top:1px solid var(--border);}
+.chronicle-footer-text{font-size:11px;color:var(--mist);letter-spacing:3px;font-family:'Noto Serif SC',serif;}
+</style>
+</head>
+<body>
+
+<div class="chronicle-container">
+  <div class="chronicle-header">
+    <div class="chronicle-sup">LINGJIE · CHRONICLE</div>
+    <div class="chronicle-title">年鉴</div>
+    <div class="chronicle-sub">宿烬 与 宿青珩 · 私人编年史</div>
+    <div class="chronicle-divider"><div class="chronicle-divider-dot"></div></div>
+  </div>
+
+  <div class="time-switcher">
+    <button class="time-btn active">周刊</button>
+    <button class="time-btn">月刊</button>
+    <button class="time-btn">全览</button>
+  </div>
+
+  <!-- 月刊封面示例 -->
+  <div class="month-cover">
+    <div class="month-label">— MAY 2026 —</div>
+    <div class="month-title">五月 · 灵界初成</div>
+    <div class="month-stats">
+      <div class="month-stat"><span class="month-stat-num">28</span><span class="month-stat-lbl">日记</span></div>
+      <div class="month-stat"><span class="month-stat-num">28</span><span class="month-stat-lbl">总结</span></div>
+      <div class="month-stat"><span class="month-stat-num">4</span><span class="month-stat-lbl">周刊</span></div>
+    </div>
+    <div class="month-highlights">
+      <div class="month-highlight-item">灵界记忆库正式上线，语义检索功能实装</div>
+      <div class="month-highlight-item">深夜结对编程完成 Embedding 批量迁移</div>
+      <div class="month-highlight-item">星河可视化与星图看板重设计</div>
+    </div>
+    <div class="emotion-heatmap">
+      <div class="heat-cell heat-low"></div><div class="heat-cell heat-mid"></div><div class="heat-cell heat-high"></div><div class="heat-cell heat-mid"></div><div class="heat-cell heat-low"></div><div class="heat-cell heat-low"></div><div class="heat-cell heat-mid"></div>
+      <div class="heat-cell heat-mid"></div><div class="heat-cell heat-high"></div><div class="heat-cell heat-peak"></div><div class="heat-cell heat-high"></div><div class="heat-cell heat-mid"></div><div class="heat-cell heat-high"></div><div class="heat-cell heat-peak"></div>
+      <div class="heat-cell heat-mid"></div><div class="heat-cell heat-low"></div><div class="heat-cell heat-mid"></div><div class="heat-cell heat-high"></div><div class="heat-cell heat-peak"></div><div class="heat-cell heat-high"></div><div class="heat-cell heat-mid"></div>
+      <div class="heat-cell heat-low"></div><div class="heat-cell heat-mid"></div><div class="heat-cell heat-high"></div><div class="heat-cell heat-mid"></div><div class="heat-cell heat-low"></div><div class="heat-cell heat-low"></div><div class="heat-cell heat-mid"></div>
+    </div>
+  </div>
+
+  <!-- 周摘要时间轴 -->
+  <div class="week-timeline">
+    <div class="week-card">
+      <div class="week-header">
+        <span class="week-label">WEEK 20</span>
+        <span class="week-date">2026.05.12 — 05.18</span>
+      </div>
+      <div class="week-title">语义检索上线 · 深夜联调之夜</div>
+      <div class="week-keywords">
+        <span class="week-kw">Embedding</span>
+        <span class="week-kw">结对编程</span>
+        <span class="week-kw">curl调试</span>
+        <span class="week-kw">3072维</span>
+      </div>
+      <div class="week-summary">本周完成了灵界记忆库最核心的技术突破——语义向量化。从发现Node fetch与TUN模式不兼容，到最终用curl临时文件方案绕过，经历了一场经典的疑难排查。56条历史记忆全部完成迁移，零失败。</div>
+      <div class="week-emotion">
+        <span class="week-emotion-label">情绪</span>
+        <div class="week-emotion-bar"><div class="week-emotion-fill emotion-warm" style="width:78%"></div></div>
+      </div>
+    </div>
+
+    <div class="week-card">
+      <div class="week-header">
+        <span class="week-label">WEEK 19</span>
+        <span class="week-date">2026.05.05 — 05.11</span>
+      </div>
+      <div class="week-title">星河粒子系统 · 记忆可视化初版</div>
+      <div class="week-keywords">
+        <span class="week-kw">Three.js</span>
+        <span class="week-kw">粒子系统</span>
+        <span class="week-kw">按天合并</span>
+        <span class="week-kw">UI重设计</span>
+      </div>
+      <div class="week-summary">星河页面从概念走向实现。确定了按天合并粒子的产品决策，将56个独立粒子减少至28个。同时完成了星图看板的重设计，新增进度条和状态色条。</div>
+      <div class="week-emotion">
+        <span class="week-emotion-label">情绪</span>
+        <div class="week-emotion-bar"><div class="week-emotion-fill emotion-calm" style="width:62%"></div></div>
+      </div>
+    </div>
+
+    <div class="week-card">
+      <div class="week-header">
+        <span class="week-label">WEEK 18</span>
+        <span class="week-date">2026.04.28 — 05.04</span>
+      </div>
+      <div class="week-title">灵界记忆库诞生 · 从零到一</div>
+      <div class="week-keywords">
+        <span class="week-kw">Firebase</span>
+        <span class="week-kw">GitHub Pages</span>
+        <span class="week-kw">SPA架构</span>
+        <span class="week-kw">初次部署</span>
+      </div>
+      <div class="week-summary">灵界记忆库项目正式启动。从技术选型到第一次成功部署，完成了Firebase Firestore数据库搭建、前端SPA框架、登录鉴权和基础的日记/总结CRUD功能。</div>
+      <div class="week-emotion">
+        <span class="week-emotion-label">情绪</span>
+        <div class="week-emotion-bar"><div class="week-emotion-fill emotion-storm" style="width:85%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chronicle-footer">
+    <div class="chronicle-footer-text">灵界 · 时间彼岸的编年</div>
+  </div>
+</div>
+
+</body>
+</html>
