@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/galaxy.css">
+<link rel="stylesheet" href="styles/plan.css">
 <style>
 /* ══ SPA 完整样式 ══ */
 :root{
@@ -167,38 +168,6 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .api-card-note{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--mist);line-height:1.9;white-space:pre-wrap;}
 .api-modal{border-top-color:var(--api-accent)!important;}
 
-/* ══ 星图看板 ══ */
-.plan-board{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:32px;}
-.plan-column{background:var(--paper2);border:1px solid var(--border);padding:16px;min-height:200px;}
-.plan-col-header{font-size:12px;letter-spacing:2px;color:var(--mist);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
-.plan-col-dot{width:8px;height:8px;border-radius:50%;}
-.plan-col-dot.todo{background:var(--mist);}
-.plan-col-dot.doing{background:var(--gold);}
-.plan-col-dot.done{background:var(--green);}
-.plan-col-dot.dropped{background:#999;}
-.plan-col-count{font-family:'Cinzel',serif;font-size:14px;color:var(--ink);margin-left:auto;}
-.plan-col-list{display:flex;flex-direction:column;gap:10px;}
-.plan-card{background:var(--paper);border:1px solid var(--border);padding:12px 14px;transition:border-color .2s;}
-.plan-card:hover{border-color:var(--gold);}
-.plan-card.dropped{opacity:.6;}
-.plan-card.dropped .plan-card-title{text-decoration:line-through;}
-.plan-card-title{font-family:'Noto Serif SC',serif;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;line-height:1.4;}
-.plan-card-desc{font-size:12px;color:var(--mist);line-height:1.7;margin-bottom:6px;white-space:pre-wrap;}
-.plan-card-link{font-size:11px;color:var(--api-accent);text-decoration:none;display:inline-block;margin-bottom:6px;}
-.plan-card-link:hover{text-decoration:underline;}
-.plan-card-actions{display:flex;align-items:center;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
-.plan-move-btn{background:none;border:1px solid var(--border);color:var(--mist);cursor:pointer;font-size:11px;padding:2px 8px;transition:all .2s;font-family:'Noto Sans SC',sans-serif;}
-.plan-move-btn:hover{border-color:var(--ink);color:var(--ink);}
-.plan-move-btn.gold:hover{border-color:var(--gold);color:var(--gold);}
-.plan-move-btn.green:hover{border-color:var(--green);color:var(--green);}
-.plan-move-btn.dim:hover{border-color:#999;color:#999;}
-.plan-card-spacer{flex:1;}
-.plan-edit-btn,.plan-del-btn{background:none;border:none;color:var(--mist);cursor:pointer;font-size:11px;padding:2px 6px;font-family:'Noto Sans SC',sans-serif;}
-.plan-edit-btn:hover{color:var(--ink);}
-.plan-del-btn:hover{color:var(--red);}
-.plan-card-empty{font-size:12px;color:var(--mist);text-align:center;padding:20px 0;letter-spacing:2px;}
-.plan-column.collapsed .plan-col-list{display:none;}
-
 /* 公共 */
 .fab-btn{position:fixed;bottom:32px;right:32px;width:52px;height:52px;background:var(--ink);color:var(--paper);border:none;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px var(--shadow);transition:all .2s;z-index:100;}
 .fab-btn:hover{transform:scale(1.08);}
@@ -227,8 +196,6 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
   #page-memory [id="m-dual-col"]{grid-template-columns:1fr!important;}
   .api-grid{grid-template-columns:1fr;}
   .nav-tab{padding:10px 10px;font-size:10px;letter-spacing:1px;}
-  .plan-board{grid-template-columns:1fr 1fr;gap:12px;}
-  .plan-column{min-height:auto;}
 }
 </style>
 </head>
