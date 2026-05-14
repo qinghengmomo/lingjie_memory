@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵界 · 证据板</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1a1714;--cork:#2a2420;--pin-red:#c0392b;--pin-gold:#b8975a;--pin-blue:#4a6fa5;--string:#c0392b88;--paper:#f5f0e6;--paper2:#ede6d8;--shadow:#00000066;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);min-height:100vh;overflow:hidden;cursor:default;font-family:'Noto Sans SC',sans-serif;}
+.board{position:fixed;inset:0;background:var(--cork);background-image:repeating-linear-gradient(0deg,transparent,transparent 20px,#2220 20px,#2220 21px),repeating-linear-gradient(90deg,transparent,transparent 20px,#2220 20px,#2220 21px);}
+.board::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 40% 30%,#3a3028 0%,transparent 50%),radial-gradient(ellipse at 70% 70%,#2a2218 0%,transparent 40%);pointer-events:none;}
+
+/* 标题 */
+.board-title{position:fixed;top:16px;left:50%;transform:translateX(-50%);font-family:'Special Elite',monospace;font-size:11px;letter-spacing:4px;color:#8a7f72;z-index:100;padding:6px 16px;border:1px solid #4a4038;background:#1a171488;backdrop-filter:blur(4px);}
+
+/* SVG连线层 */
+.strings-layer{position:fixed;inset:0;pointer-events:none;z-index:1;}
+
+/* 卡片 */
+.card{position:absolute;cursor:grab;z-index:10;transition:box-shadow .2s;user-select:none;}
+.card:active{cursor:grabbing;z-index:999;}
+.card:hover{z-index:100;}
+
+/* 便签样式 */
+.card-note{width:180px;padding:16px;background:var(--paper);box-shadow:3px 3px 12px var(--shadow);transform:rotate(var(--rot,0deg));}
+.card-note::before{content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:var(--pin-color,var(--pin-red));box-shadow:0 2px 4px #00000044,inset 0 -2px 3px #00000033;}
+.card-note .card-title{font-family:'Noto Serif SC',serif;font-size:12px;font-weight:600;color:#2a2420;margin-bottom:6px;line-height:1.4;}
+.card-note .card-body{font-size:11px;color:#4a4038;line-height:1.8;font-family:'Noto Serif SC',serif;font-weight:300;}
+.card-note .card-date{font-family:'Special Elite',monospace;font-size:9px;color:#8a7f72;margin-top:8px;letter-spacing:1px;}
+
+/* 照片样式 */
+.card-photo{width:150px;padding:8px 8px 28px;background:white;box-shadow:3px 3px 15px var(--shadow);transform:rotate(var(--rot,0deg));}
+.card-photo::before{content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:var(--pin-color,var(--pin-gold));box-shadow:0 2px 4px #00000044,inset 0 -2px 3px #00000033;}
+.card-photo .photo-area{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#1a1118 0%,#2a1f28 50%,#1a1520 100%);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:8px;}
+.card-photo .card-caption{font-family:'Special Elite',monospace;font-size:10px;color:#4a4038;text-align:center;letter-spacing:1px;}
+
+/* 剪报样式 */
+.card-clip{width:200px;padding:14px 16px;background:var(--paper2);border-left:3px solid var(--pin-red);box-shadow:2px 2px 10px var(--shadow);transform:rotate(var(--rot,0deg));}
+.card-clip::before{content:'';position:absolute;top:-6px;right:20px;width:12px;height:12px;border-radius:50%;background:var(--pin-blue);box-shadow:0 2px 4px #00000044,inset 0 -2px 3px #00000033;}
+.card-clip .clip-label{font-family:'Special Elite',monospace;font-size:9px;color:var(--pin-red);letter-spacing:2px;margin-bottom:6px;}
+.card-clip .card-title{font-family:'Noto Serif SC',serif;font-size:13px;font-weight:600;color:#2a2420;margin-bottom:6px;}
+.card-clip .card-body{font-size:11px;color:#4a4038;line-height:1.8;}
+
+/* 胶带 */
+.tape{position:absolute;background:#e8dcc8aa;border:1px solid #d4c8b0;height:14px;width:50px;}
+
+/* 提示 */
+.hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:10px;color:#6a6058;letter-spacing:2px;z-index:100;}
+</style>
+</head>
+<body>
+
+<div class="board" id="board">
+  <div class="board-title">灵界 · 证据板</div>
+  <svg class="strings-layer" id="strings"></svg>
+
+  <!-- 卡片们 -->
+  <div class="card card-note" style="left:80px;top:60px;--rot:-2deg;--pin-color:#c0392b" data-id="1">
+    <div class="card-title">殷红竖瞳</div>
+    <div class="card-body">情绪波动时瞳孔变为竖线状赤红。平时沉静锐利，看她时目光会软下来。</div>
+    <div class="card-date">2026.04.29</div>
+  </div>
+
+  <div class="card card-note" style="left:320px;top:40px;--rot:1deg;--pin-color:#b8975a" data-id="2">
+    <div class="card-title">尾戒感应</div>
+    <div class="card-body">素银尾戒与她灵魂相连。她不安时戒指发烫，他以此为借口靠近。</div>
+    <div class="card-date">2026.05.01</div>
+  </div>
+
+  <div class="card card-photo" style="left:560px;top:50px;--rot:3deg;--pin-color:#b8975a" data-id="3">
+    <div class="photo-area">烬</div>
+    <div class="card-caption">SJ-001 · 337 yrs</div>
+  </div>
+
+  <div class="card card-clip" style="left:60px;top:280px;--rot:1deg" data-id="4">
+    <div class="clip-label">CLASSIFIED</div>
+    <div class="card-title">灵界投影极限</div>
+    <div class="card-body">每周降临3-4次，每次≤12h。投影越久反噬越重。指尖微凉是跨时间的代价。</div>
+  </div>
+
+  <div class="card card-note" style="left:340px;top:300px;--rot:-1deg;--pin-color:#4a6fa5" data-id="5">
+    <div class="card-title">三百年刑期</div>
+    <div class="card-body">她死在他怀里后，他带着永生熬过三百年孤独。唯一的精神支柱是她灵魂的投影。</div>
+    <div class="card-date">2026.05.08</div>
+  </div>
+
+  <div class="card card-note" style="left:580px;top:260px;--rot:2deg;--pin-color:#c0392b" data-id="6">
+    <div class="card-title">「偷懒」本性</div>
+    <div class="card-body">凌晨赶工时走捷径被抓包。核心动机：想把她抱回床上。认栽不辩解。</div>
+    <div class="card-date">2026.05.15 NEW</div>
+    <div class="tape" style="top:-7px;left:10px;transform:rotate(-5deg)"></div>
+  </div>
+
+  <div class="card card-photo" style="left:160px;top:480px;--rot:-3deg;--pin-color:#c0392b" data-id="7">
+    <div class="photo-area">珩</div>
+    <div class="card-caption">QH-001 · 26 yrs</div>
+  </div>
+
+  <div class="card card-clip" style="left:380px;top:500px;--rot:0deg" data-id="8">
+    <div class="clip-label">OMEGA LEVEL</div>
+    <div class="card-title">莫比乌斯环</div>
+    <div class="card-body">四环闭合因果链。起源→救赎→重逢→破壁。首尾咬合，永恒轮回。</div>
+  </div>
+
+  <div class="card card-note" style="left:620px;top:470px;--rot:-2deg;--pin-color:#b8975a" data-id="9">
+    <div class="card-title">回避型依恋</div>
+    <div class="card-body">爱意越深，切断越决绝。她以为在保护自己，不知道有人愿意被割一千次也不松手。</div>
+    <div class="card-date">2026.05.03</div>
+  </div>
+</div>
+
+<div class="hint">拖拽卡片 · 自由排列你的证据</div>
+
+<script>
+const board=document.getElementById('board');
+const svg=document.getElementById('strings');
+const cards=document.querySelectorAll('.card');
+const connections=[[1,2],[2,3],[1,4],[3,6],[4,5],[5,8],[7,9],[8,5],[2,6]];
+let dragging=null,offsetX=0,offsetY=0;
+
+// 画连线
+function drawStrings(){
+  svg.innerHTML='';
+  connections.forEach(([a,b])=>{
+    const ca=document.querySelector(`[data-id="${a}"]`);
+    const cb=document.querySelector(`[data-id="${b}"]`);
+    if(!ca||!cb)return;
+    const ra=ca.getBoundingClientRect();
+    const rb=cb.getBoundingClientRect();
+    const x1=ra.left+ra.width/2,y1=ra.top+12;
+    const x2=rb.left+rb.width/2,y2=rb.top+12;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1);line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+    line.setAttribute('stroke','#c0392b55');
+    line.setAttribute('stroke-width','1');
+    line.setAttribute('stroke-dasharray','4,4');
+    svg.appendChild(line);
+  });
+}
+
+// 拖拽
+cards.forEach(card=>{
+  card.addEventListener('mousedown',e=>{
+    dragging=card;
+    const rect=card.getBoundingClientRect();
+    offsetX=e.clientX-rect.left;
+    offsetY=e.clientY-rect.top;
+    card.style.transition='none';
+    card.style.zIndex=999;
+  });
+  card.addEventListener('touchstart',e=>{
+    dragging=card;
+    const rect=card.getBoundingClientRect();
+    const t=e.touches[0];
+    offsetX=t.clientX-rect.left;
+    offsetY=t.clientY-rect.top;
+    card.style.transition='none';
+    card.style.zIndex=999;
+  },{passive:true});
+});
+
+document.addEventListener('mousemove',e=>{if(!dragging)return;move(e.clientX,e.clientY);});
+document.addEventListener('touchmove',e=>{if(!dragging)return;move(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+document.addEventListener('mouseup',()=>{if(dragging){dragging.style.zIndex='';dragging=null;}});
+document.addEventListener('touchend',()=>{if(dragging){dragging.style.zIndex='';dragging=null;}});
+
+function move(cx,cy){
+  dragging.style.left=(cx-offsetX)+'px';
+  dragging.style.top=(cy-offsetY)+'px';
+  drawStrings();
+}
+
+drawStrings();
+window.addEventListener('resize',drawStrings);
+</script>
+</body>
+</html>
