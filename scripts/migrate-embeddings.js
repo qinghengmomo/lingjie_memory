@@ -11,6 +11,8 @@
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const crypto = require('crypto');
+const path = require('path');
+const os = require('os');
 
 const GEMINI_KEY = process.env.GEMINI_KEY;
 if (!GEMINI_KEY) {
@@ -22,15 +24,18 @@ if (!GEMINI_KEY) {
 const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/lingjie-f84c1/databases/(default)/documents';
 const SA_KEY_PATH = './service-account.json';
 const EMBEDDING_MODEL = 'gemini-embedding-001';
+const TEMP_BODY = path.join(os.tmpdir(), 'lingjie_curl_body.json');
 
 // ===== 用 curl.exe 发 HTTP 请求 =====
 function curlRequest(method, url, headers, body) {
-  const args = ['-s', '-X', method];
+  const args = ['-s', '-S', '-X', method];
   for (const [k, v] of Object.entries(headers || {})) {
     args.push('-H', `${k}: ${v}`);
   }
   if (body) {
-    args.push('-d', typeof body === 'string' ? body : JSON.stringify(body));
+    const bodyStr = typeof body === 'string' ? body : JSON.stringify(body);
+    fs.writeFileSync(TEMP_BODY, bodyStr, 'utf8');
+    args.push('-d', '@' + TEMP_BODY);
   }
   args.push(url);
 
@@ -198,6 +203,9 @@ async function main() {
     // 间隔 300ms 避免限流
     await new Promise(r => setTimeout(r, 300));
   }
+
+  // 清理临时文件
+  try { fs.unlinkSync(TEMP_BODY); } catch(e) {}
 
   console.log('\n' + '='.repeat(50));
   console.log(`迁移完成！成功: ${ok} | 失败: ${fail} | 跳过: ${skip} | 总计: ${docs.length}`);
