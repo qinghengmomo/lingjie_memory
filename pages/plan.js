@@ -10,10 +10,10 @@ let container;
 let allPlans=[],editId=null;
 
 const STATUS_META = {
-  doing:  { label:'进行中', color:'#6b9dae',  icon:'◈', emptyText:'当前没有进行中的事项' },
-  todo:   { label:'待办',   color:'#9a8f9e',  icon:'○', emptyText:'暂无待办，享受当下' },
-  done:   { label:'已完成', color:'#6aab7b',  icon:'✓', emptyText:'还没有完成的事项' },
-  dropped:{ label:'已搁置', color:'#a0969a',  icon:'—', emptyText:'没有搁置的事项' }
+  doing:  { label:'进行中', color:'#5b9bd5',  icon:'◈', emptyText:'当前没有进行中的事项' },
+  todo:   { label:'待办',   color:'#e2a563',  icon:'○', emptyText:'暂无待办，享受当下' },
+  done:   { label:'已完成', color:'#6bc48f',  icon:'✓', emptyText:'还没有完成的事项' },
+  dropped:{ label:'已搁置', color:'#b8adb0',  icon:'—', emptyText:'没有搁置的事项' }
 };
 const STATUS_ORDER = ['doing','todo','done','dropped'];
 
