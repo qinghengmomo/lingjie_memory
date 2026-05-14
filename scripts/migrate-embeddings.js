@@ -3,25 +3,26 @@
  * 为 memory_vault 中现有记忆生成 embedding 向量和 layer 分层
  * 
  * 使用方式：
- *   1. 确保电脑能访问 Google API（开梯子）
- *   2. 设置环境变量：export GEMINI_KEY=你的key
+ *   1. 确保电脑能访问 Google API（开梯子/TUN模式）
+ *   2. 设置环境变量：$env:GEMINI_KEY="你的key"
  *   3. 在终端执行：node scripts/migrate-embeddings.js
  */
 
 const GEMINI_KEY = process.env.GEMINI_KEY;
 if (!GEMINI_KEY) {
   console.error('❌ 请先设置环境变量 GEMINI_KEY');
-  console.error('   export GEMINI_KEY=你的APIKey');
+  console.error('   $env:GEMINI_KEY="你的APIKey"');
   process.exit(1);
 }
 
 const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/lingjie-f84c1/databases/(default)/documents';
 const SA_KEY_PATH = './service-account.json';
+const EMBEDDING_MODEL = 'gemini-embedding-001';
 
 // ===== Embedding 生成 =====
 async function generateEmbedding(text) {
   const truncated = text.slice(0, 4000);
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GEMINI_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${EMBEDDING_MODEL}:embedContent?key=${GEMINI_KEY}`;
   
   const resp = await fetch(url, {
     method: 'POST',
