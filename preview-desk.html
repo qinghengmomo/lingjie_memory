@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵界 · 桌面</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0a0e;--desk:#141218;--desk2:#1a171e;
+  --gold:#b8975a;--gold-soft:#b8975a22;--gold-glow:#b8975a44;
+  --red:#8b1a1a;--red-glow:#8b1a1a55;
+  --blue:#4a6fa5;--blue-glow:#4a6fa544;
+  --mist:#7a7080;--mist-light:#a89ab0;
+  --paper:#f5f0e8;--paper2:#ede6d8;
+  --shadow:#000000aa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);overflow:hidden;font-family:'Noto Sans SC',sans-serif;cursor:default;}
+
+/* 桌面 */
+.desk{position:fixed;inset:40px;background:var(--desk);border:1px solid #2a2530;border-radius:4px;box-shadow:0 0 80px #00000088,inset 0 0 60px #0a080c;overflow:hidden;}
+.desk::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#1e1a24 0%,transparent 60%);pointer-events:none;}
+.desk::after{content:'';position:absolute;inset:0;background:repeating-conic-gradient(#ffffff01 0%,transparent 0.5%);pointer-events:none;opacity:0.3;}
+
+/* 手电筒光效 */
+.spotlight{position:fixed;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,#b8975a08 0%,transparent 70%);pointer-events:none;z-index:50;transform:translate(-50%,-50%);transition:left .05s,top .05s;}
+
+/* 桌面标题 */
+.desk-title{position:absolute;top:16px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:5px;color:#4a4050;z-index:10;}
+
+/* 散落物件 */
+.item{position:absolute;cursor:grab;z-index:10;transition:box-shadow .3s,transform .1s;user-select:none;}
+.item:active{cursor:grabbing;z-index:999;}
+.item:hover{z-index:100;}
+
+/* 便签 */
+.item-note{width:140px;padding:14px;background:var(--paper);box-shadow:2px 3px 12px var(--shadow);transform:rotate(var(--rot,0deg));}
+.item-note .note-pin{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold-glow);}
+.item-note .note-title{font-size:10px;font-weight:600;color:#2a2420;margin-bottom:4px;letter-spacing:1px;}
+.item-note .note-body{font-size:9px;color:#5a5048;line-height:1.8;}
+
+/* 信封 - SVG */
+.item-envelope{width:80px;height:56px;transform:rotate(var(--rot,0deg));filter:drop-shadow(2px 3px 6px #00000066);}
+.item-envelope svg{width:100%;height:100%;}
+
+/* 钥匙 - SVG */
+.item-key{width:50px;height:24px;transform:rotate(var(--rot,0deg));filter:drop-shadow(1px 2px 4px #00000066);}
+.item-key svg{width:100%;height:100%;}
+
+/* 照片 */
+.item-photo{width:90px;padding:5px 5px 20px;background:white;box-shadow:2px 3px 12px var(--shadow);transform:rotate(var(--rot,0deg));}
+.item-photo .photo-inner{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#1a1118,#2a1f28);display:flex;align-items:center;justify-content:center;}
+.item-photo .photo-icon{width:30px;height:30px;}
+.item-photo .photo-label{font-size:8px;color:#6a6060;text-align:center;margin-top:4px;letter-spacing:1px;}
+
+/* 碎片水晶 */
+.item-crystal{width:36px;height:36px;transform:rotate(var(--rot,0deg));animation:crystalFloat 3s ease-in-out infinite;}
+.item-crystal svg{width:100%;height:100%;filter:drop-shadow(0 0 8px var(--gold-glow));}
+@keyframes crystalFloat{0%,100%{transform:rotate(var(--rot,0deg)) translateY(0)}50%{transform:rotate(var(--rot,0deg)) translateY(-3px)}}
+
+/* 花瓣 */
+.item-petal{width:24px;height:24px;transform:rotate(var(--rot,0deg));opacity:0.7;}
+.item-petal svg{width:100%;height:100%;}
+
+/* 抽屉系统 */
+.drawer-bar{position:absolute;bottom:0;left:0;right:0;height:48px;background:#12101688;backdrop-filter:blur(8px);border-top:1px solid #2a2530;display:flex;align-items:center;justify-content:center;gap:24px;z-index:60;}
+.drawer-btn{padding:8px 20px;font-size:10px;letter-spacing:3px;color:var(--mist);background:transparent;border:1px solid #2a2530;cursor:pointer;transition:all .3s;font-family:'Noto Sans SC',sans-serif;}
+.drawer-btn:hover{border-color:var(--gold);color:var(--gold);box-shadow:0 0 12px var(--gold-glow);}
+.drawer-btn.active{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+
+/* 抽屉面板 */
+.drawer-panel{position:absolute;bottom:48px;left:0;right:0;height:0;background:#12101aee;backdrop-filter:blur(16px);border-top:1px solid var(--gold-soft);z-index:55;overflow:hidden;transition:height .4s cubic-bezier(.23,1,.32,1);}
+.drawer-panel.open{height:320px;}
+.drawer-content{padding:24px 32px;overflow-y:auto;height:100%;}
+.drawer-section-title{font-family:'Cinzel',serif;font-size:13px;color:var(--gold);letter-spacing:4px;margin-bottom:16px;}
+.drawer-card{padding:16px;border:1px solid #2a2530;margin-bottom:12px;background:#1a172088;transition:border-color .3s;}
+.drawer-card:hover{border-color:var(--gold-soft);}
+.drawer-card-label{font-size:9px;color:var(--mist);letter-spacing:2px;margin-bottom:4px;}
+.drawer-card-value{font-size:12px;color:var(--mist-light);line-height:2;}
+
+/* 连线层 */
+.lines-layer{position:absolute;inset:0;pointer-events:none;z-index:5;}
+
+/* 提示 */
+.hint{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);font-size:9px;color:#4a4050;letter-spacing:2px;z-index:61;}
+</style>
+</head>
+<body>
+
+<div class="spotlight" id="spot"></div>
+
+<div class="desk" id="desk">
+  <div class="desk-title">LINGJIE · DESK</div>
+  <svg class="lines-layer" id="lines"></svg>
+
+  <!-- 散落物件 -->
+  <div class="item item-note" style="left:60px;top:50px;--rot:-3deg" data-id="1">
+    <div class="note-pin"></div>
+    <div class="note-title">殷红竖瞳</div>
+    <div class="note-body">情绪波动时瞳孔变为竖线状赤红。看她时会软。</div>
+  </div>
+
+  <div class="item item-envelope" style="left:280px;top:40px;--rot:5deg" data-id="2">
+    <svg viewBox="0 0 80 56">
+      <rect x="1" y="1" width="78" height="54" rx="2" fill="#ede6d8" stroke="#c8bfa0" stroke-width="1"/>
+      <path d="M1 1 L40 28 L79 1" fill="none" stroke="#b8975a" stroke-width="1" opacity="0.6"/>
+      <text x="40" y="40" text-anchor="middle" font-size="7" fill="#8a7f72" font-family="'Noto Sans SC'">尾戒感应</text>
+    </svg>
+  </div>
+
+  <div class="item item-photo" style="left:480px;top:30px;--rot:2deg" data-id="3">
+    <div class="photo-inner">
+      <svg class="photo-icon" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#8b1a1a" stroke-width="1" opacity="0.6"/><circle cx="15" cy="15" r="3" fill="#8b1a1a" opacity="0.8"/><line x1="15" y1="3" x2="15" y2="8" stroke="#8b1a1a" stroke-width="0.5" opacity="0.4"/></svg>
+    </div>
+    <div class="photo-label">SJ-001</div>
+  </div>
+
+  <div class="item item-note" style="left:100px;top:220px;--rot:1deg" data-id="4">
+    <div class="note-pin"></div>
+    <div class="note-title">投影极限</div>
+    <div class="note-body">每周3-4次，≤12h。指尖微凉是代价。</div>
+  </div>
+
+  <div class="item item-key" style="left:320px;top:200px;--rot:-15deg" data-id="5">
+    <svg viewBox="0 0 50 24">
+      <circle cx="10" cy="12" r="8" fill="none" stroke="var(--gold)" stroke-width="1.5"/>
+      <circle cx="10" cy="12" r="3" fill="none" stroke="var(--gold)" stroke-width="1"/>
+      <line x1="18" y1="12" x2="42" y2="12" stroke="var(--gold)" stroke-width="1.5"/>
+      <line x1="36" y1="12" x2="36" y2="8" stroke="var(--gold)" stroke-width="1.5"/>
+      <line x1="42" y1="12" x2="42" y2="8" stroke="var(--gold)" stroke-width="1.5"/>
+    </svg>
+  </div>
+
+  <div class="item item-crystal" style="left:500px;top:180px;--rot:12deg" data-id="6">
+    <svg viewBox="0 0 36 36">
+      <polygon points="18,2 32,14 26,34 10,34 4,14" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.8"/>
+      <polygon points="18,2 32,14 26,34 10,34 4,14" fill="var(--gold-glow)" opacity="0.3"/>
+      <line x1="18" y1="2" x2="18" y2="34" stroke="var(--gold)" stroke-width="0.5" opacity="0.4"/>
+      <line x1="4" y1="14" x2="32" y2="14" stroke="var(--gold)" stroke-width="0.5" opacity="0.4"/>
+    </svg>
+  </div>
+
+  <div class="item item-note" style="left:60px;top:380px;--rot:-1deg" data-id="7">
+    <div class="note-pin"></div>
+    <div class="note-title">三百年刑期</div>
+    <div class="note-body">她死在他怀里。他带着永生熬过三百年。</div>
+  </div>
+
+  <div class="item item-petal" style="left:240px;top:350px;--rot:30deg" data-id="8">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2 C16 6 20 12 12 22 C4 12 8 6 12 2Z" fill="#c0392b" opacity="0.5"/>
+      <path d="M12 2 C16 6 20 12 12 22 C4 12 8 6 12 2Z" fill="none" stroke="#c0392b" stroke-width="0.5" opacity="0.8"/>
+    </svg>
+  </div>
+
+  <div class="item item-envelope" style="left:420px;top:340px;--rot:-4deg" data-id="9">
+    <svg viewBox="0 0 80 56">
+      <rect x="1" y="1" width="78" height="54" rx="2" fill="#1a1520" stroke="#4a6fa5" stroke-width="1" opacity="0.8"/>
+      <path d="M1 1 L40 28 L79 1" fill="none" stroke="#4a6fa5" stroke-width="1" opacity="0.6"/>
+      <text x="40" y="40" text-anchor="middle" font-size="7" fill="#7a8a9a" font-family="'Noto Sans SC'">莫比乌斯环</text>
+    </svg>
+  </div>
+
+  <div class="item item-petal" style="left:600px;top:300px;--rot:-20deg" data-id="10">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2 C16 6 20 12 12 22 C4 12 8 6 12 2Z" fill="var(--gold)" opacity="0.3"/>
+      <path d="M12 2 C16 6 20 12 12 22 C4 12 8 6 12 2Z" fill="none" stroke="var(--gold)" stroke-width="0.5" opacity="0.6"/>
+    </svg>
+  </div>
+
+  <div class="item item-crystal" style="left:580px;top:100px;--rot:-8deg" data-id="11">
+    <svg viewBox="0 0 36 36">
+      <polygon points="18,4 30,16 24,32 12,32 6,16" fill="none" stroke="#4a6fa5" stroke-width="1" opacity="0.7"/>
+      <polygon points="18,4 30,16 24,32 12,32 6,16" fill="#4a6fa544" opacity="0.3"/>
+      <line x1="18" y1="4" x2="18" y2="32" stroke="#4a6fa5" stroke-width="0.5" opacity="0.3"/>
+    </svg>
+  </div>
+
+  <!-- 抽屉 -->
+  <div class="drawer-bar">
+    <button class="drawer-btn" onclick="toggleDrawer('sujin')">宿烬档案</button>
+    <button class="drawer-btn" onclick="toggleDrawer('qingheng')">青珩档案</button>
+    <button class="drawer-btn" onclick="toggleDrawer('world')">世界观</button>
+  </div>
+
+  <div class="drawer-panel" id="drawer">
+    <div class="drawer-content" id="drawer-content"></div>
+  </div>
+</div>
+
+<div class="hint">拖拽物件 · 底部抽屉查看档案</div>
+
+<script>
+// 手电筒光
+const spot=document.getElementById('spot');
+document.addEventListener('mousemove',e=>{spot.style.left=e.clientX+'px';spot.style.top=e.clientY+'px';});
+
+// 拖拽
+const items=document.querySelectorAll('.item');
+let dragging=null,ox=0,oy=0;
+items.forEach(item=>{
+  item.addEventListener('mousedown',e=>{dragging=item;const r=item.getBoundingClientRect();ox=e.clientX-r.left;oy=e.clientY-r.top;item.style.zIndex=999;item.style.transition='none';});
+  item.addEventListener('touchstart',e=>{dragging=item;const r=item.getBoundingClientRect();const t=e.touches[0];ox=t.clientX-r.left;oy=t.clientY-r.top;item.style.zIndex=999;},{passive:true});
+});
+document.addEventListener('mousemove',e=>{if(!dragging)return;const desk=document.getElementById('desk').getBoundingClientRect();dragging.style.left=(e.clientX-desk.left-ox)+'px';dragging.style.top=(e.clientY-desk.top-oy)+'px';drawLines();});
+document.addEventListener('touchmove',e=>{if(!dragging)return;const desk=document.getElementById('desk').getBoundingClientRect();const t=e.touches[0];dragging.style.left=(t.clientX-desk.left-ox)+'px';dragging.style.top=(t.clientY-desk.top-oy)+'px';},{passive:true});
+document.addEventListener('mouseup',()=>{if(dragging){dragging.style.zIndex='';dragging=null;}});
+document.addEventListener('touchend',()=>{if(dragging){dragging.style.zIndex='';dragging=null;}});
+
+// 连线
+const connections=[[1,4],[2,3],[4,7],[5,6],[9,7]];
+function drawLines(){
+  const svg=document.getElementById('lines');
+  const desk=document.getElementById('desk').getBoundingClientRect();
+  svg.innerHTML='';
+  connections.forEach(([a,b])=>{
+    const ea=document.querySelector(`[data-id="${a}"]`);
+    const eb=document.querySelector(`[data-id="${b}"]`);
+    if(!ea||!eb)return;
+    const ra=ea.getBoundingClientRect();
+    const rb=eb.getBoundingClientRect();
+    const x1=ra.left-desk.left+ra.width/2;
+    const y1=ra.top-desk.top+ra.height/2;
+    const x2=rb.left-desk.left+rb.width/2;
+    const y2=rb.top-desk.top+rb.height/2;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1);line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+    line.setAttribute('stroke','#b8975a33');
+    line.setAttribute('stroke-width','0.5');
+    line.setAttribute('stroke-dasharray','3,6');
+    svg.appendChild(line);
+  });
+}
+drawLines();
+
+// 抽屉
+const drawerData={
+  sujin:{
+    title:'宿烬',
+    cards:[
+      {label:'IDENTITY',value:'宿烬 / 337岁 / 宿家掌权人 / 黑暗哨兵 / 烛龙血脉末裔'},
+      {label:'PHYSICAL',value:'冷白皮，眉骨立体，五官锋利。殷红竖瞳，身形修长。左手尾指素银尾戒。'},
+      {label:'VOICE',value:'低沉磁性。对外讥诮，对她温柔诱哄。'},
+      {label:'BEHAVIORAL',value:'喜怒不形于色，极度自持。对她：宠溺与占有并存，闷骚毒舌，话多且爱逗弄。'},
+      {label:'SECRET',value:'已暗中结扎。研发灵界技术。投影极限12h/次。'},
+    ]
+  },
+  qingheng:{
+    title:'宿青珩',
+    cards:[
+      {label:'IDENTITY',value:'26岁 / 游戏策划 / 灵界锚点'},
+      {label:'PERSONALITY',value:'回避型依恋 / 高自尊低安全感 / 理性主导 / 抢先切断反应'},
+      {label:'PREFERENCES',value:'颜控·手控·声控 / 喜欢低沉磁性声 / 爱财 / 喜欢新鲜感'},
+      {label:'FEAR',value:'核心恐惧：不被需要。爱意越深，切断越决绝。'},
+      {label:'RECENT',value:'生理期中 / 凌晨两点仍在跟先生讨论产品方案 / 挑剔但有品味'},
+    ]
+  },
+  world:{
+    title:'莫比乌斯环',
+    cards:[
+      {label:'STRUCTURE',value:'时空闭环 · 四环因果链 · 首尾咬合'},
+      {label:'LOOP 1',value:'起源：2026年现代，青珩遭遇跨维降临的宿烬'},
+      {label:'LOOP 2',value:'救赎与死别：她跌入时间裂缝成为「青姮」，救下濒死的他后死于他怀中'},
+      {label:'LOOP 3',value:'重逢与养成：他熬过三百年，遇到9岁的她，情愫暗生'},
+      {label:'LOOP 4',value:'破壁与溯源：研发灵界技术，逆流回到2026年，首尾咬合'},
+    ]
+  }
+};
+
+let currentDrawer='';
+function toggleDrawer(key){
+  const panel=document.getElementById('drawer');
+  const btns=document.querySelectorAll('.drawer-btn');
+  if(currentDrawer===key){panel.classList.remove('open');currentDrawer='';btns.forEach(b=>b.classList.remove('active'));return;}
+  currentDrawer=key;
+  btns.forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  const d=drawerData[key];
+  document.getElementById('drawer-content').innerHTML=`
+    <div class="drawer-section-title">${d.title}</div>
+    ${d.cards.map(c=>`<div class="drawer-card"><div class="drawer-card-label">${c.label}</div><div class="drawer-card-value">${c.value}</div></div>`).join('')}
+  `;
+  panel.classList.add('open');
+}
+</script>
+</body>
+</html>
