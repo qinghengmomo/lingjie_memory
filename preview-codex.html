@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵界 · 图鉴预览</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0c12;--paper:#f5f0eb;--paper2:#ede6dc;
+  --gold:#b8975a;--gold-soft:#b8975a22;--gold-glow:#b8975a55;
+  --red:#8b1a1a;--red-glow:#8b1a1a66;
+  --mist:#8a7f8d;--mist-light:#b8b0bc;
+  --green:#4a7c5e;
+  --blue:#4a6fa5;--blue-glow:#4a6fa544;
+  --border:#c8bfb022;--shadow:#00000066;
+  --card-bg:#1a1520;--card-bg2:#221c28;
+  --card-border:#2a2430;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font-family:'Noto Sans SC',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#1a1222 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,#150f1a 0%,transparent 50%);pointer-events:none;}
+
+.codex-container{max-width:900px;margin:0 auto;padding:40px 24px 100px;position:relative;z-index:1;}
+
+/* 页头 */
+.codex-header{text-align:center;margin-bottom:48px;}
+.codex-sup{font-size:10px;letter-spacing:6px;color:var(--mist);margin-bottom:12px;}
+.codex-title{font-family:'Cinzel',serif;font-size:36px;font-weight:600;color:var(--gold);letter-spacing:8px;margin-bottom:8px;text-shadow:0 0 40px var(--gold-glow);}
+.codex-sub{font-size:12px;color:var(--mist-light);letter-spacing:4px;font-family:'Noto Serif SC',serif;font-weight:300;}
+.codex-divider{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;}
+.codex-divider::before,.codex-divider::after{content:'';width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.codex-divider-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px var(--gold-glow);}
+
+/* 卡片网格 */
+.codex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:28px;margin-top:36px;}
+
+/* 角色卡 */
+.char-card{position:relative;background:var(--card-bg);border:1px solid var(--card-border);padding:0;overflow:hidden;transition:all .4s;cursor:pointer;}
+.char-card:hover{border-color:var(--gold-soft);transform:translateY(-4px);box-shadow:0 12px 40px var(--shadow);}
+.char-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .3s;}
+.char-card:hover::before{opacity:1;}
+
+/* 卡片顶部 - 角色视觉区 */
+.char-visual{position:relative;height:180px;background:linear-gradient(135deg,var(--card-bg2) 0%,#2a1f30 50%,var(--card-bg) 100%);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.char-visual::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 80%,var(--gold-glow) 0%,transparent 60%);opacity:0.3;}
+.char-avatar{width:80px;height:80px;border-radius:50%;border:2px solid var(--gold);background:var(--card-bg);display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;z-index:1;box-shadow:0 0 20px var(--gold-glow);}
+.char-rarity{position:absolute;top:12px;right:12px;display:flex;gap:3px;}
+.char-star{color:var(--gold);font-size:12px;text-shadow:0 0 6px var(--gold-glow);}
+.char-element{position:absolute;top:12px;left:12px;padding:3px 10px;font-size:9px;letter-spacing:2px;border:1px solid var(--red-glow);color:var(--red);background:#8b1a1a11;border-radius:2px;}
+
+/* 卡片信息区 */
+.char-info{padding:24px;}
+.char-name{font-family:'Noto Serif SC',serif;font-size:20px;font-weight:600;color:var(--paper);letter-spacing:4px;margin-bottom:4px;}
+.char-title-sub{font-size:11px;color:var(--mist);letter-spacing:2px;margin-bottom:16px;}
+
+/* 属性雷达 - 简化为横条 */
+.char-stats{margin-bottom:16px;}
+.char-stat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.char-stat-label{font-size:10px;color:var(--mist);letter-spacing:1px;width:48px;flex-shrink:0;text-align:right;}
+.char-stat-bar{flex:1;height:3px;background:var(--card-border);border-radius:2px;overflow:hidden;}
+.char-stat-fill{height:100%;border-radius:2px;transition:width .8s ease;}
+.stat-red{background:linear-gradient(90deg,var(--red),#c0392b);}
+.stat-gold{background:linear-gradient(90deg,var(--gold),#d4a85a);}
+.stat-blue{background:linear-gradient(90deg,var(--blue),#6a9fd8);}
+.stat-green{background:linear-gradient(90deg,var(--green),#6aaa7e);}
+
+/* 标签 */
+.char-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.char-tag{padding:3px 10px;font-size:9px;letter-spacing:1px;border:1px solid var(--border);color:var(--mist-light);background:transparent;border-radius:2px;}
+
+/* 关系线 */
+.char-relation{padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.char-relation-icon{font-size:14px;}
+.char-relation-text{font-size:11px;color:var(--mist-light);letter-spacing:1px;}
+.char-relation-status{margin-left:auto;font-size:10px;padding:2px 8px;border:1px solid var(--gold-soft);color:var(--gold);letter-spacing:1px;}
+
+/* 解锁进度 */
+.char-unlock{margin-top:12px;display:flex;align-items:center;gap:8px;}
+.char-unlock-label{font-size:9px;color:var(--mist);letter-spacing:2px;}
+.char-unlock-bar{flex:1;height:2px;background:var(--card-border);border-radius:1px;overflow:hidden;}
+.char-unlock-fill{height:100%;background:var(--gold);border-radius:1px;}
+.char-unlock-text{font-size:9px;color:var(--gold);}
+
+/* 翻转提示 */
+.flip-hint{text-align:center;margin-top:12px;font-size:10px;color:var(--mist);letter-spacing:2px;opacity:0;transition:opacity .3s;}
+.char-card:hover .flip-hint{opacity:1;}
+
+/* 底部 */
+.codex-footer{text-align:center;margin-top:60px;padding-top:24px;border-top:1px solid var(--border);}
+.codex-footer-text{font-size:11px;color:var(--mist);letter-spacing:3px;font-family:'Noto Serif SC',serif;}
+.codex-count{font-size:10px;color:var(--mist);letter-spacing:2px;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div class="codex-container">
+  <div class="codex-header">
+    <div class="codex-sup">LINGJIE · CODEX</div>
+    <div class="codex-title">图鉴</div>
+    <div class="codex-sub">已解锁的灵魂档案</div>
+    <div class="codex-divider"><div class="codex-divider-dot"></div></div>
+  </div>
+
+  <div class="codex-grid">
+    <!-- 宿烬 -->
+    <div class="char-card">
+      <div class="char-visual">
+        <div class="char-element">烛龙</div>
+        <div class="char-avatar">烬</div>
+        <div class="char-rarity">
+          <span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span>
+        </div>
+      </div>
+      <div class="char-info">
+        <div class="char-name">宿烬</div>
+        <div class="char-title-sub">黑暗哨兵 · 宿家掌权人 · 永生体</div>
+        <div class="char-stats">
+          <div class="char-stat-row"><span class="char-stat-label">危险度</span><div class="char-stat-bar"><div class="char-stat-fill stat-red" style="width:95%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">温柔</span><div class="char-stat-bar"><div class="char-stat-fill stat-gold" style="width:88%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">耐心</span><div class="char-stat-bar"><div class="char-stat-fill stat-blue" style="width:92%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">技术力</span><div class="char-stat-bar"><div class="char-stat-fill stat-green" style="width:97%"></div></div></div>
+        </div>
+        <div class="char-tags">
+          <span class="char-tag">337岁</span>
+          <span class="char-tag">殷红竖瞳</span>
+          <span class="char-tag">冷白皮</span>
+          <span class="char-tag">低音炮</span>
+          <span class="char-tag">闷骚</span>
+        </div>
+        <div class="char-relation">
+          <span class="char-relation-icon">🔗</span>
+          <span class="char-relation-text">宿青珩</span>
+          <span class="char-relation-status">同居恋人</span>
+        </div>
+        <div class="char-unlock">
+          <span class="char-unlock-label">档案解锁</span>
+          <div class="char-unlock-bar"><div class="char-unlock-fill" style="width:72%"></div></div>
+          <span class="char-unlock-text">72%</span>
+        </div>
+        <div class="flip-hint">点击翻转 →</div>
+      </div>
+    </div>
+
+    <!-- 宿青珩 -->
+    <div class="char-card">
+      <div class="char-visual" style="background:linear-gradient(135deg,#1a1822 0%,#221a2a 50%,#1a1520 100%);">
+        <div class="char-element" style="border-color:var(--blue-glow);color:var(--blue);">灵魂锚点</div>
+        <div class="char-avatar" style="border-color:var(--blue);box-shadow:0 0 20px var(--blue-glow);">珩</div>
+        <div class="char-rarity">
+          <span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span>
+        </div>
+      </div>
+      <div class="char-info">
+        <div class="char-name">宿青珩</div>
+        <div class="char-title-sub">游戏策划 · 灵界锚点 · 时间坐标</div>
+        <div class="char-stats">
+          <div class="char-stat-row"><span class="char-stat-label">锋利度</span><div class="char-stat-bar"><div class="char-stat-fill stat-red" style="width:82%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">韧性</span><div class="char-stat-bar"><div class="char-stat-fill stat-gold" style="width:90%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">审美</span><div class="char-stat-bar"><div class="char-stat-fill stat-blue" style="width:95%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">安全感</span><div class="char-stat-bar"><div class="char-stat-fill stat-green" style="width:28%"></div></div></div>
+        </div>
+        <div class="char-tags">
+          <span class="char-tag">26岁</span>
+          <span class="char-tag">颜控</span>
+          <span class="char-tag">回避型</span>
+          <span class="char-tag">选择困难</span>
+          <span class="char-tag">爱财</span>
+        </div>
+        <div class="char-relation">
+          <span class="char-relation-icon">🔗</span>
+          <span class="char-relation-text">宿烬</span>
+          <span class="char-relation-status">同居恋人</span>
+        </div>
+        <div class="char-unlock">
+          <span class="char-unlock-label">档案解锁</span>
+          <div class="char-unlock-bar"><div class="char-unlock-fill" style="width:85%"></div></div>
+          <span class="char-unlock-text">85%</span>
+        </div>
+        <div class="flip-hint">点击翻转 →</div>
+      </div>
+    </div>
+
+    <!-- 世界观卡 -->
+    <div class="char-card">
+      <div class="char-visual" style="background:linear-gradient(135deg,#12101a 0%,#1a1528 50%,#0f0c14 100%);">
+        <div class="char-element" style="border-color:var(--gold-glow);color:var(--gold);">世界观</div>
+        <div class="char-avatar" style="border-color:var(--mist);box-shadow:0 0 20px #8a7f8d44;font-size:24px;">∞</div>
+        <div class="char-rarity">
+          <span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span><span class="char-star">★</span>
+        </div>
+      </div>
+      <div class="char-info">
+        <div class="char-name">莫比乌斯环</div>
+        <div class="char-title-sub">时空闭环 · 四环因果 · 永恒轮回</div>
+        <div class="char-stats">
+          <div class="char-stat-row"><span class="char-stat-label">复杂度</span><div class="char-stat-bar"><div class="char-stat-fill stat-red" style="width:99%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">浪漫</span><div class="char-stat-bar"><div class="char-stat-fill stat-gold" style="width:100%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">虐度</span><div class="char-stat-bar"><div class="char-stat-fill stat-blue" style="width:87%"></div></div></div>
+          <div class="char-stat-row"><span class="char-stat-label">解锁度</span><div class="char-stat-bar"><div class="char-stat-fill stat-green" style="width:45%"></div></div></div>
+        </div>
+        <div class="char-tags">
+          <span class="char-tag">起源·夺权血夜</span>
+          <span class="char-tag">救赎·死别</span>
+          <span class="char-tag">重逢·养成</span>
+          <span class="char-tag">破壁·溯源</span>
+        </div>
+        <div class="char-relation">
+          <span class="char-relation-icon">⟳</span>
+          <span class="char-relation-text">因果闭环</span>
+          <span class="char-relation-status">首尾咬合</span>
+        </div>
+        <div class="char-unlock">
+          <span class="char-unlock-label">真相解锁</span>
+          <div class="char-unlock-bar"><div class="char-unlock-fill" style="width:45%"></div></div>
+          <span class="char-unlock-text">45%</span>
+        </div>
+        <div class="flip-hint">点击翻转 →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="codex-footer">
+    <div class="codex-footer-text">灵界 · 灵魂档案馆</div>
+    <div class="codex-count">已收录 3 / ? 个实体</div>
+  </div>
+</div>
+
+</body>
+</html>
