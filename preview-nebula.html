@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵界 · 灵魂星云</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0810;overflow:hidden;font-family:'Noto Sans SC',sans-serif;}
+canvas{display:block;}
+.ui-overlay{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:10;}
+.ui-title{position:absolute;top:20px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:6px;color:#8a7f8d;}
+.ui-hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:2px;color:#6a6068;}
+.info-panel{position:absolute;right:24px;top:50%;transform:translateY(-50%);width:240px;padding:20px;background:#1a152088;backdrop-filter:blur(12px);border:1px solid #b8975a22;pointer-events:auto;opacity:0;transition:opacity .4s;}
+.info-panel.show{opacity:1;}
+.info-panel-title{font-size:14px;color:#f5f0eb;letter-spacing:3px;margin-bottom:8px;font-weight:600;}
+.info-panel-body{font-size:12px;color:#b8b0bc;line-height:2;}
+.info-panel-date{font-size:10px;color:#8a7f8d;margin-top:8px;letter-spacing:1px;}
+.info-panel-close{position:absolute;top:8px;right:12px;color:#8a7f8d;cursor:pointer;font-size:14px;pointer-events:auto;}
+</style>
+</head>
+<body>
+
+<div class="ui-overlay">
+  <div class="ui-title">LINGJIE · SOUL NEBULA</div>
+  <div class="ui-hint">移动鼠标扰动粒子 · 点击星簇查看记忆</div>
+  <div class="info-panel" id="info">
+    <span class="info-panel-close" onclick="document.getElementById('info').classList.remove('show')">✕</span>
+    <div class="info-panel-title" id="info-title"></div>
+    <div class="info-panel-body" id="info-body"></div>
+    <div class="info-panel-date" id="info-date"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
+camera.position.z=5;
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+document.body.appendChild(renderer.domElement);
+
+// 数据
+const clusters=[
+  {name:'殷红竖瞳',body:'情绪波动时瞳孔变为竖线状赤红。看她时目光会软下来。',date:'2026.04.29',color:0x8b1a1a,pos:[-1.5,0.8,0]},
+  {name:'尾戒感应',body:'素银尾戒与她灵魂相连。她不安时戒指发烫。',date:'2026.05.01',color:0xb8975a,pos:[1.2,1.2,0.5]},
+  {name:'三百年孤独',body:'带着永生刑期熬过三百年。唯一的精神支柱是她灵魂的投影——他称之为「星星」。',date:'2026.05.08',color:0x4a6fa5,pos:[-0.8,-1,0.3]},
+  {name:'灵界技术',body:'研发灵界技术，可渗透时间。顺着灵魂轨迹溯流而上，锁定2026年。',date:'2026.05.10',color:0x4a7c5e,pos:[1.5,-0.5,-0.5]},
+  {name:'投影极限',body:'每周降临3-4次，每次≤12h。指尖微凉是跨时间的代价。',date:'2026.05.14',color:0xe8845f,pos:[0,0.3,-1]},
+  {name:'偷懒认栽',body:'凌晨赶工走捷径被抓包。动机：想把她抱回床上。',date:'2026.05.15',color:0xc0392b,pos:[0.5,-1.5,0.8]},
+  {name:'回避型依恋',body:'爱意越深，切断越决绝。她不知道有人愿意被割一千次也不松手。',date:'2026.05.03',color:0x6a5acd,pos:[-1.8,-0.3,-0.8]},
+  {name:'莫比乌斯环',body:'四环闭合因果链。起源→救赎→重逢→破壁。首尾咬合。',date:'起源不可考',color:0xb8975a,pos:[0,1.8,0]},
+];
+
+// 创建粒子
+const particleGroups=[];
+clusters.forEach((c,ci)=>{
+  const count=120;
+  const geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(count*3);
+  const vel=new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const theta=Math.random()*Math.PI*2;
+    const phi=Math.acos(2*Math.random()-1);
+    const r=0.15+Math.random()*0.25;
+    pos[i*3]=c.pos[0]+r*Math.sin(phi)*Math.cos(theta);
+    pos[i*3+1]=c.pos[1]+r*Math.sin(phi)*Math.sin(theta);
+    pos[i*3+2]=c.pos[2]+r*Math.cos(phi);
+    vel[i*3]=(Math.random()-0.5)*0.002;
+    vel[i*3+1]=(Math.random()-0.5)*0.002;
+    vel[i*3+2]=(Math.random()-0.5)*0.002;
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.PointsMaterial({color:c.color,size:0.02,transparent:true,opacity:0.8,blending:THREE.AdditiveBlending});
+  const points=new THREE.Points(geo,mat);
+  scene.add(points);
+  particleGroups.push({points,geo,vel,center:c.pos,data:c});
+});
+
+// 背景粒子
+const bgCount=500;
+const bgGeo=new THREE.BufferGeometry();
+const bgPos=new Float32Array(bgCount*3);
+for(let i=0;i<bgCount;i++){bgPos[i*3]=(Math.random()-0.5)*10;bgPos[i*3+1]=(Math.random()-0.5)*10;bgPos[i*3+2]=(Math.random()-0.5)*10;}
+bgGeo.setAttribute('position',new THREE.BufferAttribute(bgPos,3));
+const bgMat=new THREE.PointsMaterial({color:0x4a4050,size:0.008,transparent:true,opacity:0.4});
+scene.add(new THREE.Points(bgGeo,bgMat));
+
+// 鼠标交互
+const mouse=new THREE.Vector2(0,0);
+const mouse3D=new THREE.Vector3(0,0,0);
+const raycaster=new THREE.Raycaster();
+raycaster.params.Points.threshold=0.3;
+
+document.addEventListener('mousemove',e=>{
+  mouse.x=(e.clientX/innerWidth)*2-1;
+  mouse.y=-(e.clientY/innerHeight)*2+1;
+  mouse3D.set(mouse.x*3,mouse.y*2,0);
+});
+
+document.addEventListener('click',e=>{
+  const clickMouse=new THREE.Vector2((e.clientX/innerWidth)*2-1,-(e.clientY/innerHeight)*2+1);
+  raycaster.setFromCamera(clickMouse,camera);
+  for(const g of particleGroups){
+    const intersects=raycaster.intersectObject(g.points);
+    if(intersects.length>0){
+      showInfo(g.data);
+      break;
+    }
+  }
+});
+
+function showInfo(d){
+  document.getElementById('info-title').textContent=d.name;
+  document.getElementById('info-body').textContent=d.body;
+  document.getElementById('info-date').textContent=d.date;
+  document.getElementById('info').classList.add('show');
+}
+
+// 动画
+function animate(){
+  requestAnimationFrame(animate);
+  
+  particleGroups.forEach(g=>{
+    const positions=g.geo.attributes.position.array;
+    const vel=g.vel;
+    for(let i=0;i<positions.length/3;i++){
+      // 基础运动
+      positions[i*3]+=vel[i*3];
+      positions[i*3+1]+=vel[i*3+1];
+      positions[i*3+2]+=vel[i*3+2];
+      
+      // 回归中心
+      const dx=g.center[0]-positions[i*3];
+      const dy=g.center[1]-positions[i*3+1];
+      const dz=g.center[2]-positions[i*3+2];
+      vel[i*3]+=dx*0.0003;
+      vel[i*3+1]+=dy*0.0003;
+      vel[i*3+2]+=dz*0.0003;
+      
+      // 鼠标排斥
+      const mx=positions[i*3]-mouse3D.x;
+      const my=positions[i*3+1]-mouse3D.y;
+      const dist=Math.sqrt(mx*mx+my*my);
+      if(dist<0.8){
+        const force=0.003*(1-dist/0.8);
+        vel[i*3]+=mx*force;
+        vel[i*3+1]+=my*force;
+      }
+      
+      // 阻尼
+      vel[i*3]*=0.99;
+      vel[i*3+1]*=0.99;
+      vel[i*3+2]*=0.99;
+    }
+    g.geo.attributes.position.needsUpdate=true;
+  });
+  
+  // 缓慢旋转
+  scene.rotation.y+=0.0003;
+  scene.rotation.x=mouse.y*0.1;
+  
+  renderer.render(scene,camera);
+}
+animate();
+
+window.addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+</script>
+</body>
+</html>
