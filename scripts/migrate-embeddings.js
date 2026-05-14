@@ -8,6 +8,10 @@
  *   3. 在终端执行：node scripts/migrate-embeddings.js
  */
 
+const { execFileSync } = require('child_process');
+const fs = require('fs');
+const crypto = require('crypto');
+
 const GEMINI_KEY = process.env.GEMINI_KEY;
 if (!GEMINI_KEY) {
   console.error('❌ 请先设置环境变量 GEMINI_KEY');
@@ -19,25 +23,36 @@ const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/lingjie-f84
 const SA_KEY_PATH = './service-account.json';
 const EMBEDDING_MODEL = 'gemini-embedding-001';
 
+// ===== 用 curl.exe 发 HTTP 请求 =====
+function curlRequest(method, url, headers, body) {
+  const args = ['-s', '-X', method];
+  for (const [k, v] of Object.entries(headers || {})) {
+    args.push('-H', `${k}: ${v}`);
+  }
+  if (body) {
+    args.push('-d', typeof body === 'string' ? body : JSON.stringify(body));
+  }
+  args.push(url);
+
+  try {
+    const result = execFileSync('curl.exe', args, {
+      encoding: 'utf8',
+      maxBuffer: 50 * 1024 * 1024,
+      timeout: 30000
+    });
+    return JSON.parse(result);
+  } catch (e) {
+    throw new Error(`curl 请求失败: ${e.message.slice(0, 200)}`);
+  }
+}
+
 // ===== Embedding 生成 =====
-async function generateEmbedding(text) {
+function generateEmbedding(text) {
   const truncated = text.slice(0, 4000);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${EMBEDDING_MODEL}:embedContent?key=${GEMINI_KEY}`;
-  
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      content: { parts: [{ text: truncated }] }
-    })
-  });
-
-  if (!resp.ok) {
-    const err = await resp.text();
-    throw new Error(`Gemini ${resp.status}: ${err.slice(0, 200)}`);
-  }
-
-  const data = await resp.json();
+  const body = { content: { parts: [{ text: truncated }] } };
+  const data = curlRequest('POST', url, { 'Content-Type': 'application/json' }, body);
+  if (data.error) throw new Error(`Gemini ${data.error.code}: ${data.error.message.slice(0, 100)}`);
   return data?.embedding?.values || null;
 }
 
@@ -52,15 +67,12 @@ function suggestLayer(content, title, tags, pinned, arousal, valence) {
 }
 
 // ===== 获取 Access Token =====
-async function getAccessToken() {
-  const fs = await import('fs');
-  const crypto = await import('crypto');
-  
+function getAccessToken() {
   let keyFile;
   try {
     keyFile = JSON.parse(fs.readFileSync(SA_KEY_PATH, 'utf8'));
   } catch (e) {
-    const readline = await import('readline');
+    const readline = require('readline');
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     return new Promise(resolve => {
       console.log('\n未找到 service-account.json，请手动输入 Firebase Access Token:');
@@ -85,18 +97,13 @@ async function getAccessToken() {
   const signature = sign.sign(keyFile.private_key, 'base64url');
   const jwt = unsigned + '.' + signature;
 
-  const resp = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: jwt
-    })
-  });
+  const tokenData = curlRequest('POST', 'https://oauth2.googleapis.com/token',
+    { 'Content-Type': 'application/json' },
+    { grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: jwt }
+  );
 
-  if (!resp.ok) throw new Error('Token exchange failed: ' + await resp.text());
-  const data = await resp.json();
-  return data.access_token;
+  if (!tokenData.access_token) throw new Error('Token exchange failed: ' + JSON.stringify(tokenData));
+  return tokenData.access_token;
 }
 
 // ===== 主流程 =====
@@ -107,7 +114,7 @@ async function main() {
   // 1. 测试 API
   console.log('\n[1/4] 测试 Embedding API...');
   try {
-    const testEmbed = await generateEmbedding('测试文本');
+    const testEmbed = generateEmbedding('测试文本');
     if (testEmbed && testEmbed.length > 0) {
       console.log(`  ✓ API 可用，向量维度: ${testEmbed.length}`);
     } else {
@@ -126,14 +133,13 @@ async function main() {
 
   // 3. 拉取文档
   console.log('\n[3/4] 拉取 memory_vault...');
-  const listResp = await fetch(`${FIRESTORE_BASE}/memory_vault?pageSize=200`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  if (!listResp.ok) {
-    console.error('  ✗ 拉取失败:', listResp.status, await listResp.text());
+  const listData = curlRequest('GET', `${FIRESTORE_BASE}/memory_vault?pageSize=200`,
+    { 'Authorization': `Bearer ${token}` }
+  );
+  if (listData.error) {
+    console.error('  ✗ 拉取失败:', JSON.stringify(listData.error));
     process.exit(1);
   }
-  const listData = await listResp.json();
   const docs = listData.documents || [];
   console.log(`  ✓ 共 ${docs.length} 条记忆`);
 
@@ -159,7 +165,7 @@ async function main() {
     const textForEmbed = [title, content, ...keywords, ...tags].join(' ').trim();
 
     try {
-      const embedding = await generateEmbedding(textForEmbed);
+      const embedding = generateEmbedding(textForEmbed);
       if (!embedding || embedding.length < 100) throw new Error('向量异常');
 
       const hasLayer = f.layer?.stringValue;
@@ -171,25 +177,26 @@ async function main() {
       if (!hasLayer) updateFields.layer = { stringValue: layer };
 
       const maskParams = Object.keys(updateFields).map(k => `updateMask.fieldPaths=${k}`).join('&');
-      const patchResp = await fetch(`https://firestore.googleapis.com/v1/${doc.name}?${maskParams}`, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: updateFields })
-      });
+      const patchData = curlRequest('PATCH',
+        `https://firestore.googleapis.com/v1/${doc.name}?${maskParams}`,
+        { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        { fields: updateFields }
+      );
 
-      if (patchResp.ok) {
+      if (patchData.name) {
         ok++;
         console.log(`  ✓ [${i+1}/${docs.length}] ${title} [${layer}]`);
       } else {
         fail++;
-        console.log(`  ✗ [${i+1}/${docs.length}] ${title} (写入失败 ${patchResp.status})`);
+        console.log(`  ✗ [${i+1}/${docs.length}] ${title} (写入失败: ${JSON.stringify(patchData.error || patchData).slice(0, 80)})`);
       }
     } catch (e) {
       fail++;
       console.log(`  ✗ [${i+1}/${docs.length}] ${title} (${e.message.slice(0, 80)})`);
     }
 
-    await new Promise(r => setTimeout(r, 400));
+    // 间隔 300ms 避免限流
+    await new Promise(r => setTimeout(r, 300));
   }
 
   console.log('\n' + '='.repeat(50));
