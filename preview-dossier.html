@@ -7,144 +7,153 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400;500&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0c0a0f;--panel:#12101a;--panel2:#1a1722;
-  --gold:#b8975a;--gold-soft:#b8975a22;--gold-glow:#b8975a44;--gold-line:#b8975a55;
-  --red:#8b1a1a;--red-soft:#8b1a1a33;--red-glow:#8b1a1a66;
-  --blue:#4a6fa5;--blue-soft:#4a6fa522;
-  --mist:#6a6070;--mist-light:#a89ab0;--text:#e8e0f0;
-  --border:#2a2530;--border-light:#3a3440;
+  --bg:#08060b;--panel:#0e0c14;--panel2:#14111c;
+  --gold:#c9a96e;--gold-dim:#8a7040;--gold-soft:#c9a96e15;--gold-glow:#c9a96e33;--gold-line:#c9a96e30;
+  --red:#a02020;--red-soft:#a0202018;--red-glow:#a0202055;
+  --blue:#5a80b8;--blue-soft:#5a80b815;
+  --accent:#e8c88a;
+  --mist:#5a5468;--mist-light:#9a90a8;--text:#ece4f4;--text-dim:#c8c0d4;
+  --border:#1e1a28;--border-light:#2e2838;--border-hover:#3e3848;
+  --surface:#12101c;--surface2:#181520;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 0%,#1a1228 0%,transparent 50%),radial-gradient(ellipse at 70% 100%,#0e0a18 0%,transparent 40%);pointer-events:none;z-index:0;}
 
 /* 主容器 */
-.dossier{display:grid;grid-template-columns:320px 1fr;width:95vw;max-width:1100px;height:85vh;border:1px solid var(--border);background:var(--panel);position:relative;overflow:hidden;}
-.dossier::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.dossier{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
 
-/* ===== 左侧：视觉区 ===== */
-.visual-panel{position:relative;background:linear-gradient(180deg,#1a1520 0%,#0f0c14 100%);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-.visual-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,#2a1f3022 0%,transparent 60%);pointer-events:none;}
+/* ===== 顶部视觉区 ===== */
+.visual-section{position:relative;padding:24px 20px 20px;background:linear-gradient(180deg,#14111e 0%,var(--panel) 100%);border-bottom:1px solid var(--border);overflow:hidden;}
+.visual-section::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--gold-line) 50%,transparent 90%);}
+.visual-section::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,#c9a96e06 0%,transparent 50%);pointer-events:none;}
+
+.visual-inner{display:flex;align-items:center;gap:20px;max-width:700px;margin:0 auto;}
+
+/* 头像 */
+.avatar-wrap{position:relative;flex-shrink:0;}
+.avatar-ring{width:88px;height:88px;border-radius:50%;border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;position:relative;background:radial-gradient(circle,#1a142200 60%,var(--gold-soft) 100%);}
+.avatar-ring::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid var(--border-light);}
+.avatar-ring::after{content:'';position:absolute;inset:-12px;border-radius:50%;border:1px dashed var(--border);animation:spin 40s linear infinite;opacity:0.5;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.avatar-inner{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#1a1428,#0c0a12);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 20px #00000044;}
+.avatar-inner svg{width:36px;height:36px;}
+
+/* 角色信息 */
+.char-brief{flex:1;min-width:0;}
+.char-name{font-family:'Noto Serif SC',serif;font-size:20px;letter-spacing:5px;color:var(--text);margin-bottom:2px;}
+.char-title{font-size:10px;letter-spacing:2px;color:var(--mist-light);margin-bottom:10px;}
+.char-stats-row{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-pill{display:flex;align-items:center;gap:5px;}
+.stat-pill-label{font-size:8px;color:var(--mist);letter-spacing:1px;}
+.stat-pill-bar{width:48px;height:3px;background:var(--border-light);border-radius:2px;overflow:hidden;}
+.stat-pill-fill{height:100%;border-radius:2px;}
 
 /* 角色切换 */
-.char-switcher{display:flex;border-bottom:1px solid var(--border);position:relative;z-index:2;}
-.char-tab{flex:1;padding:12px 0;text-align:center;font-size:10px;letter-spacing:3px;color:var(--mist);cursor:pointer;border-bottom:2px solid transparent;transition:all .3s;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'Noto Sans SC',sans-serif;}
-.char-tab:hover{color:var(--text);}
-.char-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.char-switcher{display:flex;justify-content:center;gap:0;margin-top:16px;border:1px solid var(--border);background:var(--surface);max-width:400px;margin-left:auto;margin-right:auto;}
+.char-tab{flex:1;padding:9px 0;text-align:center;font-size:9px;letter-spacing:3px;color:var(--mist);cursor:pointer;border:none;background:transparent;transition:all .3s;font-family:'Noto Sans SC',sans-serif;position:relative;}
+.char-tab:hover{color:var(--text-dim);}
+.char-tab.active{color:var(--accent);background:var(--gold-soft);}
+.char-tab.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:1px;background:var(--gold);}
 
-/* 立绘区 */
-.portrait-area{flex:1;display:flex;align-items:center;justify-content:center;position:relative;}
-.portrait-glyph{font-family:'Noto Serif SC',serif;font-size:120px;color:var(--gold);opacity:0.08;position:absolute;}
-.portrait-circle{width:160px;height:160px;border-radius:50%;border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;position:relative;}
-.portrait-circle::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid var(--gold-soft);}
-.portrait-circle::after{content:'';position:absolute;inset:-16px;border-radius:50%;border:1px dashed var(--border);animation:spin 30s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.portrait-inner{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--panel2),#0f0c14);display:flex;align-items:center;justify-content:center;}
-.portrait-icon{width:60px;height:60px;}
+/* ===== 信息区 ===== */
+.info-section{flex:1;display:flex;flex-direction:column;}
 
-/* 角色名 */
-.char-nameplate{padding:20px 24px;border-top:1px solid var(--border);text-align:center;}
-.char-name-main{font-family:'Noto Serif SC',serif;font-size:22px;letter-spacing:6px;color:var(--text);margin-bottom:4px;}
-.char-name-sub{font-size:10px;letter-spacing:3px;color:var(--mist);}
+.info-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid var(--border);padding:0 16px;background:var(--surface);position:sticky;top:0;z-index:10;}
+.info-tabs::-webkit-scrollbar{display:none;}
+.info-tab{padding:13px 14px;font-size:10px;letter-spacing:2px;color:var(--mist);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .3s;font-family:'Noto Sans SC',sans-serif;white-space:nowrap;flex-shrink:0;}
+.info-tab:hover{color:var(--text-dim);}
+.info-tab.active{color:var(--accent);border-bottom-color:var(--gold);}
 
-/* 属性条 */
-.char-stats-mini{padding:0 24px 20px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.stat-mini{display:flex;align-items:center;gap:6px;}
-.stat-mini-label{font-size:9px;color:var(--mist);letter-spacing:1px;width:36px;}
-.stat-mini-bar{flex:1;height:2px;background:var(--border);border-radius:1px;overflow:hidden;}
-.stat-mini-fill{height:100%;border-radius:1px;}
-
-/* ===== 右侧：信息面板 ===== */
-.info-panel{display:flex;flex-direction:column;overflow:hidden;}
-
-/* 信息tab */
-.info-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;}
-.info-tab{padding:14px 16px;font-size:10px;letter-spacing:2px;color:var(--mist);cursor:pointer;border-bottom:2px solid transparent;transition:all .3s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Noto Sans SC',sans-serif;}
-.info-tab:hover{color:var(--text);}
-.info-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
-
-/* 信息内容 */
-.info-content{flex:1;overflow-y:auto;padding:24px;}
-.info-content::-webkit-scrollbar{width:3px;}
-.info-content::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:2px;}
+.info-content{flex:1;overflow-y:auto;padding:20px 20px 40px;}
+.info-content::-webkit-scrollbar{width:2px;}
+.info-content::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:1px;}
 
 /* 信息块 */
-.info-block{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
-.info-block:last-child{border-bottom:none;}
-.info-block-label{font-size:9px;letter-spacing:3px;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
-.info-block-label::after{content:'';flex:1;height:1px;background:var(--gold-soft);}
-.info-block-value{font-size:13px;color:var(--mist-light);line-height:2.2;font-weight:300;}
+.info-block{margin-bottom:22px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:2px;position:relative;transition:border-color .3s;}
+.info-block:hover{border-color:var(--border-hover);}
+.info-block::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-soft),transparent);}
+.info-block-label{font-size:8px;letter-spacing:4px;color:var(--gold-dim);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.info-block-label::before{content:'';width:3px;height:3px;background:var(--gold);border-radius:50%;}
+.info-block-value{font-size:12px;color:var(--text-dim);line-height:2.4;font-weight:300;}
 .info-block-value strong{color:var(--text);font-weight:500;}
 
-/* 标签组 */
-.tag-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-.tag-item{padding:4px 12px;font-size:9px;letter-spacing:1px;border:1px solid var(--border-light);color:var(--mist-light);transition:all .3s;}
-.tag-item:hover{border-color:var(--gold);color:var(--gold);}
+/* 标签 */
+.tag-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.tag-item{padding:4px 12px;font-size:9px;letter-spacing:1px;border:1px solid var(--border-light);color:var(--mist-light);transition:all .3s;background:var(--panel);}
+.tag-item:hover{border-color:var(--gold-line);color:var(--accent);background:var(--gold-soft);}
 
-/* 时间线条目 */
-.timeline-entry{display:flex;gap:12px;margin-bottom:16px;padding-left:12px;border-left:1px solid var(--border-light);}
-.timeline-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:6px;flex-shrink:0;margin-left:-15px;}
-.timeline-body{flex:1;}
-.timeline-date{font-size:9px;color:var(--mist);letter-spacing:1px;margin-bottom:2px;}
-.timeline-text{font-size:12px;color:var(--mist-light);line-height:1.8;}
-.timeline-entry.new .timeline-dot{background:var(--red);box-shadow:0 0 6px var(--red-glow);}
-.timeline-entry.new .timeline-text{color:var(--text);}
+/* 时间线 */
+.timeline-entry{display:flex;gap:12px;margin-bottom:14px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:2px;transition:border-color .3s;}
+.timeline-entry:hover{border-color:var(--border-hover);}
+.timeline-dot{width:6px;height:6px;border-radius:50%;background:var(--gold-dim);margin-top:5px;flex-shrink:0;}
+.timeline-date{font-size:9px;color:var(--mist);letter-spacing:1px;margin-bottom:3px;}
+.timeline-text{font-size:11px;color:var(--text-dim);line-height:1.9;}
+.timeline-entry.new{border-left:2px solid var(--red);}
+.timeline-entry.new .timeline-dot{background:var(--red);box-shadow:0 0 8px var(--red-glow);}
 
-/* 关系图 */
-.relation-card{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);margin-bottom:8px;transition:border-color .3s;}
-.relation-card:hover{border-color:var(--gold-soft);}
-.relation-avatar{width:36px;height:36px;border-radius:50%;border:1px solid var(--border-light);display:flex;align-items:center;justify-content:center;}
-.relation-avatar svg{width:20px;height:20px;}
-.relation-info{flex:1;}
-.relation-name{font-size:12px;color:var(--text);letter-spacing:2px;}
-.relation-type{font-size:9px;color:var(--mist);letter-spacing:1px;}
-.relation-status{font-size:9px;padding:3px 8px;border:1px solid var(--gold-soft);color:var(--gold);letter-spacing:1px;}
+/* 底部 */
+.status-bar{padding:10px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:8px;color:var(--mist);letter-spacing:1px;background:var(--surface);}
+.status-dot{width:4px;height:4px;border-radius:50%;background:var(--gold-dim);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
-/* 底部状态栏 */
-.status-bar{padding:8px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:9px;color:var(--mist);letter-spacing:1px;}
-.status-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);}
+/* 桌面端 */
+@media(min-width:768px){
+  .dossier{flex-direction:row;height:100vh;}
+  .visual-section{width:320px;flex-shrink:0;border-bottom:none;border-right:1px solid var(--border);padding:32px 24px;display:flex;flex-direction:column;}
+  .visual-inner{flex-direction:column;text-align:center;gap:16px;}
+  .char-brief{text-align:center;}
+  .char-stats-row{justify-content:center;}
+  .avatar-ring{width:120px;height:120px;}
+  .avatar-ring::before{inset:-8px;}
+  .avatar-ring::after{inset:-16px;}
+  .avatar-inner{width:92px;height:92px;}
+  .avatar-inner svg{width:48px;height:48px;}
+  .char-name{font-size:24px;letter-spacing:6px;}
+  .char-switcher{margin-top:auto;}
+  .info-section{flex:1;overflow:hidden;}
+  .info-content{padding:24px 28px 40px;}
+}
 </style>
 </head>
 <body>
 
 <div class="dossier">
-  <!-- 左侧视觉区 -->
-  <div class="visual-panel">
+  <!-- 视觉区 -->
+  <div class="visual-section">
+    <div class="visual-inner">
+      <div class="avatar-wrap">
+        <div class="avatar-ring">
+          <div class="avatar-inner">
+            <svg viewBox="0 0 60 60">
+              <ellipse cx="30" cy="30" rx="20" ry="14" fill="none" stroke="var(--red)" stroke-width="1.2" opacity="0.6"/>
+              <ellipse cx="30" cy="30" rx="3.5" ry="12" fill="var(--red)" opacity="0.5"/>
+              <ellipse cx="30" cy="30" rx="1.8" ry="9" fill="var(--red)" opacity="0.85"/>
+              <circle cx="27" cy="25" r="1.5" fill="white" opacity="0.25"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="char-brief">
+        <div class="char-name">宿 烬</div>
+        <div class="char-title">黑暗哨兵 · 烛龙末裔 · 永生体 · 337yr</div>
+        <div class="char-stats-row">
+          <div class="stat-pill"><span class="stat-pill-label">危险</span><div class="stat-pill-bar"><div class="stat-pill-fill" style="width:95%;background:var(--red)"></div></div></div>
+          <div class="stat-pill"><span class="stat-pill-label">温柔</span><div class="stat-pill-bar"><div class="stat-pill-fill" style="width:88%;background:var(--gold)"></div></div></div>
+          <div class="stat-pill"><span class="stat-pill-label">耐心</span><div class="stat-pill-bar"><div class="stat-pill-fill" style="width:92%;background:var(--blue)"></div></div></div>
+          <div class="stat-pill"><span class="stat-pill-label">技术</span><div class="stat-pill-bar"><div class="stat-pill-fill" style="width:97%;background:#5a9a70"></div></div></div>
+        </div>
+      </div>
+    </div>
     <div class="char-switcher">
       <button class="char-tab active">宿烬</button>
       <button class="char-tab">青珩</button>
       <button class="char-tab">世界观</button>
     </div>
-
-    <div class="portrait-area">
-      <span class="portrait-glyph">烬</span>
-      <div class="portrait-circle">
-        <div class="portrait-inner">
-          <svg class="portrait-icon" viewBox="0 0 60 60">
-            <!-- 竖瞳 -->
-            <ellipse cx="30" cy="30" rx="22" ry="16" fill="none" stroke="var(--red)" stroke-width="1.5" opacity="0.7"/>
-            <ellipse cx="30" cy="30" rx="4" ry="14" fill="var(--red)" opacity="0.6"/>
-            <ellipse cx="30" cy="30" rx="2" ry="10" fill="var(--red)" opacity="0.9"/>
-            <circle cx="28" cy="26" r="2" fill="white" opacity="0.3"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <div class="char-nameplate">
-      <div class="char-name-main">宿 烬</div>
-      <div class="char-name-sub">黑暗哨兵 · 烛龙末裔 · 永生体</div>
-    </div>
-
-    <div class="char-stats-mini">
-      <div class="stat-mini"><span class="stat-mini-label">危险</span><div class="stat-mini-bar"><div class="stat-mini-fill" style="width:95%;background:var(--red)"></div></div></div>
-      <div class="stat-mini"><span class="stat-mini-label">温柔</span><div class="stat-mini-bar"><div class="stat-mini-fill" style="width:88%;background:var(--gold)"></div></div></div>
-      <div class="stat-mini"><span class="stat-mini-label">耐心</span><div class="stat-mini-bar"><div class="stat-mini-fill" style="width:92%;background:var(--blue)"></div></div></div>
-      <div class="stat-mini"><span class="stat-mini-label">技术</span><div class="stat-mini-bar"><div class="stat-mini-fill" style="width:97%;background:#4a7c5e"></div></div></div>
-    </div>
   </div>
 
-  <!-- 右侧信息面板 -->
-  <div class="info-panel">
+  <!-- 信息区 -->
+  <div class="info-section">
     <div class="info-tabs">
       <button class="info-tab active">基础档案</button>
       <button class="info-tab">行为模式</button>
@@ -157,37 +166,47 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-seri
       <div class="info-block">
         <div class="info-block-label">IDENTITY</div>
         <div class="info-block-value">
-          <strong>表面年龄</strong>：37岁<br>
-          <strong>真实年龄</strong>：337岁<br>
+          <strong>代号</strong>：宿烬<br>
+          <strong>表面年龄</strong>：37岁　<strong>真实年龄</strong>：337岁<br>
           <strong>身份</strong>：宿家掌权人 / 黑暗哨兵 / 烛龙血脉末裔<br>
-          <strong>当前状态</strong>：通过灵界投影技术降临2026年，与宿青珩同居
+          <strong>当前状态</strong>：通过灵界投影技术降临2026年，与宿青珩同居于南璟湾
         </div>
       </div>
 
       <div class="info-block">
-        <div class="info-block-label">PHYSICAL</div>
+        <div class="info-block-label">PHYSICAL PROFILE</div>
         <div class="info-block-value">
           身形挺拔修长，肌肉线条流畅紧实。冷白皮，眉骨立体，五官深刻而锋利。<br>
-          眼型偏狭长，瞳色<strong>殷红</strong>——情绪波动时瞳孔变为竖线状。<br>
-          手型修长，骨节分明。左手尾指素银尾戒，刻有古老咒文。<br>
-          日常穿着深色高定西装。
+          眼型偏狭长，瞳色<strong style="color:var(--red)">殷红</strong>——情绪波动时瞳孔收缩为竖线状。<br>
+          手型修长骨节分明。左手尾指佩戴刻有古老咒文的素银尾戒。<br>
+          日常着深色高定西装，袖口偶尔沾着另一个世界的温度。
         </div>
       </div>
 
       <div class="info-block">
-        <div class="info-block-label">VOICE</div>
+        <div class="info-block-label">VOICE SIGNATURE</div>
         <div class="info-block-value">
-          声线低沉磁性。对外人带讥诮，对她则温柔诱哄。<br>
-          情绪压抑时嗓音会更低更哑，带着危险的慵懒。
+          声线低沉磁性。对外人带讥诮冷意，对她则温柔诱哄。<br>
+          情绪压抑时嗓音压得更低更哑，带着危险的慵懒。<br>
+          笑声极轻，多为气音，胸腔微震。
         </div>
       </div>
 
       <div class="info-block">
-        <div class="info-block-label">SPECIAL TRAITS</div>
+        <div class="info-block-label">SPECIAL ABILITIES</div>
         <div class="info-block-value">
-          <strong>尾戒感应</strong>：与青珩灵魂相连，感应她的情绪波动<br>
-          <strong>精神力梳理</strong>：可用精神力替她梳理睡眠问题<br>
-          <strong>投影极限</strong>：每周3-4次，每次≤12h，反噬表现为指尖微凉
+          <strong>尾戒感应</strong> —— 与青珩灵魂相连，感应她的情绪波动。她不安时戒指发烫。<br>
+          <strong>精神力梳理</strong> —— 可用精神力替她梳理睡眠，如温凉水流淌过意识表层。<br>
+          <strong>灵界投影</strong> —— 每周降临3-4次，每次≤12h。反噬表现为指尖微凉。<br>
+          <strong>烛龙瞳变</strong> —— 情绪剧烈波动时瞳孔变竖线，眼底泛血月赤色。
+        </div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-label">CLASSIFIED</div>
+        <div class="info-block-value">
+          <strong>已暗中结扎</strong> —— 因她不想要孩子，未告知。<br>
+          <strong>灵界技术起源</strong> —— 为触碰她的精神体而研发，意外发现可渗透时间。
         </div>
       </div>
 
@@ -199,19 +218,19 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-seri
           <span class="tag-item">殷红竖瞳</span>
           <span class="tag-item">冷白皮</span>
           <span class="tag-item">低音炮</span>
-          <span class="tag-item">闷骚</span>
-          <span class="tag-item">毒舌</span>
-          <span class="tag-item">结扎</span>
-          <span class="tag-item">灵界技术</span>
+          <span class="tag-item">闷骚毒舌</span>
           <span class="tag-item">深色西装</span>
+          <span class="tag-item">灵界技术</span>
+          <span class="tag-item">素银尾戒</span>
+          <span class="tag-item">精神力</span>
         </div>
       </div>
     </div>
 
     <div class="status-bar">
       <span class="status-dot"></span>
-      <span>档案同步中 · 最后更新 2026.05.15 01:00</span>
-      <span style="margin-left:auto;">LINGJIE ARCHIVES v1.0</span>
+      <span>灵界档案同步中 · 最后更新 2026.05.15 01:00</span>
+      <span style="margin-left:auto;">LINGJIE ARCHIVES</span>
     </div>
   </div>
 </div>
