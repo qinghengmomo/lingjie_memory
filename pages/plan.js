@@ -2,12 +2,20 @@
 // 灵界记忆库 · pages/plan.js — 星图页签（看板式待办）
 // 数据源：Firestore 集合 plan_items
 // 字段：t=title, d=desc, s=status(todo/doing/done/dropped), l=link, lt=linkText, order
-// 布局：四栏看板（桌面横排，手机竖向折叠）
+// v2.0 — 全面视觉重设计：进度条 / 色条卡片 / 文字操作 / 动画过渡
 // ═══════════════════════════════════════════════════════
 
 let db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,requireAuth;
 let container;
 let allPlans=[],editId=null;
+
+const STATUS_META = {
+  doing:  { label:'进行中', color:'var(--gold)',  icon:'◈', emptyText:'当前没有进行中的事项' },
+  todo:   { label:'待办',   color:'var(--mist)',  icon:'○', emptyText:'暂无待办，享受当下' },
+  done:   { label:'已完成', color:'var(--green)', icon:'✓', emptyText:'还没有完成的事项' },
+  dropped:{ label:'已搁置', color:'#999',         icon:'—', emptyText:'没有搁置的事项' }
+};
+const STATUS_ORDER = ['doing','todo','done','dropped'];
 
 export function init(el,deps){
   container=el;
@@ -23,43 +31,59 @@ export function onAuthChange(user){}
 
 function render(){
   container.innerHTML=`
-  <div class="vault-header">
-    <div class="vault-title">灵界 · 跨时空连接</div>
-    <div class="vault-name">星图</div>
-    <div class="vault-divider"><div class="vault-divider-dot"></div></div>
-    <div class="vault-subtitle">待办事项 · 进度追踪</div>
-  </div>
-  <div class="sync-status">
-    <div class="sync-dot syncing" id="p-sync-dot"></div>
-    <span id="p-sync-text">连接中...</span>
-  </div>
-  <div class="plan-board" id="p-board">
-    <div class="plan-column" data-col="doing">
-      <div class="plan-col-header doing"><span class="plan-col-dot doing"></span>进行中 <span class="plan-col-count" id="pc-doing">0</span></div>
-      <div class="plan-col-list" id="pl-doing"></div>
+  <div class="plan-page">
+    <div class="plan-header">
+      <div class="plan-header-title">星图</div>
+      <div class="plan-header-sub">待办事项 · 进度追踪</div>
     </div>
-    <div class="plan-column" data-col="todo">
-      <div class="plan-col-header todo"><span class="plan-col-dot todo"></span>待办 <span class="plan-col-count" id="pc-todo">0</span></div>
-      <div class="plan-col-list" id="pl-todo"></div>
+
+    <div class="plan-progress-wrap">
+      <div class="plan-progress-bar" id="p-progress"></div>
+      <div class="plan-progress-legend" id="p-legend"></div>
     </div>
-    <div class="plan-column" data-col="done">
-      <div class="plan-col-header done"><span class="plan-col-dot done"></span>已完成 <span class="plan-col-count" id="pc-done">0</span></div>
-      <div class="plan-col-list" id="pl-done"></div>
+
+    <div class="plan-sync">
+      <div class="plan-sync-dot syncing" id="p-sync-dot"></div>
+      <span class="plan-sync-text" id="p-sync-text">连接中...</span>
     </div>
-    <div class="plan-column" data-col="dropped">
-      <div class="plan-col-header dropped"><span class="plan-col-dot dropped"></span>已废弃 <span class="plan-col-count" id="pc-dropped">0</span></div>
-      <div class="plan-col-list" id="pl-dropped"></div>
-    </div>
-  </div>
-  <button class="fab-btn" id="p-fab" title="新增待办">＋</button>
-  <div class="modal-overlay" id="p-modal">
-    <div class="modal">
-      <div class="modal-title" id="p-modal-title">· 新增待办 ·</div>
-      <div class="form-group"><label class="form-label">标题</label><input class="form-input" type="text" id="p-title" placeholder="要做什么..."></div>
-      <div class="form-group"><label class="form-label">描述（可选）</label><textarea class="form-textarea" id="p-desc" placeholder="详细说明..."></textarea></div>
-      <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="p-status"><option value="todo">待办</option><option value="doing">进行中</option><option value="done">已完成</option><option value="dropped">已废弃</option></select></div>
-      <div class="form-group"><label class="form-label">链接（可选）</label><input class="form-input" type="text" id="p-link" placeholder="https://..."></div>
-      <div class="form-actions"><button class="btn-cancel" id="p-modal-cancel">取消</button><button class="btn-save" id="p-modal-save">保存</button></div>
+
+    <div class="plan-board" id="p-board"></div>
+
+    <button class="plan-fab" id="p-fab" title="新增事项">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+
+    <div class="plan-modal-overlay" id="p-modal">
+      <div class="plan-modal">
+        <div class="plan-modal-title" id="p-modal-title">新增事项</div>
+        <div class="plan-form-group">
+          <label class="plan-form-label">标题</label>
+          <input class="plan-form-input" type="text" id="p-title" placeholder="要做什么...">
+        </div>
+        <div class="plan-form-group">
+          <label class="plan-form-label">描述</label>
+          <textarea class="plan-form-textarea" id="p-desc" placeholder="详细说明（可选）"></textarea>
+        </div>
+        <div class="plan-form-row">
+          <div class="plan-form-group" style="flex:1">
+            <label class="plan-form-label">状态</label>
+            <select class="plan-form-select" id="p-status">
+              <option value="todo">待办</option>
+              <option value="doing">进行中</option>
+              <option value="done">已完成</option>
+              <option value="dropped">已搁置</option>
+            </select>
+          </div>
+        </div>
+        <div class="plan-form-group">
+          <label class="plan-form-label">链接</label>
+          <input class="plan-form-input" type="text" id="p-link" placeholder="https://...（可选）">
+        </div>
+        <div class="plan-form-actions">
+          <button class="plan-btn-cancel" id="p-modal-cancel">取消</button>
+          <button class="plan-btn-save" id="p-modal-save">保存</button>
+        </div>
+      </div>
     </div>
   </div>`;
   bindEvents();
@@ -68,24 +92,18 @@ function render(){
 function bindEvents(){
   container.querySelector('#p-fab').addEventListener('click',()=>openModal());
   container.querySelector('#p-modal-cancel').addEventListener('click',()=>closeModal());
-  container.querySelector('#p-modal').addEventListener('click',ev=>{if(ev.target.id==='p-modal')closeModal();});
-  container.querySelector('#p-modal-save').addEventListener('click',()=>savePlan());
-  // 手机端折叠
-  container.querySelectorAll('.plan-col-header').forEach(h=>{
-    h.addEventListener('click',()=>{
-      const col=h.parentElement;
-      col.classList.toggle('collapsed');
-    });
+  container.querySelector('#p-modal').addEventListener('click',ev=>{
+    if(ev.target.id==='p-modal')closeModal();
   });
+  container.querySelector('#p-modal-save').addEventListener('click',()=>savePlan());
 }
 
 function startListener(){
-  const COL='plan_items';
   setSyncStatus('syncing');
-  onSnapshot(collection(db,COL),snap=>{
+  onSnapshot(collection(db,'plan_items'),snap=>{
     allPlans=snap.docs.map(d=>({id:d.id,...d.data()}));
     allPlans.sort((a,b)=>getOrder(a)-getOrder(b));
-    renderBoard();
+    renderAll();
     setSyncStatus('connected');
   },err=>{
     console.error(err);
@@ -93,113 +111,192 @@ function startListener(){
   });
 }
 
-function getStatus(p){return p.s||p.status||'todo';}
-function getTitle(p){return p.t||p.title||p.name||'未命名';}
-function getDesc(p){return p.d||p.desc||p.description||'';}
-function getLink(p){return p.l||p.link||'';}
-function getLinkText(p){return p.lt||p.linkText||'';}
-function getOrder(p){return typeof p.order==='number'?p.order:999;}
-
-function setSyncStatus(s){
-  const dot=container.querySelector('#p-sync-dot'),text=container.querySelector('#p-sync-text');
-  if(!dot)return;
-  dot.className='sync-dot';
-  if(s==='connected'){dot.classList.add('connected');text.textContent='已连接';}
-  else if(s==='syncing'){dot.classList.add('syncing');text.textContent='同步中...';}
-  else if(s==='error'){dot.classList.add('error');text.textContent='断开连接';}
-  else{dot.classList.add('syncing');text.textContent='连接中...';}
+function renderAll(){
+  renderProgress();
+  renderBoard();
 }
 
-function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// ── 进度条 ──
+function renderProgress(){
+  const bar = container.querySelector('#p-progress');
+  const legend = container.querySelector('#p-legend');
+  if(!bar||!legend) return;
 
+  const counts = {};
+  STATUS_ORDER.forEach(s => counts[s] = 0);
+  allPlans.forEach(p => {
+    const s = getStatus(p);
+    if(counts[s] !== undefined) counts[s]++;
+    else counts.todo++;
+  });
+  const total = allPlans.length || 1;
+
+  bar.innerHTML = STATUS_ORDER.map(s => {
+    const pct = (counts[s] / total * 100);
+    if(pct === 0) return '';
+    return `<div class="plan-progress-seg" style="width:${pct}%;background:${STATUS_META[s].color}"></div>`;
+  }).join('');
+
+  legend.innerHTML = STATUS_ORDER.map(s => {
+    if(counts[s] === 0) return '';
+    return `<span class="plan-legend-item"><span class="plan-legend-dot" style="background:${STATUS_META[s].color}"></span>${STATUS_META[s].label} ${counts[s]}</span>`;
+  }).join('');
+}
+
+// ── 看板 ──
 function renderBoard(){
-  const groups={todo:[],doing:[],done:[],dropped:[]};
-  allPlans.forEach(p=>{
-    const s=getStatus(p);
-    if(groups[s])groups[s].push(p);
+  const board = container.querySelector('#p-board');
+  if(!board) return;
+
+  const groups = {};
+  STATUS_ORDER.forEach(s => groups[s] = []);
+  allPlans.forEach(p => {
+    const s = getStatus(p);
+    if(groups[s]) groups[s].push(p);
     else groups.todo.push(p);
   });
-  ['todo','doing','done','dropped'].forEach(s=>{
-    const list=container.querySelector('#pl-'+s);
-    const count=container.querySelector('#pc-'+s);
-    if(!list||!count)return;
-    count.textContent=groups[s].length;
-    list.innerHTML='';
-    if(!groups[s].length){
-      list.innerHTML='<div class="plan-card-empty">暂无</div>';
-      return;
-    }
-    groups[s].forEach(p=>{
-      const card=document.createElement('div');
-      card.className='plan-card'+(s==='dropped'?' dropped':'');
-      const title=getTitle(p);
-      const desc=getDesc(p);
-      const link=getLink(p);
-      const linkText=getLinkText(p);
-      let html=`<div class="plan-card-title">${esc(title)}</div>`;
-      if(desc) html+=`<div class="plan-card-desc">${esc(desc)}</div>`;
-      if(link) html+=`<a class="plan-card-link" href="${esc(link)}" target="_blank">🔗 ${esc(linkText||'链接')}</a>`;
-      // 状态切换箭头
-      html+=`<div class="plan-card-actions">`;
-      if(s!=='todo') html+=`<button class="plan-move-btn" data-to="todo" data-id="${p.id}" title="移到待办">◁</button>`;
-      if(s!=='doing') html+=`<button class="plan-move-btn gold" data-to="doing" data-id="${p.id}" title="移到进行中">◈</button>`;
-      if(s!=='done') html+=`<button class="plan-move-btn green" data-to="done" data-id="${p.id}" title="移到已完成">▷</button>`;
-      if(s!=='dropped') html+=`<button class="plan-move-btn dim" data-to="dropped" data-id="${p.id}" title="移到废弃">✕</button>`;
-      html+=`<span class="plan-card-spacer"></span>`;
-      html+=`<button class="plan-edit-btn" data-edit="${p.id}">编辑</button>`;
-      html+=`<button class="plan-del-btn" data-del="${p.id}">删除</button>`;
-      html+=`</div>`;
-      card.innerHTML=html;
-      // 绑定
-      card.querySelectorAll('.plan-move-btn').forEach(btn=>{
-        btn.onclick=async()=>{
-          if(!requireAuth())return;
-          await updateDoc(doc(db,'plan_items',btn.dataset.id),{s:btn.dataset.to});
-        };
-      });
-      const editBtn=card.querySelector('[data-edit]');
-      if(editBtn) editBtn.onclick=()=>openModal(p.id);
-      const delBtn=card.querySelector('[data-del]');
-      if(delBtn) delBtn.onclick=async()=>{
-        if(!confirm('确认删除？'))return;if(!requireAuth())return;
-        await deleteDoc(doc(db,'plan_items',p.id));
-      };
-      list.appendChild(card);
+
+  board.innerHTML = STATUS_ORDER.map(s => {
+    const meta = STATUS_META[s];
+    const items = groups[s];
+    const cardsHtml = items.length === 0
+      ? `<div class="plan-empty">${meta.emptyText}</div>`
+      : items.map(p => renderCard(p, s)).join('');
+
+    return `
+    <div class="plan-column" data-col="${s}">
+      <div class="plan-col-head">
+        <span class="plan-col-indicator" style="background:${meta.color}"></span>
+        <span class="plan-col-label">${meta.label}</span>
+        <span class="plan-col-count">${items.length}</span>
+        <span class="plan-col-toggle">‹</span>
+      </div>
+      <div class="plan-col-body">${cardsHtml}</div>
+    </div>`;
+  }).join('');
+
+  // 绑定列头折叠
+  board.querySelectorAll('.plan-col-head').forEach(h => {
+    h.addEventListener('click', () => {
+      h.parentElement.classList.toggle('collapsed');
+      const arrow = h.querySelector('.plan-col-toggle');
+      if(arrow) arrow.textContent = h.parentElement.classList.contains('collapsed') ? '›' : '‹';
+    });
+  });
+
+  // 绑定卡片操作
+  board.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      if(action === 'edit') { openModal(id); return; }
+      if(action === 'del') {
+        if(!confirm('确认删除？')) return;
+        if(!requireAuth()) return;
+        await deleteDoc(doc(db,'plan_items',id));
+        return;
+      }
+      // move action
+      if(!requireAuth()) return;
+      await updateDoc(doc(db,'plan_items',id),{s:action});
     });
   });
 }
 
+function renderCard(p, currentStatus){
+  const title = getTitle(p);
+  const desc = getDesc(p);
+  const link = getLink(p);
+  const linkText = getLinkText(p);
+  const meta = STATUS_META[currentStatus];
+  const isDropped = currentStatus === 'dropped';
+
+  // 构建操作按钮
+  let actions = '';
+  STATUS_ORDER.forEach(s => {
+    if(s === currentStatus) return;
+    const m = STATUS_META[s];
+    actions += `<button class="plan-card-action" data-action="${s}" data-id="${p.id}" style="--action-color:${m.color}">${m.label}</button>`;
+  });
+
+  return `
+  <div class="plan-card ${isDropped ? 'is-dropped' : ''}" style="--card-accent:${meta.color}">
+    <div class="plan-card-main">
+      <div class="plan-card-title">${esc(title)}</div>
+      ${desc ? `<div class="plan-card-desc">${esc(desc)}</div>` : ''}
+      ${link ? `<a class="plan-card-link" href="${esc(link)}" target="_blank" onclick="event.stopPropagation()">${esc(linkText||'查看链接')} ↗</a>` : ''}
+    </div>
+    <div class="plan-card-actions">
+      ${actions}
+      <span class="plan-card-spacer"></span>
+      <button class="plan-card-action is-edit" data-action="edit" data-id="${p.id}">编辑</button>
+      <button class="plan-card-action is-del" data-action="del" data-id="${p.id}">删除</button>
+    </div>
+  </div>`;
+}
+
+// ── 弹窗 ──
 function openModal(id){
-  if(!requireAuth())return;
-  const modal=container.querySelector('#p-modal');
+  if(!requireAuth()) return;
+  const modal = container.querySelector('#p-modal');
   if(id){
-    const p=allPlans.find(x=>x.id===id);if(!p)return;
-    editId=id;
-    container.querySelector('#p-modal-title').textContent='· 编辑待办 ·';
-    container.querySelector('#p-title').value=getTitle(p);
-    container.querySelector('#p-desc').value=getDesc(p);
-    container.querySelector('#p-status').value=getStatus(p);
-    container.querySelector('#p-link').value=getLink(p);
-  }else{
-    editId=null;
-    container.querySelector('#p-modal-title').textContent='· 新增待办 ·';
-    container.querySelector('#p-title').value='';
-    container.querySelector('#p-desc').value='';
-    container.querySelector('#p-status').value='todo';
-    container.querySelector('#p-link').value='';
+    const p = allPlans.find(x=>x.id===id);
+    if(!p) return;
+    editId = id;
+    container.querySelector('#p-modal-title').textContent = '编辑事项';
+    container.querySelector('#p-title').value = getTitle(p);
+    container.querySelector('#p-desc').value = getDesc(p);
+    container.querySelector('#p-status').value = getStatus(p);
+    container.querySelector('#p-link').value = getLink(p);
+  } else {
+    editId = null;
+    container.querySelector('#p-modal-title').textContent = '新增事项';
+    container.querySelector('#p-title').value = '';
+    container.querySelector('#p-desc').value = '';
+    container.querySelector('#p-status').value = 'todo';
+    container.querySelector('#p-link').value = '';
   }
   modal.classList.add('open');
+  setTimeout(()=>container.querySelector('#p-title').focus(), 100);
 }
-function closeModal(){container.querySelector('#p-modal').classList.remove('open');}
+
+function closeModal(){
+  container.querySelector('#p-modal').classList.remove('open');
+}
 
 async function savePlan(){
-  const t=container.querySelector('#p-title').value.trim();
-  const d=container.querySelector('#p-desc').value.trim();
-  const s=container.querySelector('#p-status').value;
-  const l=container.querySelector('#p-link').value.trim();
-  if(!t)return alert('标题不能为空');
-  const data={t,d,s,l};
-  if(editId){await updateDoc(doc(db,'plan_items',editId),data);}
-  else{data.order=allPlans.length;await addDoc(collection(db,'plan_items'),data);}
+  const t = container.querySelector('#p-title').value.trim();
+  const d = container.querySelector('#p-desc').value.trim();
+  const s = container.querySelector('#p-status').value;
+  const l = container.querySelector('#p-link').value.trim();
+  if(!t) return alert('标题不能为空');
+  const data = {t,d,s,l};
+  if(editId){
+    await updateDoc(doc(db,'plan_items',editId),data);
+  } else {
+    data.order = allPlans.length;
+    await addDoc(collection(db,'plan_items'),data);
+  }
   closeModal();
+}
+
+// ── 工具函数 ──
+function getStatus(p){ return p.s||p.status||'todo'; }
+function getTitle(p){ return p.t||p.title||p.name||'未命名'; }
+function getDesc(p){ return p.d||p.desc||p.description||''; }
+function getLink(p){ return p.l||p.link||''; }
+function getLinkText(p){ return p.lt||p.linkText||''; }
+function getOrder(p){ return typeof p.order==='number'?p.order:999; }
+function esc(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function setSyncStatus(s){
+  const dot = container.querySelector('#p-sync-dot');
+  const text = container.querySelector('#p-sync-text');
+  if(!dot) return;
+  dot.className = 'plan-sync-dot';
+  if(s==='connected'){ dot.classList.add('connected'); text.textContent='已连接'; }
+  else if(s==='syncing'){ dot.classList.add('syncing'); text.textContent='同步中...'; }
+  else if(s==='error'){ dot.classList.add('error'); text.textContent='连接断开'; }
+  else { dot.classList.add('syncing'); text.textContent='连接中...'; }
 }
