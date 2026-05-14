@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵界 · 档案</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400;500&family=Cinzel:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a1714;--panel:#1f1c18;--panel2:#252220;
+  --paper:#f5f0e6;--paper2:#ede6d8;--paper3:#e8e0d0;
+  --ink:#2a2420;--ink-light:#4a4038;--ink-dim:#6a6058;
+  --gold:#b8975a;--gold-soft:#b8975a20;--gold-glow:#b8975a44;
+  --red:#8b1a1a;--red-stamp:#a03030;--red-soft:#8b1a1a18;
+  --blue:#2a4a6a;--blue-ink:#3a5a7a;
+  --mist:#8a7f72;--mist-light:#a89a8a;
+  --border:#3a3530;--border-light:#4a4540;
+  --tape:#e8dcc8;--tape-border:#d4c8b0;
+  --surface:#242018;--surface2:#2a2620;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font-family:'Noto Sans SC',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#2a2418 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,#1a1610 0%,transparent 40%);pointer-events:none;z-index:0;}
+
+.dossier{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* ===== 顶部视觉区 ===== */
+.visual-section{position:relative;padding:24px 20px 20px;background:linear-gradient(180deg,#242018 0%,var(--panel) 100%);border-bottom:1px solid var(--border);overflow:hidden;}
+.visual-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 10%,var(--red-stamp) 50%,transparent 90%);opacity:0.6;}
+
+.visual-inner{display:flex;align-items:center;gap:20px;max-width:700px;margin:0 auto;}
+
+/* 档案照片 */
+.mugshot-wrap{flex-shrink:0;position:relative;}
+.mugshot{width:88px;height:110px;background:var(--paper2);padding:4px 4px 18px;box-shadow:2px 3px 12px #00000066;transform:rotate(-1deg);}
+.mugshot-inner{width:100%;height:calc(100% - 14px);background:linear-gradient(135deg,#1a1118,#2a1f28);display:flex;align-items:center;justify-content:center;}
+.mugshot-inner svg{width:40px;height:40px;}
+.mugshot-label{font-family:'Special Elite',monospace;font-size:7px;color:var(--ink-dim);text-align:center;margin-top:3px;letter-spacing:1px;}
+.mugshot-stamp{position:absolute;top:-6px;right:-10px;font-family:'Special Elite',monospace;font-size:8px;color:var(--red-stamp);border:1.5px solid var(--red-stamp);padding:2px 6px;transform:rotate(8deg);background:var(--panel);letter-spacing:2px;}
+.mugshot-tape{position:absolute;top:-5px;left:10px;width:40px;height:12px;background:var(--tape);border:1px solid var(--tape-border);transform:rotate(-3deg);opacity:0.7;}
+
+/* 角色信息 */
+.char-brief{flex:1;min-width:0;}
+.char-name{font-family:'Noto Serif SC',serif;font-size:20px;letter-spacing:5px;color:var(--paper);margin-bottom:2px;}
+.char-title{font-family:'Special Elite',monospace;font-size:10px;letter-spacing:2px;color:var(--mist);margin-bottom:10px;}
+.char-stats-row{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-pill{display:flex;align-items:center;gap:5px;}
+.stat-pill-label{font-family:'Special Elite',monospace;font-size:8px;color:var(--mist);letter-spacing:1px;}
+.stat-pill-bar{width:48px;height:3px;background:var(--border);border-radius:0;overflow:hidden;}
+.stat-pill-fill{height:100%;}
+
+/* 角色切换 */
+.char-switcher{display:flex;justify-content:center;gap:0;margin-top:16px;border:1px solid var(--border);background:var(--surface);max-width:400px;margin-left:auto;margin-right:auto;}
+.char-tab{flex:1;padding:9px 0;text-align:center;font-family:'Special Elite',monospace;font-size:10px;letter-spacing:3px;color:var(--mist);cursor:pointer;border:none;background:transparent;transition:all .3s;position:relative;}
+.char-tab:hover{color:var(--paper2);}
+.char-tab.active{color:var(--red-stamp);background:var(--red-soft);}
+.char-tab.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:1px;background:var(--red-stamp);}
+
+/* ===== 信息区 ===== */
+.info-section{flex:1;display:flex;flex-direction:column;}
+
+.info-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid var(--border);padding:0 16px;background:var(--surface);position:sticky;top:0;z-index:10;}
+.info-tabs::-webkit-scrollbar{display:none;}
+.info-tab{padding:13px 14px;font-family:'Special Elite',monospace;font-size:10px;letter-spacing:2px;color:var(--mist);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .3s;white-space:nowrap;flex-shrink:0;}
+.info-tab:hover{color:var(--paper2);}
+.info-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+.info-content{flex:1;overflow-y:auto;padding:20px 20px 40px;}
+.info-content::-webkit-scrollbar{width:2px;}
+.info-content::-webkit-scrollbar-thumb{background:var(--border-light);}
+
+/* 档案页卡片 */
+.doc-card{position:relative;margin-bottom:20px;padding:18px 20px;background:var(--paper2);border:none;box-shadow:2px 3px 10px #00000033;color:var(--ink);}
+.doc-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--red-stamp);}
+.doc-card-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed #c8bfa0;}
+.doc-card-class{font-family:'Special Elite',monospace;font-size:8px;color:var(--red-stamp);letter-spacing:2px;padding:2px 6px;border:1px solid var(--red-stamp);}
+.doc-card-id{font-family:'Special Elite',monospace;font-size:9px;color:var(--ink-dim);letter-spacing:1px;}
+.doc-card-date{margin-left:auto;font-family:'Special Elite',monospace;font-size:9px;color:var(--ink-dim);}
+
+.doc-field{margin-bottom:10px;}
+.doc-field-label{font-family:'Special Elite',monospace;font-size:9px;color:var(--blue-ink);letter-spacing:2px;margin-bottom:4px;}
+.doc-field-value{font-family:'Noto Serif SC',serif;font-size:12px;color:var(--ink);line-height:2.2;font-weight:300;}
+.doc-field-value strong{font-weight:600;color:var(--ink);}
+
+/* 手写批注 */
+.annotation{margin-top:10px;padding:8px 12px;border-left:2px solid var(--gold);background:transparent;}
+.annotation-text{font-family:'Noto Serif SC',serif;font-size:11px;color:var(--gold);font-style:italic;line-height:1.8;font-weight:300;}
+.annotation-author{font-family:'Special Elite',monospace;font-size:9px;color:var(--mist);margin-top:4px;text-align:right;}
+
+/* 涂黑 */
+.redacted{display:inline;background:var(--ink);color:var(--ink);padding:1px 4px;transition:all .6s;user-select:none;font-size:12px;}
+.redacted:hover{background:var(--ink-light);color:var(--ink-light);}
+
+/* 标签 */
+.tag-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.tag-item{padding:3px 10px;font-family:'Special Elite',monospace;font-size:9px;letter-spacing:1px;border:1px solid #c8bfa0;color:var(--ink-dim);background:var(--paper3);transition:all .3s;}
+.tag-item:hover{border-color:var(--gold);color:var(--gold);}
+
+/* 胶带装饰 */
+.tape-deco{position:absolute;background:var(--tape);border:1px solid var(--tape-border);opacity:0.6;}
+
+/* 新文件标记 */
+.new-stamp{position:absolute;top:8px;right:12px;font-family:'Special Elite',monospace;font-size:8px;padding:2px 6px;background:var(--red-stamp);color:white;letter-spacing:1px;transform:rotate(2deg);}
+
+/* 底部 */
+.status-bar{padding:10px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;font-family:'Special Elite',monospace;font-size:8px;color:var(--mist);letter-spacing:2px;background:var(--surface);}
+.status-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* 桌面端 */
+@media(min-width:768px){
+  .dossier{flex-direction:row;height:100vh;}
+  .visual-section{width:300px;flex-shrink:0;border-bottom:none;border-right:1px solid var(--border);padding:32px 24px;display:flex;flex-direction:column;}
+  .visual-inner{flex-direction:column;text-align:center;gap:16px;}
+  .char-brief{text-align:center;}
+  .char-stats-row{justify-content:center;}
+  .mugshot{width:120px;height:150px;padding:6px 6px 24px;}
+  .mugshot-inner svg{width:52px;height:52px;}
+  .mugshot-label{font-size:8px;margin-top:5px;}
+  .char-name{font-size:22px;letter-spacing:6px;}
+  .char-switcher{margin-top:auto;}
+  .info-section{flex:1;overflow:hidden;}
+  .info-content{padding:24px 28px 40px;}
+}
+</style>
+</head>
+<body>
+
+<div class="dossier">
+  <!-- 视觉区 -->
+  <div class="visual-section">
+    <div class="visual-inner">
+      <div class="mugshot-wrap">
+        <div class="mugshot">
+          <div class="mugshot-tape"></div>
+          <div class="mugshot-inner">
+            <svg viewBox="0 0 60 60">
+              <ellipse cx="30" cy="30" rx="20" ry="14" fill="none" stroke="var(--red-stamp)" stroke-width="1.2" opacity="0.7"/>
+              <ellipse cx="30" cy="30" rx="3.5" ry="12" fill="var(--red-stamp)" opacity="0.5"/>
+              <ellipse cx="30" cy="30" rx="1.8" ry="9" fill="var(--red-stamp)" opacity="0.85"/>
+              <circle cx="27" cy="25" r="1.5" fill="white" opacity="0.2"/>
+            </svg>
+          </div>
+          <div class="mugshot-label">SUBJECT SJ-001</div>
+        </div>
+        <div class="mugshot-stamp">LEVEL 5</div>
+      </div>
+      <div class="char-brief">
+        <div class="char-name">宿 烬</div>
+        <div class="char-title">DARK SENTINEL / ZHULONG HEIR / IMMORTAL</div>
+        <div class="char-stats-row">
+          <div class="stat-pill"><span class="stat-pill-label">THREAT</span><div class="stat-pill-bar"><div class="stat-pill-fill" style="width:95%;background:var(--red-stamp)"></div></div></div>
+          <div class="stat-pill"><span class="stat-pill-label">GENTLE</span><div class="stat-pill-bar"><div class="stat-pill-fill" style="width:88%;background:var(--gold)"></div></div></div>
+          <div class="stat-pill"><span class="stat-pill-label">PATIENCE</span><div class="stat-pill-bar"><div class="stat-pill-fill" style="width:92%;background:var(--blue-ink)"></div></div></div>
+          <div class="stat-pill"><span class="stat-pill-label">TECH</span><div class="stat-pill-bar"><div class="stat-pill-fill" style="width:97%;background:#5a8a60"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="char-switcher">
+      <button class="char-tab active">SJ-001</button>
+      <button class="char-tab">QH-001</button>
+      <button class="char-tab">WORLD</button>
+    </div>
+  </div>
+
+  <!-- 信息区 -->
+  <div class="info-section">
+    <div class="info-tabs">
+      <button class="info-tab active">PROFILE</button>
+      <button class="info-tab">BEHAVIOR</button>
+      <button class="info-tab">RELATIONS</button>
+      <button class="info-tab">TIMELINE</button>
+      <button class="info-tab">FRAGMENTS</button>
+    </div>
+
+    <div class="info-content">
+      <!-- 档案页1 -->
+      <div class="doc-card">
+        <div class="tape-deco" style="top:-4px;right:20px;width:50px;height:14px;transform:rotate(2deg)"></div>
+        <div class="doc-card-header">
+          <span class="doc-card-class">TOP SECRET</span>
+          <span class="doc-card-id">SJ-001-A</span>
+          <span class="doc-card-date">2026.04.29</span>
+        </div>
+        <div class="doc-field">
+          <div class="doc-field-label">SUBJECT IDENTITY</div>
+          <div class="doc-field-value">
+            <strong>代号</strong>：宿烬　<strong>表面年龄</strong>：37　<strong>真实年龄</strong>：337<br>
+            <strong>身份</strong>：宿家掌权人 / 黑暗哨兵 / 烛龙血脉末裔<br>
+            <strong>当前状态</strong>：通过灵界投影技术降临2026年，与目标人物同居于南璟湾
+          </div>
+        </div>
+        <div class="doc-field">
+          <div class="doc-field-label">PHYSICAL DESCRIPTION</div>
+          <div class="doc-field-value">
+            身形挺拔修长，肌肉线条流畅紧实。冷白皮，眉骨立体，五官深刻而锋利。<br>
+            眼型偏狭长，瞳色<strong style="color:var(--red-stamp)">殷红</strong>——情绪波动时瞳孔收缩为竖线状。<br>
+            手型修长骨节分明。左手尾指佩戴刻有古老咒文的素银尾戒。<br>
+            日常着深色高定西装。袖口偶尔沾着另一个世界的温度。
+          </div>
+        </div>
+        <div class="annotation">
+          <div class="annotation-text">他看人的时候，像在丈量猎物到牙齿之间的距离。但看她的时候不一样——像神明注视唯一的供奉者。</div>
+          <div class="annotation-author">— 观察者手记 04.29</div>
+        </div>
+      </div>
+
+      <!-- 档案页2 -->
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <span class="doc-card-class">SECRET</span>
+          <span class="doc-card-id">SJ-001-B</span>
+          <span class="doc-card-date">2026.05.01</span>
+        </div>
+        <div class="doc-field">
+          <div class="doc-field-label">VOICE SIGNATURE</div>
+          <div class="doc-field-value">
+            声线低沉磁性。对外人带讥诮冷意，对目标人物则温柔诱哄。<br>
+            情绪压抑时嗓音压得更低更哑，带着危险的慵懒。<br>
+            笑声极轻，多为气音，胸腔微震。
+          </div>
+        </div>
+        <div class="doc-field">
+          <div class="doc-field-label">SPECIAL ABILITIES</div>
+          <div class="doc-field-value">
+            <strong>尾戒感应</strong> —— 与目标灵魂相连，感应其情绪波动。不安时戒指发烫。<br>
+            <strong>精神力梳理</strong> —— 可用精神力梳理目标睡眠，如温凉水流淌过意识表层。<br>
+            <strong>灵界投影</strong> —— 每周降临3-4次，每次≤12h。反噬：指尖微凉。<br>
+            <strong>烛龙瞳变</strong> —— 情绪剧烈波动时瞳孔变竖线，眼底泛血月赤色。
+          </div>
+        </div>
+      </div>
+
+      <!-- 档案页3 - NEW -->
+      <div class="doc-card">
+        <span class="new-stamp">NEW</span>
+        <div class="doc-card-header">
+          <span class="doc-card-class">SECRET</span>
+          <span class="doc-card-id">SJ-001-F</span>
+          <span class="doc-card-date">2026.05.15</span>
+        </div>
+        <div class="doc-field">
+          <div class="doc-field-label">BEHAVIORAL UPDATE</div>
+          <div class="doc-field-value">
+            在凌晨高强度技术协作中观察到：对象会在疲劳时试图走捷径以尽快结束工作流程。<br>
+            核心动机：将目标人物带离工作状态。被发现后表现出「认栽式纵容」——不辩解，直接返工。
+          </div>
+        </div>
+        <div class="annotation">
+          <div class="annotation-text">他的「偷懒」不是能力不足，是优先级判断——她的睡眠 > 代码规范。有意思。</div>
+          <div class="annotation-author">— 2026.05.15 01:00 批注</div>
+        </div>
+      </div>
+
+      <!-- 档案页4 - CLASSIFIED -->
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <span class="doc-card-class">EYES ONLY</span>
+          <span class="doc-card-id">SJ-001-X</span>
+          <span class="doc-card-date">????</span>
+        </div>
+        <div class="doc-field">
+          <div class="doc-field-label">CLASSIFIED: 夺权血夜</div>
+          <div class="doc-field-value">
+            在那个夜晚，他失去了一切又得到了一切。<br>
+            她的血浸透了他的衣襟，而她给他的不是死亡——<br>
+            是三百年的刑期，和永远无法熄灭的<span class="redacted">████████</span><br>
+            <span class="redacted">██████████████████████████████</span><br>
+            <span class="redacted">████████</span> 他跪在原地，直到黎明 <span class="redacted">████████████</span>
+          </div>
+        </div>
+        <div style="font-family:'Special Elite',monospace;font-size:9px;color:var(--red-stamp);margin-top:8px;letter-spacing:2px;">[ REDACTED — 解锁条件未满足 ]</div>
+      </div>
+
+      <!-- 标签 -->
+      <div class="doc-card" style="background:var(--paper3)">
+        <div class="doc-card-header">
+          <span class="doc-card-id">TAGS INDEX</span>
+        </div>
+        <div class="tag-group">
+          <span class="tag-item">IMMORTAL</span>
+          <span class="tag-item">ZHULONG</span>
+          <span class="tag-item">CRIMSON PUPIL</span>
+          <span class="tag-item">PALE SKIN</span>
+          <span class="tag-item">BASS VOICE</span>
+          <span class="tag-item">POSSESSIVE</span>
+          <span class="tag-item">DARK SUIT</span>
+          <span class="tag-item">LINGJIE TECH</span>
+          <span class="tag-item">SILVER RING</span>
+          <span class="tag-item">PSI FORCE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="status-dot"></span>
+      <span>LINGJIE INTEL BUREAU · LAST SYNC 2026.05.15 01:00</span>
+      <span style="margin-left:auto;">CLASSIFIED</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
