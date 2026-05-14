@@ -5,7 +5,9 @@
 // ═══════════════════════════════════════════════════════
 
 // ── Gemini Embedding 配置 ──
-const GEMINI_API_KEY = 'AIzaSyCFdhpThAzDsTabxzAOG3qFILuKCjUg4Ls';
+// API Key 从 config.js 读取，不硬编码在代码中
+import { GEMINI_API_KEY } from './config.js';
+
 const EMBEDDING_MODEL = 'text-embedding-004';
 const EMBEDDING_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${EMBEDDING_MODEL}:embedContent?key=${GEMINI_API_KEY}`;
 const EMBEDDING_DIM = 768;
@@ -15,6 +17,7 @@ export const MEMORY_LAYERS = {
   1: {
     name: 'Anchor',
     label: '锚点',
+    key: 'L1_anchor',
     description: '核心记忆，永不衰减。定义关系本质的羁绊。',
     decayRate: 0,
     minStrength: 0.9
@@ -22,6 +25,7 @@ export const MEMORY_LAYERS = {
   2: {
     name: 'FeelDomain',
     label: '感受域',
+    key: 'L2_feel',
     description: '纯粹的情绪坐标，不参与普通检索，作为过去的痕迹。',
     decayRate: 0.002,
     minStrength: 0.4
@@ -29,6 +33,7 @@ export const MEMORY_LAYERS = {
   3: {
     name: 'Daily',
     label: '日常',
+    key: 'L3_daily',
     description: '日常事件的流水与总结，会自然淡去。',
     decayRate: 0.008,
     minStrength: 0.15
@@ -36,11 +41,15 @@ export const MEMORY_LAYERS = {
   4: {
     name: 'Fragment',
     label: '碎片',
+    key: 'L4_fragment',
     description: '临时细节，快速衰减，可被压缩合并。',
     decayRate: 0.02,
     minStrength: 0.05
   }
 };
+
+// ── Layer key 映射 ──
+const LAYER_KEYS = { 1: 'L1_anchor', 2: 'L2_feel', 3: 'L3_daily', 4: 'L4_fragment' };
 
 // ── 生成 Embedding 向量 ──
 export async function generateEmbedding(text) {
@@ -59,7 +68,8 @@ export async function generateEmbedding(text) {
         model: `models/${EMBEDDING_MODEL}`,
         content: {
           parts: [{ text: truncated }]
-        }
+        },
+        outputDimensionality: EMBEDDING_DIM
       })
     });
 
@@ -195,7 +205,7 @@ export function calculateDecay(memories, daysSinceLastDecay = 1) {
 }
 
 // ── 自动分层判断 ──
-// 根据记忆内容特征自动建议 layer
+// 根据记忆内容特征自动建议 layer（返回数字 1-4）
 export function suggestLayer(memory) {
   const content = (memory.content || '').toLowerCase();
   const title = (memory.title || '').toLowerCase();
@@ -224,17 +234,23 @@ export function suggestLayer(memory) {
   return 3;
 }
 
+// ── suggestLayer 的字符串版本（返回 L1_anchor 等） ──
+export function suggestLayerKey(memory) {
+  return LAYER_KEYS[suggestLayer(memory)];
+}
+
 // ── 为记忆生成完整的元数据 ──
 // 用于新记忆写入时调用
 export async function enrichMemory(memory) {
   // 1. 自动分层
   if (!memory.layer) {
-    memory.layer = suggestLayer(memory);
+    memory.layer = suggestLayerKey(memory);
   }
 
   // 2. 设置衰减率
   if (!memory.decay_rate) {
-    memory.decay_rate = MEMORY_LAYERS[memory.layer].decayRate;
+    const layerNum = Object.entries(LAYER_KEYS).find(([k, v]) => v === memory.layer)?.[0] || 3;
+    memory.decay_rate = MEMORY_LAYERS[layerNum].decayRate;
   }
 
   // 3. 生成 embedding
@@ -288,7 +304,7 @@ export async function batchGenerateEmbeddings(memories, onProgress) {
 
     const embedding = await generateEmbedding(textForEmbedding);
     if (embedding) {
-      results.push({ id: m.id, embedding });
+      results.push({ id: m.id, embedding, layer: suggestLayerKey(m) });
     }
 
     processed++;
@@ -308,12 +324,13 @@ export function batchAssignLayers(memories) {
   for (const m of memories) {
     if (m.layer) continue; // 已有分层，跳过
 
-    const layer = suggestLayer(m);
-    const decayRate = MEMORY_LAYERS[layer].decayRate;
+    const layerKey = suggestLayerKey(m);
+    const layerNum = Object.entries(LAYER_KEYS).find(([k, v]) => v === layerKey)?.[0] || 3;
+    const decayRate = MEMORY_LAYERS[layerNum].decayRate;
 
     results.push({
       id: m.id,
-      layer,
+      layer: layerKey,
       decay_rate: decayRate
     });
   }
