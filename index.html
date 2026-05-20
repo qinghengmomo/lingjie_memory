@@ -197,6 +197,26 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
   .api-grid{grid-template-columns:1fr;}
   .nav-tab{padding:10px 10px;font-size:10px;letter-spacing:1px;}
 }
+.login-modal-overlay{position:fixed;inset:0;background:rgba(26,17,24,0.55);backdrop-filter:blur(6px);z-index:9000;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .3s ease;}
+.login-modal-overlay.open{display:flex;opacity:1;}
+.login-modal{background:var(--paper);border:1px solid var(--border);padding:40px 36px 32px;width:320px;max-width:90vw;position:relative;animation:modalIn .35s ease;}
+@keyframes modalIn{from{opacity:0;transform:translateY(-16px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.login-modal-title{font-family:'Noto Serif SC',serif;font-size:18px;font-weight:600;color:var(--ink);letter-spacing:4px;text-align:center;margin-bottom:6px;}
+.login-modal-sub{font-size:11px;color:var(--mist);letter-spacing:2px;text-align:center;margin-bottom:28px;}
+.login-modal-input{width:100%;padding:12px 14px;border:1px solid var(--border);background:var(--paper2);font-family:'Noto Sans SC',sans-serif;font-size:14px;color:var(--ink);outline:none;letter-spacing:1px;transition:border-color .2s;}
+.login-modal-input:focus{border-color:var(--gold);}
+.login-modal-input::placeholder{color:var(--mist);font-size:12px;letter-spacing:2px;}
+.login-modal-error{font-size:11px;color:var(--red);letter-spacing:1px;margin-top:8px;min-height:16px;text-align:center;}
+.login-modal-actions{display:flex;gap:10px;margin-top:20px;}
+.login-modal-btn{flex:1;padding:10px 0;font-size:12px;letter-spacing:2px;cursor:pointer;border:1px solid var(--border);font-family:'Noto Sans SC',sans-serif;transition:all .2s;text-align:center;}
+.login-modal-btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.login-modal-btn.primary:hover{background:#2a2028;}
+.login-modal-btn.secondary{background:transparent;color:var(--mist);}
+.login-modal-btn.secondary:hover{border-color:var(--ink);color:var(--ink);}
+.login-modal-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.login-modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:var(--mist);cursor:pointer;line-height:1;}
+.login-modal-close:hover{color:var(--ink);}
+
 </style>
 </head>
 <body>
@@ -222,5 +242,19 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 <div class="page" id="page-plan"></div>
 
 <script type="module" src="app.js"></script>
+<div class="login-modal-overlay" id="login-modal">
+  <div class="login-modal">
+    <button class="login-modal-close" id="login-modal-close">&times;</button>
+    <div class="login-modal-title">灵 界</div>
+    <div class="login-modal-sub">请输入验证密码</div>
+    <input type="password" class="login-modal-input" id="login-pwd" placeholder="密码" autocomplete="current-password">
+    <div class="login-modal-error" id="login-error"></div>
+    <div class="login-modal-actions">
+      <button class="login-modal-btn secondary" id="login-cancel">取消</button>
+      <button class="login-modal-btn primary" id="login-submit">连接</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
