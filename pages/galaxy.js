@@ -108,8 +108,16 @@ function render() {
 function resize() {
   if (!canvas) return;
   const parent = canvas.parentElement;
-  W = canvas.width = parent.clientWidth || window.innerWidth;
-  H = canvas.height = parent.clientHeight || (window.innerHeight - 42);
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = parent.clientWidth || window.innerWidth;
+  const cssH = parent.clientHeight || (window.innerHeight - 42);
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  canvas.width = Math.floor(cssW * dpr);
+  canvas.height = Math.floor(cssH * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  W = cssW;
+  H = cssH;
 }
 
 // ── 数据加载 ──
