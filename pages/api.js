@@ -1,11 +1,12 @@
 // ═══════════════════════════════════════════════════════
 // 灵界记忆库 · pages/api.js — API平台页签
-// 完整功能：平台卡片列表、新增/编辑/删除、实时同步
+// 鉴权门：未登录时不订阅 Firestore，登录后启动 onSnapshot
 // ═══════════════════════════════════════════════════════
 
 let db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,requireAuth;
 let container;
 let allApis=[],editId=null;
+let unsubscribe=null;
 
 export function init(el,deps){
   container=el;
@@ -14,10 +15,26 @@ export function init(el,deps){
   deleteDoc=deps.deleteDoc;doc=deps.doc;onSnapshot=deps.onSnapshot;
   requireAuth=deps.requireAuth;
   render();
-  startListener();
+  if(auth&&auth.currentUser) startListener();
+  else showAuthPlaceholder();
 }
 
-export function onAuthChange(user){}
+export function onAuthChange(user){
+  if(user){
+    startListener();
+  }else{
+    stopListener();
+    allApis=[];
+    showAuthPlaceholder();
+  }
+}
+
+function showAuthPlaceholder(){
+  if(!container) return;
+  setSyncStatus('locked');
+  const grid=container.querySelector('#a-grid');
+  if(grid) grid.innerHTML='<div class="empty-state"><div class="empty-icon">🔐</div><div class="empty-text">登录后查看平台账号本<br>顶部右上角点「登录」</div></div>';
+}
 
 function render(){
   container.innerHTML=`
@@ -56,9 +73,10 @@ function bindEvents(){
 }
 
 function startListener(){
+  if(unsubscribe) return;
   const COL='api_platforms';
   setSyncStatus('syncing');
-  onSnapshot(collection(db,COL),snap=>{
+  unsubscribe=onSnapshot(collection(db,COL),snap=>{
     allApis=snap.docs.map(d=>({id:d.id,...d.data()}));
     allApis.sort((a,b)=>((a.updatedAt||'')>(b.updatedAt||''))?-1:1);
     renderApis();
@@ -69,6 +87,13 @@ function startListener(){
   });
 }
 
+function stopListener(){
+  if(unsubscribe){
+    try{ unsubscribe(); }catch(e){}
+    unsubscribe=null;
+  }
+}
+
 function setSyncStatus(s){
   const dot=container.querySelector('#a-sync-dot'),text=container.querySelector('#a-sync-text');
   if(!dot)return;
@@ -76,6 +101,7 @@ function setSyncStatus(s){
   if(s==='connected'){dot.classList.add('connected');text.textContent='已连接';}
   else if(s==='syncing'){dot.classList.add('syncing');text.textContent='同步中...';}
   else if(s==='error'){dot.classList.add('error');text.textContent='断开连接';}
+  else if(s==='locked'){dot.classList.add('error');text.textContent='未登录 · 请先登录';}
   else{dot.classList.add('syncing');text.textContent='连接中...';}
 }
 
