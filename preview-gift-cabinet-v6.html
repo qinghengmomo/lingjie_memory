@@ -4,79 +4,151 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>薄荷玻璃花房·展柜微调（预览 v6）</title>
+<!-- 预览页与主站共用同一份 CSS：styles/gifts.css
+     不再写本地样式覆盖，改一处生效两处 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/gifts.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:-apple-system,'PingFang SC',serif;color:#26443a;background:#eef5ec;overflow-x:hidden}
-.world{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 50% 30%,#fbfdf8 0%,#e9f2ea 40%,#ccdfd1 100%)}
-.world::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.6),transparent 50%),radial-gradient(circle at 80% 80%,rgba(170,210,180,.45),transparent 60%);pointer-events:none}
-.softfog{position:fixed;left:-15%;right:-15%;width:130%;height:200px;background:radial-gradient(ellipse at center,rgba(255,255,255,.7),transparent 70%);filter:blur(40px);animation:drift 36s infinite linear;z-index:2;pointer-events:none}
-.softfog.f2{top:55%;animation-duration:46s;animation-direction:reverse;opacity:.7}
-.softfog.f3{top:80%;animation-duration:60s;opacity:.5}
-@keyframes drift{from{transform:translateX(-15%)}to{transform:translateX(15%)}}
-header{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:18px 32px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.65));backdrop-filter:blur(12px);border-bottom:1px solid #cfdcd3;flex-wrap:wrap;gap:12px}
-.title{display:flex;align-items:center;gap:12px}
-.title .ico{font-size:20px;color:#c4928f}
-.title span{font-size:11px;letter-spacing:.22em;color:#7d9485;display:block}
-.title strong{display:block;font-size:18px;font-weight:800;color:#26443a;margin-top:2px;letter-spacing:.04em}
-main{position:relative;z-index:10;padding:120px 0 80px;min-height:100%}
-.gateway{max-width:920px;margin:0 auto 30px;text-align:center;position:relative;padding:30px 0 14px}
-.gateway h1{font-size:30px;font-weight:800;color:#26443a;letter-spacing:.18em}
-.gateway p{margin-top:8px;font-size:12px;color:#7d9485;letter-spacing:.18em;font-style:italic}
-.house{max-width:1280px;margin:0 auto;padding:0 5%;position:relative}
-.section{position:relative;padding:30px 0}
-.tower{display:flex;align-items:center;justify-content:center;margin-bottom:36px}
-.tower .pillar{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(58,91,72,.4),transparent)}
-.tower .gate{padding:0 28px;text-align:center}
-.tower .num{font-size:11px;color:#c4928f;letter-spacing:.32em;display:block}
-.tower .name{margin-top:4px;font-size:18px;font-weight:800;color:#26443a;letter-spacing:.18em}
-.tower .sub{margin-top:2px;font-size:10px;color:#7d9485;letter-spacing:.22em;font-style:italic}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:32px}
-.cab{position:relative;height:380px;cursor:pointer;transition:transform .4s cubic-bezier(.2,.8,.3,1.1)}
-.cab:hover{transform:translateY(-10px)}
-.cab .glassOuter{position:absolute;left:0;right:0;top:8px;bottom:0;background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(240,247,241,.30) 50%,rgba(207,220,211,.18) 100%);border:1.5px solid #c4928f;border-radius:50% 50% 6px 6px / 18% 18% 6px 6px;backdrop-filter:blur(2px);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -10px 22px rgba(170,210,190,.18),0 8px 28px rgba(80,120,100,.22)}
-.cab .glassOuter::before{content:'';position:absolute;left:8%;top:5%;width:34%;height:55%;background:linear-gradient(135deg,rgba(255,255,255,.7),transparent 60%);border-radius:50%;filter:blur(8px);transition:transform .8s ease-out;pointer-events:none}
-.cab:hover .glassOuter::before{transform:translateX(40%)}
-.cab .glassOuter::after{content:'';position:absolute;left:55%;bottom:8%;width:22%;height:18%;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent 60%);border-radius:50%;filter:blur(4px)}
-.cab .glassInner{position:absolute;left:8%;right:8%;top:6%;bottom:6%;border:1px solid rgba(196,146,143,.45);border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 70%);box-shadow:0 0 18px rgba(228,168,164,.18) inset}
-.cab .light{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:80%;height:35%;background:radial-gradient(ellipse at 50% 0,rgba(220,240,210,.7) 0%,transparent 70%);pointer-events:none}
-.shape{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);transition:transform .4s;z-index:2}
-.cab:hover .shape{transform:translate(-50%,-58%) scale(1.06)}
-.plate-in{position:absolute;left:18%;right:18%;bottom:14%;text-align:center;z-index:3;display:flex;flex-direction:column;align-items:center;gap:4px}
-.plate-in .num{font-size:10px;letter-spacing:.22em;color:#7d9485;font-style:italic}
-.plate-in .name{font-size:13px;font-weight:800;color:#26443a;letter-spacing:.06em;line-height:1.4;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.plate-in .deco{font-size:9px;color:#c4928f;letter-spacing:.18em;opacity:.7;margin-top:2px}
-.plate-in .ruler{width:40%;height:1px;background:linear-gradient(90deg,transparent,#c4928f,transparent);margin-top:4px;opacity:.65}
-.cab .castshadow{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:62%;height:10px;background:radial-gradient(ellipse at center,rgba(58,91,72,.28),transparent 70%);filter:blur(4px);opacity:.55;pointer-events:none}
-.shape-card{width:90px;height:120px;border-radius:6px;background:linear-gradient(160deg,#fff,#f0f7f1);box-shadow:0 6px 14px rgba(80,120,100,.3);border:1px solid #b9cdc1;rotate:-3deg;position:relative}
-.shape-card::before{content:'';position:absolute;inset:8px;border:1px dashed rgba(58,91,72,.25);border-radius:4px}
-.shape-card::after{content:'❀';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;color:#c4928f}
-.shape-mini-pass{width:140px;height:90px;border-radius:14px;background:linear-gradient(160deg,#08080b,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.32);position:relative;overflow:hidden}
-.shape-mini-pass .tag{position:absolute;left:10px;top:8px;font-size:8px;color:#d9b783;letter-spacing:.18em}
-.shape-mini-pass .tit{position:absolute;left:10px;top:24px;color:#fff;font-size:14px;font-weight:800;letter-spacing:.04em}
-.shape-mini-pass .meta{position:absolute;left:10px;bottom:8px;font-size:8px;color:#b89b7a;letter-spacing:.12em}
-.shape-mini-pass .stamp{position:absolute;right:10px;bottom:10px;padding:3px 9px;border-radius:999px;background:linear-gradient(135deg,#9b1d2b,#d7a85f);color:#fff;font-size:9px;letter-spacing:.12em;font-weight:700}
-.shape-mini-card{width:120px;height:160px;border-radius:10px;background:radial-gradient(circle at 20% 10%,rgba(160,24,36,.36),transparent 38%),radial-gradient(circle at 88% 22%,rgba(225,190,130,.24),transparent 38%),linear-gradient(145deg,#07070a,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.36);position:relative;overflow:hidden;rotate:-3deg}
-.shape-mini-card::before{content:'❀';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:38px;color:rgba(228,168,164,.55)}
-.shape-mini-card::after{content:'';position:absolute;left:8%;top:5%;width:30%;height:40%;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 60%);border-radius:50%;filter:blur(4px)}
-.shape-mini-card .badge{position:absolute;left:10px;top:8px;font-size:7px;letter-spacing:.16em;color:#d8b477}
-.shape-mini-card .foot{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:7px;color:#d8b477;letter-spacing:.16em}
+  /* 预览页骨架：仅用于把馆壳塞进 #page-gifts 容器，与主站结构对齐 */
+  body{margin:0;background:#eef5ec;font-family:-apple-system,'PingFang SC',serif;color:#26443a;}
+  .preview-banner{position:relative;z-index:30;display:flex;align-items:center;gap:12px;padding:18px 32px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.65));backdrop-filter:blur(12px);border-bottom:1px solid #cfdcd3;}
+  .preview-banner .ico{font-size:20px;color:#c4928f;}
+  .preview-banner .label{font-size:11px;letter-spacing:.22em;color:#7d9485;}
+  .preview-banner .title{font-size:18px;font-weight:800;color:#26443a;letter-spacing:.04em;margin-top:2px;}
 </style>
 </head>
 <body>
-<div class="world"></div>
-<div class="softfog"></div><div class="softfog f2"></div><div class="softfog f3"></div>
-<header><div class="title"><span class="ico">❀</span><div><span>MINT GLASSHOUSE · CABINET v6</span><strong>展柜·内嵌铭牌微调</strong></div></div></header>
-<main>
-<div class="gateway"><h1>展 柜 微 调 · 预 览</h1><p>v6 · 礼物下移，悬停不再出框</p></div>
-<div class="house">
-<section class="section"><div class="tower"><div class="pillar"></div><div class="gate"><span class="num">壹 · I</span><span class="name">展 柜 微 调 示 例</span><span class="sub">cabinet refined inside</span></div><div class="pillar"></div></div>
-<div class="grid">
-<div class="cab"><div class="glassOuter"><div class="light"></div><div class="shape"><div class="shape-mini-pass"><span class="tag">宿先生的礼物</span><div class="tit">今晚专属通行证</div><span class="meta">有效期：永久</span><span class="stamp">已盖章</span></div></div><div class="plate-in"><span class="num">No.002</span><span class="name">今晚专属通行证</span><span class="ruler"></span><span class="deco">❀ 来 自 宿 烬 ❀</span></div></div><div class="glassInner"></div><div class="castshadow"></div></div>
-<div class="cab"><div class="glassOuter"><div class="light"></div><div class="shape"><div class="shape-mini-card"><span class="badge">来自宿烬</span><div class="foot">星际私藏 · 001</div></div></div><div class="plate-in"><span class="num">No.001</span><span class="name">南璟湾的灯</span><span class="ruler"></span><span class="deco">❀ 已 置 顶 ❀</span></div></div><div class="glassInner"></div><div class="castshadow"></div></div>
-<div class="cab"><div class="glassOuter"><div class="light"></div><div class="shape"><div class="shape-card"></div></div><div class="plate-in"><span class="num">No.003</span><span class="name">凌晨四点的薄毯</span><span class="ruler"></span><span class="deco">❀ 来 自 宿 烬 ❀</span></div></div><div class="glassInner"></div><div class="castshadow"></div></div>
+<div class="preview-banner">
+  <span class="ico">❀</span>
+  <div>
+    <div class="label">MINT GLASSHOUSE · CABINET v6 PREVIEW</div>
+    <div class="title">展柜微调·区块布局</div>
+  </div>
 </div>
-</section>
-</div>
-</main>
+<div id="page-gifts"></div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="gh-camellia" viewBox="-100 -100 200 200"><g>
+<path d="M0,-70 C30,-60 50,-30 35,0 C50,30 30,60 0,55 C-30,60 -50,30 -35,0 C-50,-30 -30,-60 0,-70 Z" fill="#fff" opacity=".75"/>
+<path d="M0,-50 C25,-44 40,-22 28,0 C40,22 25,44 0,40 C-25,44 -40,22 -28,0 C-40,-22 -25,-44 0,-50 Z" fill="#fce8e6" opacity=".85"/>
+<circle cx="0" cy="0" r="14" fill="#e8c98a"/>
+<circle cx="-4" cy="-4" r="3" fill="#c4928f"/>
+<circle cx="5" cy="-3" r="3" fill="#c4928f"/>
+<circle cx="-2" cy="4" r="3" fill="#c4928f"/>
+</g></symbol>
+<symbol id="gh-crown" viewBox="0 0 120 32"><g fill="none" stroke="#c4928f" stroke-width="1.2">
+<path d="M2 28 Q60 4 118 28"/><path d="M10 28 Q60 14 110 28" opacity=".6"/>
+<circle cx="60" cy="6" r="4" fill="#c4928f"/>
+<circle cx="30" cy="15" r="2" fill="#c4928f"/>
+<circle cx="90" cy="15" r="2" fill="#c4928f"/>
+<path d="M55 6 L60 0 L65 6" stroke="#c4928f"/></g></symbol>
+<symbol id="gh-gateOrnament" viewBox="0 0 380 120"><g fill="none" stroke="#c4928f" stroke-width="1.4">
+<path d="M10 110 Q190 -10 370 110"/><path d="M30 110 Q190 16 350 110" opacity=".5"/>
+<path d="M50 110 Q190 38 330 110" opacity=".3"/>
+<circle cx="190" cy="10" r="6" fill="#c4928f"/>
+<circle cx="100" cy="42" r="3" fill="#c4928f"/>
+<circle cx="280" cy="42" r="3" fill="#c4928f"/>
+<circle cx="60" cy="72" r="2" fill="#c4928f"/>
+<circle cx="320" cy="72" r="2" fill="#c4928f"/>
+<path d="M188 0 v22 M170 8 h40"/></g></symbol>
+<symbol id="gh-gateBracket" viewBox="0 0 140 60"><g fill="none" stroke="#c4928f" stroke-width="1" opacity=".75">
+<path d="M2 56 Q70 4 138 56"/><path d="M14 56 Q70 18 126 56" opacity=".6"/>
+<circle cx="70" cy="8" r="3" fill="#c4928f"/>
+<path d="M68 0 v16 M58 6 h24"/></g></symbol>
+</defs></svg>
+
+<script>
+(function(){
+  // 预览数据（mock 三件展品，对应主站三种 theme）
+  var GIFTS = [
+    { no:'#001', title:'今晚专属通行证', theme:'starshard_pass', room:'1', pinned:false,
+      data:{ tag:'宿先生的礼物', validity:'有效期：永久', stamp:'已盖章' } },
+    { no:'#002', title:'南璟湾的灯', theme:'starshard_card', room:'1', pinned:true,
+      data:{ badge:'来自宿烬', subtitle:'星际私藏 · 001' } },
+    { no:'#003', title:'凌晨四点的薄毯', theme:'default', room:'1', pinned:false, data:{} }
+  ];
+
+  function esc(t){return (t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function miniature(g){
+    if(g.theme==='starshard_pass'){
+      var d=g.data||{};
+      return '<div class="gh-mini-pass">'
+        +'<span class="gh-mini-tag">'+esc(d.tag||'宿先生的礼物')+'</span>'
+        +'<div class="gh-mini-title">'+esc(g.title||'通行证')+'</div>'
+        +'<span class="gh-mini-stamp">'+esc(d.validity||'有效期：永久')+'</span>'
+        +'<span class="gh-mini-seal">'+esc(d.stamp||'已盖章')+'</span>'
+        +'</div>';
+    }
+    if(g.theme==='starshard_card'){
+      var dd=g.data||{};
+      var sub=esc(dd.subtitle||'');
+      var html='<div class="gh-mini-card">'
+        +'<span class="gh-mini-badge">'+esc(dd.badge||'来自宿烬')+'</span>';
+      if(sub) html+='<div class="gh-mini-foot">'+sub+'</div>';
+      html+='</div>';
+      return html;
+    }
+    return '<div class="gh-mini-default">❀</div>';
+  }
+
+  function buildShellPreview(host){
+    // 与 scene.js 完全一致的馆壳骨架
+    var html=''
+      +'<div class="gh-world"></div>'
+      +'<svg class="gh-inkflower gf1" viewBox="-100 -100 200 200"><use href="#gh-camellia"/></svg>'
+      +'<svg class="gh-inkflower gf2" viewBox="-100 -100 200 200"><use href="#gh-camellia"/></svg>'
+      +'<svg class="gh-inkflower gf3" viewBox="-100 -100 200 200"><use href="#gh-camellia"/></svg>'
+      +'<svg class="gh-inkflower gf4" viewBox="-100 -100 200 200"><use href="#gh-camellia"/></svg>'
+      +'<div class="gh-fog"></div><div class="gh-fog gf-2"></div><div class="gh-fog gf-3"></div>'
+      +'<div class="gh-stage">'
+      +'  <div class="gh-gateway">'
+      +'    <svg class="gh-ornament" viewBox="0 0 380 120"><use href="#gh-gateOrnament"/></svg>'
+      +'    <h1>南 璟 湾 · 私 藏 花 房</h1>'
+      +'    <p>preview · cabinet refined inside</p>'
+      +'    <div class="gh-deco">❀ 展 柜 微 调 ❀</div>'
+      +'  </div>'
+      +'  <div class="gh-house">'
+      +'    <section class="gh-section">'
+      +'      <div class="gh-tower"><div class="gh-pillar"></div>'
+      +'        <div class="gh-gate"><svg viewBox="0 0 140 60"><use href="#gh-gateBracket"/></svg>'
+      +'          <span class="gh-num">壹 · I</span>'
+      +'          <span class="gh-name">展 柜 微 调 示 例</span>'
+      +'          <span class="gh-sub">block layout · display + plate</span>'
+      +'        </div><div class="gh-pillar"></div></div>'
+      +'      <div class="gh-grid" data-room="1"></div>'
+      +'    </section>'
+      +'  </div>'
+      +'</div>';
+    host.innerHTML=html;
+  }
+
+  function makeCabinet(g){
+    var wrap=document.createElement('div');
+    wrap.className='gh-cab';
+    wrap.innerHTML=''
+      +'<svg class="gh-crown" viewBox="0 0 120 32"><use href="#gh-crown"/></svg>'
+      +'<div class="gh-glassOuter">'
+      +'  <div class="gh-light"></div>'
+      +'  <div class="gh-display"><div class="gh-shape">'+miniature(g)+'</div></div>'
+      +'  <div class="gh-plate-in">'
+      +'    <span class="gh-plate-num">'+esc(g.no||'')+'</span>'
+      +'    <span class="gh-plate-name">'+esc(g.title||'')+'</span>'
+      +'    <span class="gh-plate-ruler"></span>'
+      +'    <span class="gh-plate-deco">❀ '+(g.pinned?'已 置 顶':'来 自 宿 烬')+' ❀</span>'
+      +'  </div>'
+      +'</div>'
+      +'<div class="gh-glassInner"></div>'
+      +'<div class="gh-castshadow"></div>';
+    return wrap;
+  }
+
+  var host=document.getElementById('page-gifts');
+  buildShellPreview(host);
+  var grid=host.querySelector('.gh-grid[data-room="1"]');
+  GIFTS.forEach(function(g){ grid.appendChild(makeCabinet(g)); });
+})();
+</script>
 </body>
 </html>
