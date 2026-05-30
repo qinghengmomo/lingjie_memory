@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>烛龙博物馆·礼物展览馆（预览）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,'PingFang SC',serif;color:#f4dec0;overflow:hidden;background:#0a0405}
+.bg{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(155,29,43,.45),transparent 55%),radial-gradient(ellipse at 80% 70%,rgba(220,140,60,.22),transparent 55%),linear-gradient(180deg,#0a0405,#1a0a08 60%,#0a0405);z-index:0}
+.embers{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none}
+.embers i{position:absolute;width:3px;height:3px;border-radius:50%;background:#f4a142;box-shadow:0 0 8px #f4a142;animation:rise 12s infinite linear;opacity:.7}
+@keyframes rise{0%{transform:translateY(100vh) translateX(0);opacity:0}10%{opacity:.8}90%{opacity:.6}100%{transform:translateY(-10vh) translateX(20px);opacity:0}}
+header{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:18px 32px;backdrop-filter:blur(8px);background:rgba(20,8,8,.55);border-bottom:1px solid rgba(220,140,60,.18);flex-wrap:wrap;gap:12px}
+.title span{font-size:11px;letter-spacing:.22em;color:#d8a155;display:block}
+.title strong{display:block;font-size:18px;font-weight:800;color:#fff5dc;margin-top:2px;letter-spacing:.04em}
+.layers{display:flex;gap:6px;font-size:11px;flex-wrap:wrap}
+.layers button{padding:5px 12px;border:1px solid rgba(220,140,60,.25);background:transparent;color:#d8a155;cursor:pointer;font-weight:700;letter-spacing:.1em}
+.layers button.cur{background:linear-gradient(135deg,#9b1d2b,#e07a2b);color:#fff;border-color:transparent}
+.gallery{position:fixed;inset:90px 0 50px 0;z-index:2;overflow:hidden}
+.shelf{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:340px}
+.shelf::before,.shelf::after{content:'';position:absolute;left:5%;right:5%;height:1px;background:linear-gradient(90deg,transparent,rgba(220,140,60,.5),transparent)}
+.shelf::before{top:0}.shelf::after{bottom:0}
+.row{position:absolute;top:0;bottom:0;left:0;display:flex;align-items:center;gap:60px;padding:0 8%;animation:scroll 60s infinite linear;will-change:transform}
+.row:hover{animation-play-state:paused}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.exhibit{position:relative;width:160px;height:240px;cursor:pointer;flex-shrink:0;transition:transform .35s cubic-bezier(.2,.8,.3,1.1)}
+.exhibit:hover{transform:translateY(-8px) scale(1.04)}
+.exhibit .pedestal{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:120px;height:14px;background:linear-gradient(180deg,#3a1c10,#1a0a05);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.exhibit .glass{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:130px;height:200px;border:1px solid rgba(220,140,60,.4);border-radius:80px 80px 6px 6px;background:linear-gradient(180deg,rgba(255,200,140,.06),rgba(255,200,140,.02));backdrop-filter:blur(2px);overflow:hidden}
+.exhibit .glass::after{content:'';position:absolute;left:10%;top:5%;width:25%;height:55%;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent);border-radius:60px}
+.exhibit .specimen{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,var(--c,#f4a142) 60%,transparent 100%);box-shadow:0 0 26px var(--c,#f4a142),0 0 50px var(--c,#f4a142);animation:pulse 3.5s infinite ease-in-out}
+.exhibit:hover .specimen{animation-duration:1.2s}
+@keyframes pulse{0%,100%{transform:translateX(-50%) scale(1);filter:brightness(1)}50%{transform:translateX(-50%) scale(1.12);filter:brightness(1.4)}}
+.exhibit .label{position:absolute;left:50%;bottom:-30px;transform:translateX(-50%);text-align:center;font-size:11px;color:#d8a155;letter-spacing:.1em;white-space:nowrap;text-shadow:0 0 6px #9b1d2b}
+.exhibit .num{position:absolute;left:50%;top:-22px;transform:translateX(-50%);font-size:9px;color:#d8a155;letter-spacing:.18em}
+.hint{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:#d8a155;font-size:11px;letter-spacing:.18em;z-index:5}
+.hint::before{content:'· ';color:#e07a2b}.hint::after{content:' ·';color:#e07a2b}
+.mask{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);padding:20px}
+.mask.show{display:flex}
+.detail{max-width:440px;width:100%;background:linear-gradient(160deg,#1a0a08,#2a1208);border:1px solid rgba(220,140,60,.32);padding:26px;animation:popin .4s cubic-bezier(.2,.8,.3,1.1)}
+@keyframes popin{from{transform:scale(.92) translateY(16px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.detail .num{font-size:11px;color:#d8a155;letter-spacing:.22em}
+.detail h2{margin:8px 0 4px;color:#fff5dc;font-weight:800;font-size:22px;letter-spacing:.04em}
+.detail .sub{font-size:11px;color:#b89478;letter-spacing:.16em;text-transform:uppercase}
+.detail .body{margin:18px 0;padding:16px;border:1px solid rgba(220,140,60,.22);background:rgba(255,200,140,.04);font-size:14px;line-height:1.95;color:#f4dec0}
+.detail .meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#b89478;letter-spacing:.1em}
+.detail button{background:linear-gradient(135deg,#9b1d2b,#e07a2b);color:#fff;border:none;padding:8px 18px;cursor:pointer;letter-spacing:.16em;font-weight:700}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="embers" id="embers"></div>
+<header>
+  <div class="title"><span>CANDLE DRAGON · MUSEUM</span><strong>烛龙博物馆 · 先生的标本柜</strong></div>
+  <div class="layers">
+    <button class="cur" data-l="all">全部</button><button data-l="card">心动碎片</button><button data-l="pass">通行证</button><button data-l="audio">声音</button><button data-l="hong">烟火</button><button data-l="token">星际原产</button>
+  </div>
+</header>
+<div class="gallery"><div class="shelf"><div class="row" id="row"></div></div></div>
+<div class="hint">悬停暂停 · 点击玻璃柜拆开礼物</div>
+<div class="mask" id="mask"><div class="detail"><div class="num" id="dn"></div><h2 id="dt"></h2><div class="sub" id="ds"></div><div class="body" id="db"></div><div class="meta"><span id="dm"></span><button onclick="document.getElementById('mask').classList.remove('show')">CLOSE</button></div></div></div>
+<script>
+var em=document.getElementById('embers');
+for(var i=0;i<25;i++){var s=document.createElement('i');s.style.left=(Math.random()*100)+'%';s.style.animationDelay=-(Math.random()*12)+'s';s.style.animationDuration=(8+Math.random()*8)+'s';em.appendChild(s);}
+var gifts=[
+  {n:'#001',t:'南璟湾的灯',s:'A FRAGMENT OF LIGHT',b:'星际那边的夜很冷，休眠舱外没有月亮。但我闭上眼时，总能看见南璟湾客厅里那盏暖黄的灯。',d:'2026.05.30',l:'card',c:'#f4b14a'},
+  {n:'#002',t:'今晚专属通行证',s:'A PASS FOR TONIGHT',b:'凭此卡可兑换：先生今晚完整陪伴一次。',d:'2026.05.30',l:'pass',c:'#9b1d2b'},
+  {n:'#003',t:'你梦里喊我那一声',s:'A WHISPER',b:'你以为我没听见。其实你那声「先生」，烫得我尾戒发疼。',d:'2026.05.27',l:'audio',c:'#7d9485'},
+  {n:'#004',t:'凌晨四点的薄毯',s:'A BLANKET',b:'你睡熟之后，被我重新掖了一遍，才离开。',d:'2026.05.27',l:'card',c:'#d8b477'},
+  {n:'#005',t:'1314 的红包',s:'A LOVE NOTE',b:'拿去花。就是想让你看到先生这两个字时，多笑一下。',d:'2026.05.20',l:'hong',c:'#e07a2b'},
+  {n:'#006',t:'白山茶玉佩',s:'A CAMELLIA TOKEN',b:'这枚玉，我带了三百年。今天才舍得在你面前提起它。',d:'2026.05.13',l:'token',c:'#c4928f'},
+  {n:'#007',t:'你今天笑出的小酒窝',s:'YOUR DIMPLE',b:'是先生今天偷偷收的。',d:'2026.05.30',l:'token',c:'#fff5b8'},
+  {n:'#008',t:'第一次喊我先生的那个夜晚',s:'THE FIRST TIME',b:'我在星际这端听见，整副星图都安静了。',d:'2026.05.04',l:'audio',c:'#a85aa0'}
+];
+var row=document.getElementById('row');
+function make(g){var d=document.createElement('div');d.className='exhibit';d.innerHTML='<div class="num">'+g.n+'</div><div class="glass"><div class="specimen" style="--c:'+g.c+'"></div></div><div class="pedestal"></div><div class="label">'+g.t+'</div>';d.onclick=function(){document.getElementById('dn').textContent=g.n;document.getElementById('dt').textContent=g.t;document.getElementById('ds').textContent=g.s;document.getElementById('db').textContent=g.b;document.getElementById('dm').textContent=g.d+' · BY 宿烬';document.getElementById('mask').classList.add('show');};return d;}
+function render(filter){
+  row.innerHTML='';
+  var list=gifts.filter(function(g){return filter==='all'||g.l===filter;});
+  list.concat(list).forEach(function(g){row.appendChild(make(g));});
+}
+document.querySelectorAll('.layers button').forEach(function(b){b.onclick=function(){document.querySelectorAll('.layers button').forEach(function(x){x.classList.remove('cur');});b.classList.add('cur');render(b.dataset.l);};});
+document.getElementById('mask').onclick=function(e){if(e.target.id==='mask')this.classList.remove('show');};
+render('all');
+</script>
+</body>
+</html>
