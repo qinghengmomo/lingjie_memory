@@ -1,15 +1,7 @@
 // ════════════════════════════════════════════════════════════
 // 灵界记忆库 · pages/gifts/index.js
 // 礼物展览馆页签入口（薄荷玻璃花房）
-// 数据源：Firestore collection "gift_vault"
-// 展柜结构（与 styles/gifts.css 对齐）：
-//   .gh-cab
-//     └─ .gh-glassOuter (flex column)
-//         ├─ .gh-light
-//         ├─ .gh-display    ← 礼物缩略
-//         └─ .gh-plate-in   ← 铭牌（编号 / 名字 / 分隔线 / 装饰）
-//     ├─ .gh-glassInner
-//     └─ .gh-castshadow
+// 鉴权门：未登录时不订阅 Firestore，登录后启动 onSnapshot
 // ════════════════════════════════════════════════════════════
 
 import {buildShell, getRoomGrid, getRooms} from './scene.js';
@@ -19,6 +11,7 @@ let db, auth, collection, onSnapshot, requireAuth;
 let container;
 let allGifts = [];
 let maskEl;
+let unsubscribe=null;
 
 export function init(el, deps){
   container = el;
@@ -29,10 +22,28 @@ export function init(el, deps){
   requireAuth = deps.requireAuth;
   buildShell(container);
   attachMask();
-  startListener();
+  if(auth&&auth.currentUser) startListener();
+  else showAuthPlaceholder();
 }
 
-export function onAuthChange(user){}
+export function onAuthChange(user){
+  if(user){
+    startListener();
+  }else{
+    stopListener();
+    allGifts=[];
+    showAuthPlaceholder();
+  }
+}
+
+function showAuthPlaceholder(){
+  const rooms = getRooms();
+  rooms.forEach(function(r){
+    const grid = getRoomGrid(container, r.key);
+    if(!grid) return;
+    grid.innerHTML = '<div class="gh-empty">登录后查看花房藏品 · 顶部右上角点「登录」</div>';
+  });
+}
 
 function attachMask(){
   if(!document.getElementById('gh-mask')){
@@ -75,7 +86,6 @@ function makeCabinet(gift){
 
   const crown = '<svg class="gh-crown" viewBox="0 0 120 32"><use href="#gh-crown"/></svg>';
 
-  // 玻璃柜内部分两个区块：上半 display（礼物） / 下半 plate-in（铭牌）
   const glassOuter = '<div class="gh-glassOuter">'
     + '<div class="gh-light"></div>'
     + '<div class="gh-display"><div class="gh-shape">' + renderMiniature(gift) + '</div></div>'
@@ -127,12 +137,13 @@ function sortGifts(list){
 }
 
 function startListener(){
+  if(unsubscribe) return;
   if(!collection || !onSnapshot || !db){
     console.warn('[gifts] 缺少 firestore 依赖');
     return;
   }
   try {
-    onSnapshot(collection(db, 'gift_vault'), function(snap){
+    unsubscribe=onSnapshot(collection(db, 'gift_vault'), function(snap){
       const arr = [];
       snap.docs.forEach(function(d){
         const data = d.data();
@@ -148,5 +159,12 @@ function startListener(){
     });
   } catch(e){
     console.error('[gifts] listener init failed', e);
+  }
+}
+
+function stopListener(){
+  if(unsubscribe){
+    try{ unsubscribe(); }catch(e){}
+    unsubscribe=null;
   }
 }
