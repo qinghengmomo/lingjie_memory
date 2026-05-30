@@ -1,15 +1,13 @@
 // ═══════════════════════════════════════════════════════
 // 灵界记忆库 · pages/galaxy.js — 记忆星河模块
-// 粒子可视化 / 情绪热力图 / 语义搜索 / 记忆浮现
+// 鉴权门：未登录时不订阅 Firestore，登录后启动 onSnapshot
 // ═══════════════════════════════════════════════════════
 
 import { db, auth, collection, onSnapshot } from '../app.js';
-import { query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 let container = null;
-let rawMemories = []; // all docs from Firestore
-let memories = []; // merged by day
+let rawMemories = [];
+let memories = [];
 let particles = [];
 let canvas, ctx;
 let W, H;
@@ -17,31 +15,55 @@ let time = 0;
 let selectedIdx = -1;
 let searchFilter = '';
 let animId = null;
+let unsubscribe = null;
 
-// ── 情绪颜色映射 ──
 function emotionColor(valence, arousal) {
-  if (valence > 0.7 && arousal > 0.6) return '#e8845f'; // 热烈
-  if (valence > 0.7) return '#a3be8c'; // 温暖
-  if (valence > 0.5 && arousal > 0.5) return '#f0c27f'; // 兴奋
-  if (valence > 0.5) return '#88c0d0'; // 平静
-  if (arousal > 0.6) return '#bf616a'; // 激烈
-  if (valence > 0.3) return '#b48ead'; // 沉思
-  return '#4c566a'; // 低调
+  if (valence > 0.7 && arousal > 0.6) return '#e8845f';
+  if (valence > 0.7) return '#a3be8c';
+  if (valence > 0.5 && arousal > 0.5) return '#f0c27f';
+  if (valence > 0.5) return '#88c0d0';
+  if (arousal > 0.6) return '#bf616a';
+  if (valence > 0.3) return '#b48ead';
+  return '#4c566a';
 }
 
-// ── 初始化 ──
 export function init(el, ctx_) {
   container = el;
   render();
-  loadData();
-  // 监听登录状态
-  onAuthStateChanged(auth, user => {
-    const el = document.getElementById('galaxyAuthHint');
-    if (el) {
-      el.textContent = user ? '' : '未登录 · 数据可能不完整';
-      el.style.display = user ? 'none' : 'block';
-    }
-  });
+  if (auth && auth.currentUser) startListener();
+  else showAuthHint();
+}
+
+export function onAuthChange(user) {
+  const hint = document.getElementById('galaxyAuthHint');
+  if (hint) {
+    hint.textContent = user ? '' : '未登录 · 登录后查看记忆星河';
+    hint.style.display = user ? 'none' : 'block';
+  }
+  if (user) {
+    startListener();
+  } else {
+    stopListener();
+    rawMemories = [];
+    memories = [];
+    particles = [];
+    const stats = document.getElementById('galaxyStats');
+    if (stats) stats.textContent = '未登录';
+    const list = document.getElementById('galaxySurfaceList');
+    if (list) list.innerHTML = '';
+    const timeline = document.getElementById('galaxyTimeline');
+    if (timeline) timeline.innerHTML = '';
+  }
+}
+
+function showAuthHint() {
+  const hint = document.getElementById('galaxyAuthHint');
+  if (hint) {
+    hint.textContent = '未登录 · 登录后查看记忆星河';
+    hint.style.display = 'block';
+  }
+  const stats = document.getElementById('galaxyStats');
+  if (stats) stats.textContent = '未登录';
 }
 
 function render() {
@@ -120,10 +142,10 @@ function resize() {
   H = cssH;
 }
 
-// ── 数据加载 ──
-function loadData() {
+function startListener() {
+  if (unsubscribe) return;
   const colRef = collection(db, 'memory_vault');
-  onSnapshot(colRef, snapshot => {
+  unsubscribe = onSnapshot(colRef, snapshot => {
     rawMemories = [];
     snapshot.forEach(doc => {
       const d = doc.data();
@@ -141,7 +163,6 @@ function loadData() {
         pinned: d.pinned || false
       });
     });
-    // 按天合并
     mergeByDay();
     initParticles();
     updateStats();
@@ -154,7 +175,13 @@ function loadData() {
   });
 }
 
-// ── 按天合并 ──
+function stopListener() {
+  if (unsubscribe) {
+    try { unsubscribe(); } catch (e) {}
+    unsubscribe = null;
+  }
+}
+
 function mergeByDay() {
   const dayMap = {};
   rawMemories.forEach(m => {
@@ -166,18 +193,13 @@ function mergeByDay() {
 
   memories = Object.keys(dayMap).sort((a, b) => b.localeCompare(a)).map(day => {
     const items = dayMap[day];
-    // 取content最长的作为主体
     items.sort((a, b) => (b.content || '').length - (a.content || '').length);
     const primary = items[0];
-    // 合并所有tags和keywords
     const allTags = [...new Set(items.flatMap(m => m.tags || []))];
     const allKeywords = [...new Set(items.flatMap(m => m.keywords || []))];
-    // 情绪取平均
     const avgValence = items.reduce((s, m) => s + m.valence, 0) / items.length;
     const avgArousal = items.reduce((s, m) => s + m.arousal, 0) / items.length;
-    // 强度取最大
     const maxStrength = Math.max(...items.map(m => m.strength));
-    // 类型标注
     const types = [...new Set(items.map(m => m.type))];
     const typeLabel = types.length > 1 ? '日记+总结' : (types[0] === 'diary' ? '日记' : '总结');
 
@@ -204,7 +226,6 @@ function initParticles() {
   const n = memories.length;
   const goldenAngle = Math.PI * (3 - Math.sqrt(5));
   particles = memories.map((m, i) => {
-    // 黄金角螺旋分布，确保粒子均匀散布在整个画布
     const r = 0.38 * Math.sqrt((i + 0.5) / n);
     const theta = i * goldenAngle;
     const jitterX = (Math.sin(i * 7.13) * 0.04);
@@ -281,7 +302,6 @@ function updateTimeline() {
   setTimeout(() => { timeline.scrollLeft = timeline.scrollWidth; }, 100);
 }
 
-// ── 动画 ──
 function startAnimation() {
   if (animId) cancelAnimationFrame(animId);
   animate();
@@ -296,7 +316,6 @@ function animate() {
   ctx.fillStyle = 'rgba(6,6,16,0.18)';
   ctx.fillRect(0, 0, W, H);
 
-  // 星尘
   for (let i = 0; i < 80; i++) {
     const x = (Math.sin(i * 127.1 + time * 0.02) * 0.5 + 0.5) * W;
     const y = (Math.cos(i * 311.7 + time * 0.01) * 0.5 + 0.5) * H;
@@ -306,7 +325,6 @@ function animate() {
     ctx.fill();
   }
 
-  // 粒子
   const positions = [];
   particles.forEach((p, i) => {
     const mem = memories[i];
@@ -321,7 +339,6 @@ function animate() {
     const py = p.y * (H * 0.65) + 50 + Math.cos(time * p.speed * 0.7 + p.phase) * 12;
     positions.push({ px, py });
 
-    // 光晕
     const glowR = pulseSize * (isSelected ? 14 : 9);
     const grad = ctx.createRadialGradient(px, py, 0, px, py, glowR);
     grad.addColorStop(0, p.color + Math.floor(alpha * 50).toString(16).padStart(2, '0'));
@@ -331,7 +348,6 @@ function animate() {
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // 核心
     ctx.beginPath();
     ctx.arc(px, py, pulseSize, 0, Math.PI * 2);
     ctx.fillStyle = p.color;
@@ -339,7 +355,6 @@ function animate() {
     ctx.fill();
     ctx.globalAlpha = 1;
 
-    // 标签
     if ((size > 4 || isSelected) && !isFiltered) {
       ctx.font = `${isSelected ? 11 : 9}px -apple-system, "PingFang SC", sans-serif`;
       ctx.fillStyle = `rgba(255,255,255,${isSelected ? 0.8 : 0.35})`;
@@ -349,7 +364,6 @@ function animate() {
     }
   });
 
-  // 连线
   for (let i = 0; i < positions.length; i++) {
     if (searchFilter && !matchSearch(memories[i])) continue;
     for (let j = i + 1; j < positions.length; j++) {
@@ -370,7 +384,6 @@ function animate() {
   animId = requestAnimationFrame(animate);
 }
 
-// ── 交互 ──
 function matchSearch(mem) {
   if (!searchFilter) return true;
   const q = searchFilter;
@@ -422,8 +435,8 @@ function hideDetail() {
   document.getElementById('galaxyBackdrop').classList.remove('visible');
 }
 
-// ── 清理 ──
 export function destroy() {
   if (animId) cancelAnimationFrame(animId);
+  stopListener();
   window.removeEventListener('resize', resize);
 }
