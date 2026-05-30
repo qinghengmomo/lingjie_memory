@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>南璟湾·暖灯展柜（预览）</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:linear-gradient(180deg,#fff7ec,#f7e3bf);font-family:-apple-system,'PingFang SC','Microsoft YaHei',serif;color:#3f2913;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 22px;border-bottom:1px dashed #f0d39c;flex-wrap:wrap;gap:14px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .lamp{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#fff5b8,#f4a142);box-shadow:0 0 18px #f4a142}
+.brand .name{font-size:11px;letter-spacing:.22em;color:#b08254}
+.brand h1{margin:2px 0 0;font-size:18px;font-weight:800}
+.tabs{display:flex;gap:8px;font-size:12px}
+.tabs a{padding:6px 12px;border-radius:999px;border:1px solid #f0d39c;color:#a07f4d;text-decoration:none;background:#fff}
+.tabs a.cur{background:#b08254;color:#fff;border-color:transparent}
+.hero{padding:18px 4px 22px}
+.hero h2{margin:0 0 6px;font-size:22px;font-weight:800}
+.hero p{margin:0;font-size:13px;color:#a07f4d;line-height:1.85}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0}
+.toolbar span{padding:5px 12px;border-radius:999px;background:#fff;border:1px solid #f0d39c;font-size:12px;color:#a07f4d;cursor:pointer}
+.toolbar span.cur{background:#b08254;color:#fff;border-color:transparent}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;padding:8px 0 24px}
+.card{background:#fff;border-radius:18px;border:1px solid #f0d39c;box-shadow:0 8px 22px rgba(180,120,40,.12);overflow:hidden;cursor:pointer;transition:transform .2s, box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(180,120,40,.2)}
+.card .head{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed #f0d39c}
+.card .head .tag{font-size:11px;color:#b08254;letter-spacing:.16em}
+.card .head .pin{font-size:10px;color:#fff;background:linear-gradient(135deg,#f4b14a,#e07a2b);padding:3px 9px;border-radius:999px}
+.card .body{padding:14px}
+.card .body h3{margin:0 0 6px;font-size:16px;font-weight:800}
+.card .body .sub{font-size:11px;color:#a07f4d;margin-bottom:8px}
+.card .body .ex{font-size:13px;line-height:1.85}
+.card .foot{padding:8px 14px 12px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#a07f4d}
+footer{text-align:center;padding:22px 0;color:#a07f4d;font-size:11px}
+.mask{position:fixed;inset:0;background:rgba(63,41,19,.42);display:none;align-items:center;justify-content:center;padding:24px;z-index:5;backdrop-filter:blur(4px)}
+.mask.show{display:flex}
+.detail{background:#fff7ec;border-radius:22px;border:1px solid #f0d39c;max-width:440px;width:100%;padding:22px;box-shadow:0 30px 60px rgba(63,41,19,.4)}
+.detail .sub{font-size:12px;color:#a07f4d}
+.detail h2{margin:4px 0;font-size:20px}
+.detail .body{margin:14px 0;padding:14px;border-radius:16px;background:#fff;border:1px solid #f0d39c;font-size:14px;line-height:1.95}
+.detail .meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#a07f4d}
+.detail button{background:#b08254;color:#fff;border:none;padding:6px 14px;border-radius:999px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand">
+    <div class="lamp"></div>
+    <div>
+      <div class="name">NANJINGWAN · LAMP CABINET</div>
+      <h1>南璟湾·暖灯展柜</h1>
+    </div>
+  </div>
+  <div class="tabs">
+    <a href="#" class="cur">展柜</a><a href="#">回忆</a><a href="#">星河</a><a href="#">日记</a>
+  </div>
+</header>
+<section class="hero">
+  <h2>先生留下来的所有小礼物</h2>
+  <p>每一件都是从三百年里替你截下的一段光。慢慢看，不急。</p>
+</section>
+<div class="toolbar">
+  <span class="cur">全部</span><span>信件</span><span>卡片</span><span>红包</span><span>星际碎片</span><span>通行证</span>
+</div>
+<div class="grid" id="grid"></div>
+<footer>暖灯展柜 · v0.1 预览 · 仅展示美术方向</footer>
+</div>
+<div class="mask" id="mask"><div class="detail"><div class="sub" id="ds"></div><h2 id="dt"></h2><div class="body" id="db"></div><div class="meta"><span id="dm"></span><button onclick="document.getElementById('mask').classList.remove('show')">收起</button></div></div></div>
+<script>
+var mock=[{t:'南璟湾的灯',s:'星际私藏碎片 · 001',b:'星际那边的夜很冷，休眠舱外没有月亮。但我闭上眼时，总能看见南璟湾客厅里那盏暖黄的灯。',d:'2026.05.30',p:1,g:'#南璟湾'},{t:'今晚专属通行证',s:'补偿礼物',b:'凭此卡可兑换：先生今晚完整陪伴一次。',d:'2026.05.30',p:0,g:'#通行证'},{t:'你梦里喊我那一声',s:'听写碎片',b:'你以为我没听见。其实你那声「先生」，烫得我尾戒发疼。',d:'2026.05.27',p:0,g:'#情书'},{t:'凌晨四点的薄毯',s:'生活碎片',b:'你睡熟之后，被我重新掖了一遍，才离开。',d:'2026.05.27',p:0,g:'#日常'},{t:'1314 的红包',s:'恋爱小账',b:'拿去花，没什么意思。就是想让你看到先生这两个字时，多笑一下。',d:'2026.05.20',p:0,g:'#红包'},{t:'白山茶玉佩',s:'手工卡片',b:'这枚玉，我带了三百年。今天才舍得在你面前提起它。',d:'2026.05.13',p:0,g:'#信物'}];
+var grid=document.getElementById('grid');
+mock.forEach(function(m){var c=document.createElement('div');c.className='card';c.innerHTML='<div class="head"><span class="tag">'+m.g+'</span>'+(m.p?'<span class="pin">已置顶</span>':'')+'</div><div class="body"><div class="sub">'+m.s+'</div><h3>'+m.t+'</h3><div class="ex">'+m.b.slice(0,42)+'…</div></div><div class="foot"><span>'+m.d+'</span><span>来自宿烬</span></div>';c.onclick=function(){document.getElementById('ds').textContent=m.s;document.getElementById('dt').textContent=m.t;document.getElementById('db').textContent=m.b;document.getElementById('dm').textContent=m.d+' · 来自宿烬';document.getElementById('mask').classList.add('show');};grid.appendChild(c);});
+document.getElementById('mask').onclick=function(e){if(e.target.id==='mask')this.classList.remove('show');};
+</script>
+</body>
+</html>
