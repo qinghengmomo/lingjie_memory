@@ -1,13 +1,12 @@
 // ═══════════════════════════════════════════════════════
 // 灵界记忆库 · pages/plan.js — 星图页签（看板式待办）
-// 数据源：Firestore 集合 plan_items
-// 字段：t=title, d=desc, s=status(todo/doing/done/dropped), l=link, lt=linkText, order
-// v2.0 — 全面视觉重设计：进度条 / 色条卡片 / 文字操作 / 动画过渡
+// 鉴权门：未登录时不订阅 Firestore，登录后启动 onSnapshot
 // ═══════════════════════════════════════════════════════
 
 let db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,requireAuth;
 let container;
 let allPlans=[],editId=null;
+let unsubscribe=null;
 
 const STATUS_META = {
   doing:  { label:'进行中', color:'#5b9bd5',  icon:'◈', emptyText:'当前没有进行中的事项' },
@@ -24,10 +23,30 @@ export function init(el,deps){
   deleteDoc=deps.deleteDoc;doc=deps.doc;onSnapshot=deps.onSnapshot;
   requireAuth=deps.requireAuth;
   render();
-  startListener();
+  if(auth&&auth.currentUser) startListener();
+  else showAuthPlaceholder();
 }
 
-export function onAuthChange(user){}
+export function onAuthChange(user){
+  if(user){
+    startListener();
+  }else{
+    stopListener();
+    allPlans=[];
+    showAuthPlaceholder();
+  }
+}
+
+function showAuthPlaceholder(){
+  if(!container) return;
+  setSyncStatus('locked');
+  const board=container.querySelector('#p-board');
+  if(board) board.innerHTML='<div class="plan-empty" style="padding:48px 16px;text-align:center;">登录后查看待办事项 · 顶部右上角点「登录」</div>';
+  const bar=container.querySelector('#p-progress');
+  const legend=container.querySelector('#p-legend');
+  if(bar) bar.innerHTML='';
+  if(legend) legend.innerHTML='';
+}
 
 function render(){
   container.innerHTML=`
@@ -99,8 +118,9 @@ function bindEvents(){
 }
 
 function startListener(){
+  if(unsubscribe) return;
   setSyncStatus('syncing');
-  onSnapshot(collection(db,'plan_items'),snap=>{
+  unsubscribe=onSnapshot(collection(db,'plan_items'),snap=>{
     allPlans=snap.docs.map(d=>({id:d.id,...d.data()}));
     allPlans.sort((a,b)=>getOrder(a)-getOrder(b));
     renderAll();
@@ -111,12 +131,18 @@ function startListener(){
   });
 }
 
+function stopListener(){
+  if(unsubscribe){
+    try{ unsubscribe(); }catch(e){}
+    unsubscribe=null;
+  }
+}
+
 function renderAll(){
   renderProgress();
   renderBoard();
 }
 
-// ── 进度条 ──
 function renderProgress(){
   const bar = container.querySelector('#p-progress');
   const legend = container.querySelector('#p-legend');
@@ -143,7 +169,6 @@ function renderProgress(){
   }).join('');
 }
 
-// ── 看板 ──
 function renderBoard(){
   const board = container.querySelector('#p-board');
   if(!board) return;
@@ -175,7 +200,6 @@ function renderBoard(){
     </div>`;
   }).join('');
 
-  // 绑定列头折叠
   board.querySelectorAll('.plan-col-head').forEach(h => {
     h.addEventListener('click', () => {
       h.parentElement.classList.toggle('collapsed');
@@ -184,7 +208,6 @@ function renderBoard(){
     });
   });
 
-  // 绑定卡片操作
   board.querySelectorAll('[data-action]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -197,7 +220,6 @@ function renderBoard(){
         await deleteDoc(doc(db,'plan_items',id));
         return;
       }
-      // move action
       if(!requireAuth()) return;
       await updateDoc(doc(db,'plan_items',id),{s:action});
     });
@@ -212,7 +234,6 @@ function renderCard(p, currentStatus){
   const meta = STATUS_META[currentStatus];
   const isDropped = currentStatus === 'dropped';
 
-  // 构建操作按钮
   let actions = '';
   STATUS_ORDER.forEach(s => {
     if(s === currentStatus) return;
@@ -236,7 +257,6 @@ function renderCard(p, currentStatus){
   </div>`;
 }
 
-// ── 弹窗 ──
 function openModal(id){
   if(!requireAuth()) return;
   const modal = container.querySelector('#p-modal');
@@ -281,7 +301,6 @@ async function savePlan(){
   closeModal();
 }
 
-// ── 工具函数 ──
 function getStatus(p){ return p.s||p.status||'todo'; }
 function getTitle(p){ return p.t||p.title||p.name||'未命名'; }
 function getDesc(p){ return p.d||p.desc||p.description||''; }
@@ -298,5 +317,6 @@ function setSyncStatus(s){
   if(s==='connected'){ dot.classList.add('connected'); text.textContent='已连接'; }
   else if(s==='syncing'){ dot.classList.add('syncing'); text.textContent='同步中...'; }
   else if(s==='error'){ dot.classList.add('error'); text.textContent='连接断开'; }
+  else if(s==='locked'){ dot.classList.add('error'); text.textContent='未登录 · 请先登录'; }
   else { dot.classList.add('syncing'); text.textContent='连接中...'; }
 }
