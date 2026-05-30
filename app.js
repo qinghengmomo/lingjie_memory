@@ -1,3 +1,8 @@
+// ════════════════════════════════════════════════════════════
+// 灵界记忆库 · app.js — SPA 路由 & Firebase 初始化
+// 鉴权门：所有页签订阅在登录后才启动，登出立即停止
+// ════════════════════════════════════════════════════════════
+
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -15,6 +20,7 @@ const db=getFirestore(app);
 const auth=getAuth(app);
 
 export{db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot};
+
 const authBtn=document.getElementById('auth-btn');
 const authStatus=document.getElementById('auth-status');
 const DEFAULT_EMAIL='qinghengmomo@gmail.com';
@@ -60,6 +66,7 @@ loginPwd.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 loginCancel.addEventListener('click',closeLoginModal);
 loginClose.addEventListener('click',closeLoginModal);
 loginModal.addEventListener('click',e=>{if(e.target===loginModal)closeLoginModal();});
+
 function updateAuthUI(user){
   if(user){
     authStatus.textContent=user.email.split('@')[0];
@@ -72,9 +79,15 @@ function updateAuthUI(user){
   }
 }
 
+// 鉴权变化时，广播给所有已加载的页签
 onAuthStateChanged(auth,user=>{
   updateAuthUI(user);
-  if(window.__currentPageOnAuth) window.__currentPageOnAuth(user);
+  Object.keys(pageModules).forEach(pid=>{
+    const mod=pageModules[pid];
+    if(mod && typeof mod.onAuthChange==='function'){
+      try{ mod.onAuthChange(user); }catch(e){ console.error('[auth] page '+pid+' onAuthChange failed',e); }
+    }
+  });
 });
 
 export function requireAuth(){
@@ -105,7 +118,6 @@ async function switchPage(pageId){
       console.error('Load page module '+pageId+' failed:',e);
     }
   }
-  window.__currentPageOnAuth=pageModules[pageId]?.onAuthChange||null;
   history.replaceState(null,'','#'+pageId);
 }
 
