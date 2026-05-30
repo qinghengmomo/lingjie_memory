@@ -1,6 +1,7 @@
 /* ════════════════════════════════════════════════════
    灵界记忆库 · styles/gifts.css
-   礼物馆 · 薄荷玻璃花房（写意雾境）外壳样式
+   礼物馆 · 薄荷玻璃花房（写意雾境）
+   展柜采用区块化布局：上半 .gh-display（礼物） / 下半 .gh-plate-in（铭牌）
    ════════════════════════════════════════════════════ */
 
 :root{
@@ -19,7 +20,7 @@
 
 #page-gifts{position:relative;padding:0 0 80px;max-width:none;}
 
-/* 馆壳·写意雾境背景 */
+/* === 写意雾境背景 === */
 .gh-world{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,var(--gh-mint-1) 0%,var(--gh-mint-2) 40%,var(--gh-mint-3) 100%);}
 .gh-world::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.55),transparent 50%),radial-gradient(circle at 80% 80%,rgba(170,210,180,.4),transparent 60%);pointer-events:none;}
 .gh-inkflower{position:fixed;pointer-events:none;z-index:1;animation:ghFloatInk 32s infinite ease-in-out;}
@@ -39,7 +40,7 @@
 .gh-petal.gp-s{width:11px;height:11px;opacity:.4;animation-duration:18s;}
 @keyframes ghFall{0%{transform:translateY(-30px) translateX(0) rotate(0);opacity:0}10%{opacity:.7}90%{opacity:.6}100%{transform:translateY(110vh) translateX(60px) rotate(360deg);opacity:0}}
 
-/* 馆壳·主体 */
+/* === 馆壳·主体 === */
 .gh-stage{position:relative;z-index:10;padding:60px 0 40px;}
 .gh-gateway{max-width:920px;margin:0 auto 40px;text-align:center;position:relative;padding:60px 0 14px;}
 .gh-gateway .gh-ornament{position:absolute;left:50%;top:0;transform:translateX(-50%);width:380px;height:120px;pointer-events:none;}
@@ -62,31 +63,34 @@
 .gh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:32px;}
 .gh-empty{text-align:center;padding:36px 0;color:var(--gh-leaf-soft);font-size:13px;letter-spacing:2px;}
 
-/* 展柜·通用骨架 */
+/* ── 展柜·区块布局 ──────────────────────────────────── */
 .gh-cab{position:relative;height:380px;cursor:pointer;transition:transform .4s cubic-bezier(.2,.8,.3,1.1);}
 .gh-cab:hover{transform:translateY(-10px);}
 .gh-cab .gh-crown{position:absolute;left:50%;top:-12px;transform:translateX(-50%);width:120px;height:32px;pointer-events:none;z-index:4;}
-.gh-cab .gh-glassOuter{position:absolute;left:0;right:0;top:8px;height:78%;background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(240,247,241,.30) 50%,rgba(207,220,211,.18) 100%);border:1.5px solid var(--gh-camellia);border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;backdrop-filter:blur(2px);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -10px 22px rgba(170,210,190,.18),0 8px 28px rgba(80,120,100,.22);}
-.gh-cab .gh-glassOuter::before{content:'';position:absolute;left:8%;top:5%;width:34%;height:55%;background:linear-gradient(135deg,rgba(255,255,255,.7),transparent 60%);border-radius:50%;filter:blur(8px);transition:transform .8s ease-out;pointer-events:none;}
+.gh-cab .gh-glassOuter{position:absolute;left:0;right:0;top:8px;bottom:0;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(240,247,241,.30) 50%,rgba(207,220,211,.18) 100%);border:1.5px solid var(--gh-camellia);border-radius:50% 50% 6px 6px / 18% 18% 6px 6px;backdrop-filter:blur(2px);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -10px 22px rgba(170,210,190,.18),0 8px 28px rgba(80,120,100,.22);}
+.gh-cab .gh-glassOuter::before{content:'';position:absolute;left:8%;top:5%;width:34%;height:42%;background:linear-gradient(135deg,rgba(255,255,255,.7),transparent 60%);border-radius:50%;filter:blur(8px);transition:transform .8s ease-out;pointer-events:none;}
 .gh-cab:hover .gh-glassOuter::before{transform:translateX(40%);}
-.gh-cab .gh-glassOuter::after{content:'';position:absolute;left:55%;bottom:8%;width:22%;height:18%;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent 60%);border-radius:50%;filter:blur(4px);}
-.gh-cab .gh-glassInner{position:absolute;left:8%;right:8%;top:6%;height:72%;border:1px solid rgba(196,146,143,.45);border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 70%);box-shadow:0 0 18px rgba(228,168,164,.18) inset;z-index:3;}
-.gh-cab .gh-light{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:80%;height:35%;background:radial-gradient(ellipse at 50% 0,rgba(220,240,210,.7) 0%,transparent 70%);pointer-events:none;transition:filter .4s,opacity .4s;z-index:1;}
+.gh-cab .gh-glassOuter::after{content:'';position:absolute;left:55%;bottom:24%;width:22%;height:14%;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent 60%);border-radius:50%;filter:blur(4px);}
+.gh-cab .gh-glassInner{position:absolute;left:8%;right:8%;top:6%;bottom:6%;border:1px solid rgba(196,146,143,.45);border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 70%);box-shadow:0 0 18px rgba(228,168,164,.18) inset;z-index:3;}
+.gh-cab .gh-light{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:80%;height:30%;background:radial-gradient(ellipse at 50% 0,rgba(220,240,210,.7) 0%,transparent 70%);pointer-events:none;transition:filter .4s,opacity .4s;z-index:1;}
 .gh-cab:hover .gh-light{filter:brightness(1.5);}
-.gh-cab .gh-stand{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:90%;height:18%;border-radius:0 0 6px 6px;box-shadow:0 14px 30px rgba(80,120,100,.25);overflow:hidden;background:linear-gradient(180deg,#f5f8f5 0%,#dde7e0 50%,var(--gh-mist) 100%);}
-.gh-cab .gh-stand svg{position:absolute;inset:0;width:100%;height:100%;opacity:.5;mix-blend-mode:multiply;}
-.gh-cab .gh-stand::before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(180deg,#fff 0%,#cfdcd3 100%);}
-.gh-cab .gh-stand::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(180deg,var(--gh-leaf-soft) 0%,var(--gh-leaf) 100%);}
-.gh-cab .gh-plate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:78%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px;z-index:2;}
-.gh-cab .gh-plate .gh-num{font-size:9px;letter-spacing:.18em;color:#5a7a6a;font-family:'Cinzel',serif;}
-.gh-cab .gh-plate .gh-name{font-size:13px;font-weight:800;letter-spacing:.04em;margin-top:3px;color:var(--gh-stem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-family:'Noto Serif SC',serif;}
-.gh-cab .gh-plate .gh-deco{font-size:9px;color:var(--gh-camellia);margin-top:3px;letter-spacing:.16em;}
-.gh-cab .gh-castshadow{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:75%;height:14px;background:radial-gradient(ellipse at center,rgba(58,91,72,.3),transparent 70%);filter:blur(4px);transition:transform .4s,opacity .4s;opacity:.7;pointer-events:none;}
-.gh-cab:hover .gh-castshadow{opacity:1;transform:translateX(-50%) scale(1.06);}
 
-/* 展品·缩略形状（不同主题不同呈现） */
-.gh-shape{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);transition:transform .4s;z-index:2;}
-.gh-cab:hover .gh-shape{transform:translate(-50%,-58%) scale(1.08);}
+/* 上半区·礼物展示槽（永远在弧顶下方留出 padding-top 缓冲） */
+.gh-cab .gh-display{position:relative;flex:1 1 60%;display:flex;align-items:center;justify-content:center;padding:18% 12% 0;z-index:2;min-height:0;}
+.gh-cab .gh-display .gh-shape{transition:transform .4s;will-change:transform;}
+.gh-cab:hover .gh-display .gh-shape{transform:translateY(-4px) scale(1.04);}
+
+/* 下半区·铭牌槽 */
+.gh-cab .gh-plate-in{position:relative;flex:0 0 38%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 12% 8%;gap:4px;z-index:3;}
+.gh-cab .gh-plate-in .gh-plate-num{font-size:10px;letter-spacing:.22em;color:var(--gh-leaf-soft);font-style:italic;font-family:'Cinzel',serif;}
+.gh-cab .gh-plate-in .gh-plate-name{font-size:13px;font-weight:800;color:var(--gh-stem);letter-spacing:.06em;line-height:1.4;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif SC',serif;}
+.gh-cab .gh-plate-in .gh-plate-ruler{width:40%;height:1px;background:linear-gradient(90deg,transparent,var(--gh-camellia),transparent);margin-top:4px;opacity:.65;}
+.gh-cab .gh-plate-in .gh-plate-deco{font-size:9px;color:var(--gh-camellia);letter-spacing:.18em;opacity:.7;margin-top:2px;}
+
+.gh-cab .gh-castshadow{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:62%;height:10px;background:radial-gradient(ellipse at center,rgba(58,91,72,.28),transparent 70%);filter:blur(4px);transition:opacity .4s,transform .4s;opacity:.55;pointer-events:none;}
+.gh-cab:hover .gh-castshadow{opacity:.85;transform:translateX(-50%) scale(1.08);}
+
+/* ── 缩略礼物（每个 theme 一种实体） ─────────────────── */
 
 /* card miniature（红金记忆卡） */
 .gh-mini-card{width:100px;height:130px;border-radius:8px;background:radial-gradient(circle at 20% 10%,rgba(160,24,36,.36),transparent 38%),radial-gradient(circle at 88% 22%,rgba(225,190,130,.24),transparent 38%),linear-gradient(145deg,#07070a,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.36);position:relative;overflow:hidden;rotate:-3deg;}
@@ -96,16 +100,16 @@
 .gh-mini-card .gh-mini-foot{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:7px;color:#d8b477;letter-spacing:.16em;}
 
 /* pass miniature（黑金通行证） */
-.gh-mini-pass{width:120px;height:90px;border-radius:14px;background:linear-gradient(160deg,#08080b,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.32);position:relative;overflow:hidden;}
-.gh-mini-pass::before{content:'已盖章';position:absolute;right:8px;bottom:8px;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,#9b1d2b,#d7a85f);color:#fff;font-size:8px;letter-spacing:.12em;font-weight:700;}
+.gh-mini-pass{width:140px;height:90px;border-radius:14px;background:linear-gradient(160deg,#08080b,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.32);position:relative;overflow:hidden;}
 .gh-mini-pass .gh-mini-tag{position:absolute;left:10px;top:8px;font-size:8px;color:#d9b783;letter-spacing:.18em;}
 .gh-mini-pass .gh-mini-title{position:absolute;left:10px;top:24px;color:#fff;font-size:13px;font-weight:800;letter-spacing:.04em;font-family:'Noto Serif SC',serif;}
 .gh-mini-pass .gh-mini-stamp{position:absolute;left:10px;bottom:8px;font-size:8px;color:#b89b7a;letter-spacing:.12em;}
+.gh-mini-pass .gh-mini-seal{position:absolute;right:10px;bottom:10px;padding:3px 9px;border-radius:999px;background:linear-gradient(135deg,#9b1d2b,#d7a85f);color:#fff;font-size:9px;letter-spacing:.12em;font-weight:700;}
 
 /* 通用 mini placeholder（fallback） */
 .gh-mini-default{width:90px;height:120px;border-radius:6px;background:linear-gradient(160deg,#fff,#f0f7f1);box-shadow:0 6px 14px rgba(80,120,100,.3);border:1px solid #b9cdc1;rotate:-3deg;display:flex;align-items:center;justify-content:center;color:var(--gh-camellia);font-size:24px;}
 
-/* 详情遮罩 */
+/* ── 详情遮罩 ────────────────────────────────────────── */
 .gh-mask{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(38,68,58,.55);backdrop-filter:blur(14px);padding:20px;}
 .gh-mask.gh-show{display:flex;}
 
@@ -134,7 +138,7 @@
 .gh-detail-pass .gh-validity{font-size:11px;color:#b89b7a;}
 .gh-detail-pass .gh-stamp{padding:6px 12px;border-radius:999px;background:linear-gradient(135deg,#9b1d2b,#d7a85f);color:#fff;font-size:11px;letter-spacing:.12em;font-weight:700;box-shadow:0 4px 12px rgba(155,29,43,.35);}
 
-/* 详情·红金记忆卡（原版小卡片复刻） */
+/* 详情·红金记忆卡 */
 .gh-card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;font-family:'Noto Serif SC',serif;color:#f7efe5;}
 .gh-card-face.front{background:radial-gradient(circle at 18% 8%,rgba(155,29,43,.36),transparent 34%),radial-gradient(circle at 88% 18%,rgba(235,210,160,.22),transparent 38%),linear-gradient(145deg,#08080b,#171018 54%,#09090d);border:1px solid rgba(235,210,160,.24);box-shadow:0 30px 60px rgba(0,0,0,.55);}
 .gh-card-face.back{transform:rotateY(180deg);background:radial-gradient(circle at 20% 12%,rgba(155,29,43,.32),transparent 38%),linear-gradient(145deg,#0d0a16,#1a1224 60%,#08070d);border:1px solid rgba(235,210,160,.24);}
