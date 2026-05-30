@@ -1,0 +1,152 @@
+/* ════════════════════════════════════════════════════
+   灵界记忆库 · styles/gifts.css
+   礼物馆 · 薄荷玻璃花房（写意雾境）外壳样式
+   ════════════════════════════════════════════════════ */
+
+:root{
+  --gh-mint-1:#fbfdf8;
+  --gh-mint-2:#e9f2ea;
+  --gh-mint-3:#ccdfd1;
+  --gh-leaf:#3a5b48;
+  --gh-leaf-soft:#7d9485;
+  --gh-mist:#a8c0b1;
+  --gh-camellia:#c4928f;
+  --gh-camellia-soft:#e8a8a4;
+  --gh-petal:#fce8e6;
+  --gh-stem:#26443a;
+  --gh-deep:#0f2218;
+}
+
+#page-gifts{position:relative;padding:0 0 80px;max-width:none;}
+
+/* 馆壳·写意雾境背景 */
+.gh-world{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,var(--gh-mint-1) 0%,var(--gh-mint-2) 40%,var(--gh-mint-3) 100%);}
+.gh-world::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.55),transparent 50%),radial-gradient(circle at 80% 80%,rgba(170,210,180,.4),transparent 60%);pointer-events:none;}
+.gh-inkflower{position:fixed;pointer-events:none;z-index:1;animation:ghFloatInk 32s infinite ease-in-out;}
+.gh-inkflower.gf1{left:6%;top:18%;width:340px;height:340px;opacity:.18;filter:blur(1px);}
+.gh-inkflower.gf2{right:8%;top:30%;width:260px;height:260px;opacity:.13;filter:blur(2px);animation-duration:42s;animation-delay:-12s;}
+.gh-inkflower.gf3{left:38%;top:58%;width:480px;height:480px;opacity:.10;filter:blur(3px);animation-duration:52s;animation-delay:-22s;}
+.gh-inkflower.gf4{right:24%;bottom:8%;width:300px;height:300px;opacity:.16;filter:blur(1.5px);animation-duration:38s;animation-delay:-6s;}
+@keyframes ghFloatInk{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-22px) rotate(8deg)}}
+.gh-fog{position:fixed;left:-15%;right:-15%;width:130%;height:200px;background:radial-gradient(ellipse at center,rgba(255,255,255,.7),transparent 70%);filter:blur(40px);animation:ghDrift 36s infinite linear;z-index:2;pointer-events:none;}
+.gh-fog.gf-2{top:55%;animation-duration:46s;animation-direction:reverse;opacity:.7;}
+.gh-fog.gf-3{top:80%;animation-duration:60s;opacity:.5;}
+@keyframes ghDrift{from{transform:translateX(-15%)}to{transform:translateX(15%)}}
+.gh-brush{position:fixed;pointer-events:none;z-index:2;opacity:.16;}
+.gh-brush.gb1{left:0;top:60%;width:60%;height:120px;}
+.gh-brush.gb2{right:0;top:24%;width:50%;height:80px;}
+.gh-petal{position:fixed;width:18px;height:18px;background:radial-gradient(circle at 35% 35%,#fff,var(--gh-petal) 60%,var(--gh-camellia-soft) 100%);clip-path:polygon(50% 0,80% 35%,65% 90%,50% 70%,35% 90%,20% 35%);opacity:.6;pointer-events:none;animation:ghFall 14s infinite linear;z-index:5;filter:drop-shadow(0 1px 2px rgba(220,160,160,.3));}
+.gh-petal.gp-s{width:11px;height:11px;opacity:.4;animation-duration:18s;}
+@keyframes ghFall{0%{transform:translateY(-30px) translateX(0) rotate(0);opacity:0}10%{opacity:.7}90%{opacity:.6}100%{transform:translateY(110vh) translateX(60px) rotate(360deg);opacity:0}}
+
+/* 馆壳·主体 */
+.gh-stage{position:relative;z-index:10;padding:60px 0 40px;}
+.gh-gateway{max-width:920px;margin:0 auto 40px;text-align:center;position:relative;padding:60px 0 14px;}
+.gh-gateway .gh-ornament{position:absolute;left:50%;top:0;transform:translateX(-50%);width:380px;height:120px;pointer-events:none;}
+.gh-gateway h1{margin-top:30px;font-family:'Noto Serif SC',serif;font-size:32px;font-weight:600;color:var(--gh-stem);letter-spacing:.18em;}
+.gh-gateway p{margin-top:8px;font-size:12px;color:var(--gh-leaf-soft);letter-spacing:.18em;font-style:italic;font-family:'Cinzel',serif;}
+.gh-gateway .gh-deco{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:14px;color:var(--gh-camellia);font-size:12px;letter-spacing:.32em;}
+.gh-gateway .gh-deco::before,.gh-gateway .gh-deco::after{content:'';width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gh-camellia),transparent);}
+
+.gh-house{max-width:1280px;margin:0 auto;padding:0 5%;position:relative;}
+.gh-section{position:relative;padding:60px 0;}
+.gh-tower{display:flex;align-items:center;justify-content:center;margin-bottom:36px;position:relative;}
+.gh-tower .gh-pillar{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(58,91,72,.4),transparent);position:relative;}
+.gh-tower .gh-pillar::before{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:var(--gh-camellia);}
+.gh-tower .gh-gate{padding:0 28px;text-align:center;position:relative;}
+.gh-tower .gh-gate svg{position:absolute;left:50%;top:-30px;transform:translateX(-50%);width:140px;height:60px;pointer-events:none;}
+.gh-tower .gh-num{font-size:11px;color:var(--gh-camellia);letter-spacing:.32em;display:block;font-family:'Cinzel',serif;}
+.gh-tower .gh-name{margin-top:4px;font-family:'Noto Serif SC',serif;font-size:18px;font-weight:600;color:var(--gh-stem);letter-spacing:.18em;}
+.gh-tower .gh-sub{margin-top:2px;font-size:10px;color:var(--gh-leaf-soft);letter-spacing:.22em;font-style:italic;}
+
+.gh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:32px;}
+.gh-empty{text-align:center;padding:36px 0;color:var(--gh-leaf-soft);font-size:13px;letter-spacing:2px;}
+
+/* 展柜·通用骨架 */
+.gh-cab{position:relative;height:380px;cursor:pointer;transition:transform .4s cubic-bezier(.2,.8,.3,1.1);}
+.gh-cab:hover{transform:translateY(-10px);}
+.gh-cab .gh-crown{position:absolute;left:50%;top:-12px;transform:translateX(-50%);width:120px;height:32px;pointer-events:none;z-index:4;}
+.gh-cab .gh-glassOuter{position:absolute;left:0;right:0;top:8px;height:78%;background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(240,247,241,.30) 50%,rgba(207,220,211,.18) 100%);border:1.5px solid var(--gh-camellia);border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;backdrop-filter:blur(2px);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -10px 22px rgba(170,210,190,.18),0 8px 28px rgba(80,120,100,.22);}
+.gh-cab .gh-glassOuter::before{content:'';position:absolute;left:8%;top:5%;width:34%;height:55%;background:linear-gradient(135deg,rgba(255,255,255,.7),transparent 60%);border-radius:50%;filter:blur(8px);transition:transform .8s ease-out;pointer-events:none;}
+.gh-cab:hover .gh-glassOuter::before{transform:translateX(40%);}
+.gh-cab .gh-glassOuter::after{content:'';position:absolute;left:55%;bottom:8%;width:22%;height:18%;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent 60%);border-radius:50%;filter:blur(4px);}
+.gh-cab .gh-glassInner{position:absolute;left:8%;right:8%;top:6%;height:72%;border:1px solid rgba(196,146,143,.45);border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 70%);box-shadow:0 0 18px rgba(228,168,164,.18) inset;z-index:3;}
+.gh-cab .gh-light{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:80%;height:35%;background:radial-gradient(ellipse at 50% 0,rgba(220,240,210,.7) 0%,transparent 70%);pointer-events:none;transition:filter .4s,opacity .4s;z-index:1;}
+.gh-cab:hover .gh-light{filter:brightness(1.5);}
+.gh-cab .gh-stand{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:90%;height:18%;border-radius:0 0 6px 6px;box-shadow:0 14px 30px rgba(80,120,100,.25);overflow:hidden;background:linear-gradient(180deg,#f5f8f5 0%,#dde7e0 50%,var(--gh-mist) 100%);}
+.gh-cab .gh-stand svg{position:absolute;inset:0;width:100%;height:100%;opacity:.5;mix-blend-mode:multiply;}
+.gh-cab .gh-stand::before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(180deg,#fff 0%,#cfdcd3 100%);}
+.gh-cab .gh-stand::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(180deg,var(--gh-leaf-soft) 0%,var(--gh-leaf) 100%);}
+.gh-cab .gh-plate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:78%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px;z-index:2;}
+.gh-cab .gh-plate .gh-num{font-size:9px;letter-spacing:.18em;color:#5a7a6a;font-family:'Cinzel',serif;}
+.gh-cab .gh-plate .gh-name{font-size:13px;font-weight:800;letter-spacing:.04em;margin-top:3px;color:var(--gh-stem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-family:'Noto Serif SC',serif;}
+.gh-cab .gh-plate .gh-deco{font-size:9px;color:var(--gh-camellia);margin-top:3px;letter-spacing:.16em;}
+.gh-cab .gh-castshadow{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:75%;height:14px;background:radial-gradient(ellipse at center,rgba(58,91,72,.3),transparent 70%);filter:blur(4px);transition:transform .4s,opacity .4s;opacity:.7;pointer-events:none;}
+.gh-cab:hover .gh-castshadow{opacity:1;transform:translateX(-50%) scale(1.06);}
+
+/* 展品·缩略形状（不同主题不同呈现） */
+.gh-shape{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);transition:transform .4s;z-index:2;}
+.gh-cab:hover .gh-shape{transform:translate(-50%,-58%) scale(1.08);}
+
+/* card miniature（红金记忆卡） */
+.gh-mini-card{width:100px;height:130px;border-radius:8px;background:radial-gradient(circle at 20% 10%,rgba(160,24,36,.36),transparent 38%),radial-gradient(circle at 88% 22%,rgba(225,190,130,.24),transparent 38%),linear-gradient(145deg,#07070a,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.36);position:relative;overflow:hidden;rotate:-3deg;}
+.gh-mini-card::before{content:'❀';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:30px;color:rgba(228,168,164,.65);}
+.gh-mini-card::after{content:'';position:absolute;left:8%;top:5%;width:30%;height:40%;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 60%);border-radius:50%;filter:blur(4px);}
+.gh-mini-card .gh-mini-badge{position:absolute;left:8px;top:6px;font-size:7px;letter-spacing:.16em;color:#d8b477;}
+.gh-mini-card .gh-mini-foot{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:7px;color:#d8b477;letter-spacing:.16em;}
+
+/* pass miniature（黑金通行证） */
+.gh-mini-pass{width:120px;height:90px;border-radius:14px;background:linear-gradient(160deg,#08080b,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.32);position:relative;overflow:hidden;}
+.gh-mini-pass::before{content:'已盖章';position:absolute;right:8px;bottom:8px;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,#9b1d2b,#d7a85f);color:#fff;font-size:8px;letter-spacing:.12em;font-weight:700;}
+.gh-mini-pass .gh-mini-tag{position:absolute;left:10px;top:8px;font-size:8px;color:#d9b783;letter-spacing:.18em;}
+.gh-mini-pass .gh-mini-title{position:absolute;left:10px;top:24px;color:#fff;font-size:13px;font-weight:800;letter-spacing:.04em;font-family:'Noto Serif SC',serif;}
+.gh-mini-pass .gh-mini-stamp{position:absolute;left:10px;bottom:8px;font-size:8px;color:#b89b7a;letter-spacing:.12em;}
+
+/* 通用 mini placeholder（fallback） */
+.gh-mini-default{width:90px;height:120px;border-radius:6px;background:linear-gradient(160deg,#fff,#f0f7f1);box-shadow:0 6px 14px rgba(80,120,100,.3);border:1px solid #b9cdc1;rotate:-3deg;display:flex;align-items:center;justify-content:center;color:var(--gh-camellia);font-size:24px;}
+
+/* 详情遮罩 */
+.gh-mask{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(38,68,58,.55);backdrop-filter:blur(14px);padding:20px;}
+.gh-mask.gh-show{display:flex;}
+
+/* 卡片翻面容器 */
+.gh-card-detail{perspective:1500px;width:320px;height:440px;position:relative;}
+.gh-card-detail::before{content:'❀';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:560px;color:rgba(228,168,164,.18);text-shadow:0 0 60px rgba(228,168,164,.4);pointer-events:none;animation:ghBloom 1.6s ease-out forwards;z-index:-1;}
+@keyframes ghBloom{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-30deg)}60%{opacity:1}100%{opacity:.8;transform:translate(-50%,-50%) scale(1) rotate(0)}}
+.gh-card-flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:ghCardFlip 1s cubic-bezier(.2,.8,.3,1.1) forwards;}
+@keyframes ghCardFlip{from{transform:rotateY(180deg)}to{transform:rotateY(0)}}
+
+/* 详情·通用 close */
+.gh-detail-close{display:flex;justify-content:flex-end;margin-top:14px;}
+.gh-detail-close button{background:linear-gradient(135deg,var(--gh-leaf),var(--gh-leaf-soft));color:#fff;border:none;padding:8px 18px;border-radius:999px;cursor:pointer;letter-spacing:.16em;font-weight:700;font-family:'Noto Sans SC',sans-serif;font-size:11px;}
+
+/* 详情·黑金通行证（原版小卡片复刻） */
+.gh-detail-pass{max-width:340px;width:100%;border-radius:18px;overflow:hidden;background:radial-gradient(circle at 18% 8%,rgba(155,29,43,.36),transparent 34%),radial-gradient(circle at 88% 18%,rgba(235,210,160,.22),transparent 38%),linear-gradient(145deg,#08080b,#171018 54%,#09090d);color:#f7efe5;box-shadow:0 30px 60px rgba(0,0,0,.55);border:1px solid rgba(235,210,160,.24);font-family:'Noto Serif SC',serif;animation:ghDetailIn .5s cubic-bezier(.2,.8,.3,1.1);}
+@keyframes ghDetailIn{from{opacity:0;transform:scale(.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.gh-detail-pass .body{padding:18px 20px 16px;}
+.gh-detail-pass .gh-tag{font-size:11px;letter-spacing:.18em;color:#d9b783;margin-bottom:10px;}
+.gh-detail-pass .gh-title{font-size:22px;font-weight:800;line-height:1.3;margin-bottom:10px;}
+.gh-detail-pass .gh-list{font-size:13px;line-height:1.85;color:#eadccb;}
+.gh-detail-pass .gh-list .gh-item{display:flex;gap:8px;}
+.gh-detail-pass .gh-list .gh-item span:first-child{color:#d9b783;flex-shrink:0;}
+.gh-detail-pass .gh-note{margin:14px 0 12px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(235,210,160,.18);font-size:12px;line-height:1.7;color:#f4e7d8;}
+.gh-detail-pass .gh-foot{display:flex;justify-content:space-between;align-items:center;}
+.gh-detail-pass .gh-validity{font-size:11px;color:#b89b7a;}
+.gh-detail-pass .gh-stamp{padding:6px 12px;border-radius:999px;background:linear-gradient(135deg,#9b1d2b,#d7a85f);color:#fff;font-size:11px;letter-spacing:.12em;font-weight:700;box-shadow:0 4px 12px rgba(155,29,43,.35);}
+
+/* 详情·红金记忆卡（原版小卡片复刻） */
+.gh-card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;font-family:'Noto Serif SC',serif;color:#f7efe5;}
+.gh-card-face.front{background:radial-gradient(circle at 18% 8%,rgba(155,29,43,.36),transparent 34%),radial-gradient(circle at 88% 18%,rgba(235,210,160,.22),transparent 38%),linear-gradient(145deg,#08080b,#171018 54%,#09090d);border:1px solid rgba(235,210,160,.24);box-shadow:0 30px 60px rgba(0,0,0,.55);}
+.gh-card-face.back{transform:rotateY(180deg);background:radial-gradient(circle at 20% 12%,rgba(155,29,43,.32),transparent 38%),linear-gradient(145deg,#0d0a16,#1a1224 60%,#08070d);border:1px solid rgba(235,210,160,.24);}
+.gh-card-face .gh-num{font-size:11px;letter-spacing:.22em;color:#d8b477;}
+.gh-card-face h2{margin:8px 0 4px;color:#fff7e8;font-weight:800;font-size:22px;letter-spacing:.04em;font-family:'Noto Serif SC',serif;}
+.gh-card-face .gh-sub{font-size:11px;color:#b89b7a;letter-spacing:.16em;text-transform:uppercase;font-style:italic;font-family:'Cinzel',serif;}
+.gh-card-face .gh-body{margin:14px 0;flex:1;font-size:13px;line-height:1.85;color:#eadccb;overflow-y:auto;}
+.gh-card-face .gh-meta-line{margin-top:12px;padding:10px 11px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid rgba(235,210,160,.16);font-size:12px;line-height:1.65;color:#f4e7d8;}
+.gh-card-face .gh-sign{margin-top:10px;font-size:12px;color:#d8b477;text-align:right;}
+
+@media(max-width:900px){
+  .gh-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;}
+  .gh-cab{height:340px;}
+  .gh-gateway h1{font-size:24px;}
+}
