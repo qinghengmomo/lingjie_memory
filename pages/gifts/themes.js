@@ -1,16 +1,19 @@
 // ════════════════════════════════════════════════════════════
 // 灵界记忆库 · pages/gifts/themes.js
 // 礼物主题注册表：每种 theme 提供"展柜内缩略形态" + "详情完整复刻"
+// 缩略类名与 styles/gifts.css 中 .gh-mini-* 保持一致
 // ════════════════════════════════════════════════════════════
 
 function esc(t){return(t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 const starshardPass={
   miniature(g){
+    var d=g.data||{};
     return '<div class="gh-mini-pass">'
-      +'<span class="gh-mini-tag">'+esc(g.data&&g.data.tag||'宿先生的礼物')+'</span>'
+      +'<span class="gh-mini-tag">'+esc(d.tag||'宿先生的礼物')+'</span>'
       +'<div class="gh-mini-title">'+esc(g.title||'通行证')+'</div>'
-      +'<span class="gh-mini-stamp">'+esc(g.data&&g.data.validity||'有效期：永久')+'</span>'
+      +'<span class="gh-mini-stamp">'+esc(d.validity||'有效期：永久')+'</span>'
+      +'<span class="gh-mini-seal">'+esc(d.stamp||'已盖章')+'</span>'
       +'</div>';
   },
   detail(g){
@@ -34,9 +37,10 @@ const starshardPass={
 
 const starshardCard={
   miniature(g){
-    var sub=esc(g.data&&g.data.subtitle||'');
+    var d=g.data||{};
+    var sub=esc(d.subtitle||'');
     var html='<div class="gh-mini-card">'
-      +'<span class="gh-mini-badge">'+esc(g.data&&g.data.badge||'来自宿烬')+'</span>';
+      +'<span class="gh-mini-badge">'+esc(d.badge||'来自宿烬')+'</span>';
     if(sub) html+='<div class="gh-mini-foot">'+sub+'</div>';
     html+='</div>';
     return html;
