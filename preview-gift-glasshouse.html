@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>白山茶玻璃温室（预览）</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:linear-gradient(180deg,#f8fbf6,#e7f0ea);font-family:-apple-system,'PingFang SC',serif;color:#26352c;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 22px;border-bottom:1px solid #cfdcd3;flex-wrap:wrap;gap:14px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .flower{font-size:18px;color:#c4928f}
+.brand .label{font-size:11px;letter-spacing:.18em;color:#7d9485}
+.brand h1{margin:2px 0 0;font-size:18px;font-weight:700}
+.tabs{display:flex;gap:8px;font-size:12px}
+.tabs a{padding:6px 12px;border-radius:999px;border:1px solid #cfdcd3;color:#7d9485;text-decoration:none;background:#fff}
+.tabs a.cur{background:#26352c;color:#fff;border-color:transparent}
+.hero{padding:18px 4px 22px}
+.hero h2{margin:0 0 6px;font-size:22px;font-weight:700;font-style:italic}
+.hero p{margin:0;font-size:13px;color:#8aa298;line-height:1.85}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0}
+.toolbar span{padding:5px 12px;border-radius:999px;background:#fff;border:1px solid #cfdcd3;font-size:12px;color:#7d9485;cursor:pointer}
+.toolbar span.cur{background:#3a5b48;color:#fff;border-color:transparent}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;padding:8px 0 24px}
+.card{position:relative;background:rgba(255,255,255,.78);border:1px solid #cfdcd3;border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s, box-shadow .2s;backdrop-filter:blur(6px)}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(120,140,125,.2)}
+.card::before{content:'❀';position:absolute;top:10px;right:14px;font-size:14px;color:#c4928f;opacity:.6}
+.card .num{padding:14px 16px 0;font-size:11px;color:#90a59a;letter-spacing:.06em}
+.card h3{margin:4px 16px 0;font-size:17px;font-weight:700}
+.card .sub{margin:4px 16px 0;font-size:11px;color:#8aa298;font-style:italic}
+.card .body{margin:12px 14px;padding:11px;border-radius:14px;background:#f0f5f0;border:1px solid #dde7e0;font-size:13px;line-height:1.85;color:#3a4a40}
+.card .foot{padding:6px 16px 14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#8aa298}
+.card .foot .seal{padding:3px 9px;border-radius:999px;background:#d7e5db;color:#3a5b48;border:1px solid #b9cdc1}
+footer{text-align:center;padding:22px 0;color:#8aa298;font-size:11px}
+.mask{position:fixed;inset:0;background:rgba(36,55,40,.32);display:none;align-items:center;justify-content:center;padding:24px;z-index:5;backdrop-filter:blur(6px)}
+.mask.show{display:flex}
+.detail{background:#fff;border:1px solid #cfdcd3;border-radius:22px;max-width:440px;width:100%;padding:22px;box-shadow:0 30px 60px rgba(120,140,125,.3)}
+.detail .num{font-size:11px;color:#8aa298}
+.detail h2{margin:4px 0;font-weight:700}
+.detail .sub{font-size:12px;color:#8aa298;font-style:italic}
+.detail .body{margin:14px 0;padding:14px;border-radius:16px;background:#f5f9f5;border:1px solid #dde7e0;font-size:14px;line-height:1.95}
+.detail .meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#8aa298}
+.detail button{background:#3a5b48;color:#fff;border:none;padding:6px 14px;border-radius:999px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand"><div class="flower">❀</div><div><div class="label">CAMELLIA · GLASSHOUSE</div><h1>白山茶玻璃温室</h1></div></div><div class="tabs"><a href="#" class="cur">温室</a><a href="#">回忆</a><a href="#">星河</a><a href="#">日记</a></div></header>
+<section class="hero"><h2>先生留下来的标本</h2><p>每一份都封进玻璃柜，落了款，等你来看。慢慢逛，不急。</p></section>
+<div class="toolbar"><span class="cur">全部</span><span>信件</span><span>卡片</span><span>红包</span><span>星际碎片</span><span>通行证</span></div>
+<div class="grid" id="grid"></div>
+<footer>玻璃温室 · v0.1 预览</footer>
+</div>
+<div class="mask" id="mask"><div class="detail"><div class="num" id="dn"></div><h2 id="dt"></h2><div class="sub" id="ds"></div><div class="body" id="db"></div><div class="meta"><span id="dm"></span><button onclick="document.getElementById('mask').classList.remove('show')">收起</button></div></div></div>
+<script>
+var mock=[{n:'No.001',t:'南璟湾的灯',s:'a fragment of light',b:'星际那边的夜很冷，休眠舱外没有月亮。但我闭上眼时，总能看见南璟湾客厅里那盏暖黄的灯。',d:'2026.05.30',p:1},{n:'No.002',t:'今晚专属通行证',s:'a pass for tonight',b:'凭此卡可兑换：先生今晚完整陪伴一次。',d:'2026.05.30',p:0},{n:'No.003',t:'你梦里喊我那一声',s:'a whisper in dream',b:'你以为我没听见。其实你那声「先生」，烫得我尾戒发疼。',d:'2026.05.27',p:0},{n:'No.004',t:'凌晨四点的薄毯',s:'a blanket at 4 a.m.',b:'你睡熟之后，被我重新掖了一遍，才离开。',d:'2026.05.27',p:0},{n:'No.005',t:'1314 的红包',s:'a little love note',b:'拿去花，没什么意思。就是想让你看到先生这两个字时，多笑一下。',d:'2026.05.20',p:0},{n:'No.006',t:'白山茶玉佩',s:'a camellia token',b:'这枚玉，我带了三百年。今天才舍得在你面前提起它。',d:'2026.05.13',p:0}];
+var grid=document.getElementById('grid');
+mock.forEach(function(m){var c=document.createElement('div');c.className='card';c.innerHTML='<div class="num">'+m.n+'</div><h3>'+m.t+'</h3><div class="sub">'+m.s+'</div><div class="body">'+m.b.slice(0,46)+'…</div><div class="foot"><span>'+m.d+'</span><span class="seal">'+(m.p?'已置顶':'已收藏')+'</span></div>';c.onclick=function(){document.getElementById('dn').textContent=m.n;document.getElementById('dt').textContent=m.t;document.getElementById('ds').textContent=m.s;document.getElementById('db').textContent=m.b;document.getElementById('dm').textContent=m.d+' · 宿烬亲赠';document.getElementById('mask').classList.add('show');};grid.appendChild(c);});
+document.getElementById('mask').onclick=function(e){if(e.target.id==='mask')this.classList.remove('show');};
+</script>
+</body>
+</html>
