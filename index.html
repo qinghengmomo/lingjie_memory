@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/galaxy.css">
 <link rel="stylesheet" href="styles/plan.css">
+<link rel="stylesheet" href="styles/gifts.css">
 <style>
 /* ══ SPA 完整样式 ══ */
 :root{
@@ -30,6 +31,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .nav-tab.active{color:var(--ink);border-bottom-color:var(--gold);font-weight:600;}
 .nav-tab[data-page="api"].active{border-bottom-color:var(--api-accent);color:var(--api-accent);}
 .nav-tab[data-page="galaxy"].active{border-bottom-color:#e8845f;color:#e8845f;}
+.nav-tab[data-page="gifts"].active{border-bottom-color:#c4928f;color:#c4928f;}
 
 .auth-area{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px;}
 .auth-status{font-size:10px;color:var(--mist);letter-spacing:1px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -41,6 +43,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 
 .page{display:none;max-width:1100px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1;}
 .page.active{display:block;}
+.page#page-gifts{max-width:none;padding:0;}
 
 /* 记忆库 */
 .vault-header{text-align:center;margin-bottom:36px;padding-top:40px;position:relative;}
@@ -193,6 +196,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 
 @media(max-width:900px){
   .page{padding:0 16px 80px;}
+  .page#page-gifts{padding:0;}
   #page-memory [id="m-dual-col"]{grid-template-columns:1fr!important;}
   .api-grid{grid-template-columns:1fr;}
   .nav-tab{padding:10px 10px;font-size:10px;letter-spacing:1px;}
@@ -227,6 +231,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
     <a class="nav-tab" href="#api" data-page="api">API平台</a>
     <a class="nav-tab" href="#galaxy" data-page="galaxy">星河</a>
     <a class="nav-tab" href="#plan" data-page="plan">星图</a>
+    <a class="nav-tab" href="#gifts" data-page="gifts">花房</a>
   </div>
   <div class="auth-area">
     <span class="auth-status" id="auth-status">未登录</span>
@@ -240,6 +245,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 <div class="page" id="page-api"></div>
 <div class="page" id="page-galaxy"></div>
 <div class="page" id="page-plan"></div>
+<div class="page" id="page-gifts"></div>
 
 <script type="module" src="app.js"></script>
 <div class="login-modal-overlay" id="login-modal">
