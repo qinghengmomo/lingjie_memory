@@ -1,11 +1,12 @@
 // ═══════════════════════════════════════════════════════
 // 灵界记忆库 · pages/memory.js — 记忆库页签
-// 完整功能：日记/总结列表、已读眼睛、回复、搜索筛选、置顶、双栏/单栏
+// 鉴权门：未登录时不订阅 Firestore，登录后启动 onSnapshot
 // ═══════════════════════════════════════════════════════
 
 let db,auth,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,requireAuth;
 let container;
 let allEntries=[],editId=null,typeFilter='',tagFilter='',searchKw='';
+let unsubscribe=null;
 
 export function init(el,deps){
   container=el;
@@ -14,12 +15,34 @@ export function init(el,deps){
   deleteDoc=deps.deleteDoc;doc=deps.doc;onSnapshot=deps.onSnapshot;
   requireAuth=deps.requireAuth;
   render();
-  startListener();
   loadWeather();
+  // 不在这里直接订阅；交给 onAuthChange
+  if(auth&&auth.currentUser) startListener();
+  else showAuthPlaceholder();
 }
 
 export function onAuthChange(user){
-  // 登录状态变化时可刷新UI（如已读按钮状态）
+  if(user){
+    startListener();
+  }else{
+    stopListener();
+    allEntries=[];
+    showAuthPlaceholder();
+  }
+}
+
+function showAuthPlaceholder(){
+  if(!container) return;
+  setSyncStatus('locked');
+  const total=container.querySelector('#m-s-total');
+  if(total) total.textContent='—';
+  const diaryList=container.querySelector('#m-diary-list');
+  const summaryList=container.querySelector('#m-summary-list');
+  const placeholder='<div class="empty-state"><div class="empty-text">登录后查看私密记忆 · 顶部右上角点「登录」</div></div>';
+  if(diaryList) diaryList.innerHTML=placeholder;
+  if(summaryList) summaryList.innerHTML=placeholder;
+  const single=container.querySelector('#m-entry-list');
+  if(single) single.innerHTML='';
 }
 
 function render(){
@@ -83,7 +106,6 @@ function render(){
 }
 
 function bindEvents(){
-  // 统计栏点击筛选
   container.querySelectorAll('#m-stats .stat-cell').forEach(cell=>{
     cell.style.cursor='pointer';
     cell.addEventListener('click',()=>{
@@ -94,21 +116,19 @@ function bindEvents(){
       renderEntries();
     });
   });
-  // 搜索
   container.querySelector('#m-search').addEventListener('input',function(){searchKw=this.value.trim();renderEntries();});
   container.querySelector('#m-search-clear').addEventListener('click',()=>{searchKw='';container.querySelector('#m-search').value='';renderEntries();});
-  // FAB
   container.querySelector('#m-fab').addEventListener('click',()=>openModal());
-  // Modal
   container.querySelector('#m-modal-cancel').addEventListener('click',()=>closeModal());
   container.querySelector('#m-modal').addEventListener('click',ev=>{if(ev.target.id==='m-modal')closeModal();});
   container.querySelector('#m-modal-save').addEventListener('click',()=>saveEntry());
 }
 
 function startListener(){
+  if(unsubscribe) return; // 已订阅，避免重复
   const COL='memory_vault';
   setSyncStatus('syncing');
-  onSnapshot(collection(db,COL),snap=>{
+  unsubscribe=onSnapshot(collection(db,COL),snap=>{
     allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
     allEntries.sort((a,b)=>((a.date||'')>(b.date||''))?-1:1);
     updateStats();
@@ -121,7 +141,13 @@ function startListener(){
   });
 }
 
-// ── 天气 ──
+function stopListener(){
+  if(unsubscribe){
+    try{ unsubscribe(); }catch(e){}
+    unsubscribe=null;
+  }
+}
+
 async function loadWeather(){
   try{
     const r=await fetch('https://wttr.in/Chengdu?format=j1');
@@ -133,7 +159,6 @@ async function loadWeather(){
   }catch(e){}
 }
 
-// ── 同步状态 ──
 function setSyncStatus(s){
   const dot=container.querySelector('#m-sync-dot'),text=container.querySelector('#m-sync-text');
   if(!dot)return;
@@ -141,10 +166,10 @@ function setSyncStatus(s){
   if(s==='connected'){dot.classList.add('connected');text.textContent='已连接';}
   else if(s==='syncing'){dot.classList.add('syncing');text.textContent='同步中...';}
   else if(s==='error'){dot.classList.add('error');text.textContent='断开连接';}
+  else if(s==='locked'){dot.classList.add('error');text.textContent='未登录 · 请先登录';}
   else{dot.classList.add('syncing');text.textContent='连接中...';}
 }
 
-// ── 统计 ──
 function updateStats(){
   const el=id=>container.querySelector('#'+id);
   el('m-s-total').textContent=allEntries.length;
@@ -155,7 +180,6 @@ function updateStats(){
   el('m-top-meta').textContent='宿烬 与 宿青珩 · '+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日';
 }
 
-// ── 筛选栏 ──
 function renderFilterBar(){
   const bar=container.querySelector('#m-filter-bar');
   if(!bar.firstChild){
@@ -168,7 +192,6 @@ function renderFilterBar(){
       bar.appendChild(btn);
     });
   }
-  // 标签按钮
   bar.querySelectorAll('button[data-tag],span.tag-sep').forEach(el=>el.remove());
   const tags={};
   allEntries.forEach(e=>(e.tags||[]).forEach(t=>{tags[t]=(tags[t]||0)+1}));
@@ -200,7 +223,6 @@ function updateFilterActive(){
   });
 }
 
-// ── 渲染列表 ──
 function renderEntries(){
   const hasFilt=typeFilter||tagFilter||searchKw;
   const dualCol=container.querySelector('#m-dual-col');
@@ -233,7 +255,6 @@ function renderEntries(){
     return;
   }
 
-  // 双栏
   diaryList.innerHTML='';summaryList.innerHTML='';
   const diaries=allEntries.filter(e=>e.type==='diary');
   const summaries=allEntries.filter(e=>e.type==='summary');
@@ -246,7 +267,6 @@ function renderEntries(){
 function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function buildEntryContent(e,item){
-  // 操作按钮
   const actions=document.createElement('div');actions.className='entry-actions';
   const pinBtn=document.createElement('button');pinBtn.className='action-btn pin-btn'+(e.pinNote?' pinned':'');
   pinBtn.textContent=e.pinNote?'📌':'📍';pinBtn.title=e.pinNote?'取消置顶':'置顶';
@@ -258,14 +278,12 @@ function buildEntryContent(e,item){
   actions.appendChild(delBtn);
   item.appendChild(actions);
 
-  // meta行
   const meta=document.createElement('div');meta.className='entry-meta';
   const typeLabel=document.createElement('span');typeLabel.className='entry-tag-label '+(e.type==='diary'?'diary':'summary');
   typeLabel.textContent=e.type==='diary'?'日记':'总结';meta.appendChild(typeLabel);
   const dateSpan=document.createElement('span');dateSpan.className='entry-date';dateSpan.textContent=e.date||'';meta.appendChild(dateSpan);
   if(e.pinNote&&e.pinNote.trim()){const pb=document.createElement('span');pb.className='pin-badge';pb.textContent='📌 '+e.pinNote.trim();meta.appendChild(pb);}
   (e.tags||[]).forEach(t=>{const tc=document.createElement('span');tc.className='custom-tag';tc.textContent=t;meta.appendChild(tc);});
-  // 已读眼睛
   const eye=document.createElement('span');
   eye.className='read-eye'+(e.isRead?' read':'');
   eye.title=e.isRead?'已读':'点击标记已读';
@@ -279,10 +297,8 @@ function buildEntryContent(e,item){
   meta.appendChild(eye);
   item.appendChild(meta);
 
-  // 标题
   const title=document.createElement('div');title.className='entry-title';title.textContent=e.title||e.date||'';item.appendChild(title);
 
-  // 正文预览+展开
   const preview=document.createElement('div');preview.className='entry-preview';preview.textContent=e.content||'';item.appendChild(preview);
   const fullContent=document.createElement('div');fullContent.className='entry-content-full';fullContent.textContent=e.content||'';item.appendChild(fullContent);
   const expandBtn=document.createElement('button');expandBtn.className='expand-btn';expandBtn.textContent='▸ 展开全文';
@@ -290,11 +306,9 @@ function buildEntryContent(e,item){
   expandBtn.onclick=()=>{expanded=!expanded;if(expanded){fullContent.classList.add('open');preview.style.display='none';expandBtn.textContent='▾ 收起';}else{fullContent.classList.remove('open');preview.style.display='';expandBtn.textContent='▸ 展开全文';}};
   item.appendChild(expandBtn);
 
-  // 回复区
   buildReplySection(e,item);
 }
 
-// ── 回复 ──
 function buildReplySection(e,item){
   const section=document.createElement('div');section.className='reply-section';
   const renderReplies=()=>{
@@ -311,7 +325,6 @@ function buildReplySection(e,item){
         rd.appendChild(rdel);section.appendChild(rd);
       });
     }
-    // 输入框
     const inputArea=document.createElement('div');inputArea.className='reply-input-area';
     const inp=document.createElement('textarea');inp.className='reply-input';inp.placeholder='写下你想说的话...';
     const acts=document.createElement('div');acts.className='reply-actions';
@@ -330,7 +343,6 @@ function buildReplySection(e,item){
   item.appendChild(section);
 }
 
-// ── Modal ──
 function openModal(id){
   if(!requireAuth())return;
   const modal=container.querySelector('#m-modal');
