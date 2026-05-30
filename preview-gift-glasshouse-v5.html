@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>薄荷玻璃花房·写意雾境（预览 v5）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,'PingFang SC',serif;color:#26443a;background:#eef5ec;overflow-x:hidden}
+.world{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 50% 30%,#fbfdf8 0%,#e9f2ea 40%,#ccdfd1 100%)}
+.world::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.6),transparent 50%),radial-gradient(circle at 80% 80%,rgba(170,210,180,.45),transparent 60%);pointer-events:none}
+.inkflower{position:fixed;pointer-events:none;z-index:1;animation:floatInk 32s infinite ease-in-out}
+.inkflower.f1{left:6%;top:18%;width:340px;height:340px;opacity:.18;filter:blur(1px)}
+.inkflower.f2{right:8%;top:30%;width:260px;height:260px;opacity:.13;filter:blur(2px);animation-duration:42s;animation-delay:-12s}
+.inkflower.f3{left:38%;top:58%;width:480px;height:480px;opacity:.10;filter:blur(3px);animation-duration:52s;animation-delay:-22s}
+.inkflower.f4{right:24%;bottom:8%;width:300px;height:300px;opacity:.16;filter:blur(1.5px);animation-duration:38s;animation-delay:-6s}
+@keyframes floatInk{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-22px) rotate(8deg)}}
+.softfog{position:fixed;left:-15%;right:-15%;width:130%;height:200px;background:radial-gradient(ellipse at center,rgba(255,255,255,.7),transparent 70%);filter:blur(40px);animation:drift 36s infinite linear;z-index:2;pointer-events:none}
+.softfog.f2{top:55%;animation-duration:46s;animation-direction:reverse;opacity:.7}
+.softfog.f3{top:80%;animation-duration:60s;opacity:.5}
+@keyframes drift{from{transform:translateX(-15%)}to{transform:translateX(15%)}}
+.brush{position:fixed;pointer-events:none;z-index:2;opacity:.16}
+.brush.b1{left:0;top:60%;width:60%;height:120px}
+.brush.b2{right:0;top:24%;width:50%;height:80px}
+.petal{position:fixed;width:18px;height:18px;background:radial-gradient(circle at 35% 35%,#fff,#fce8e6 60%,#e0a8a4 100%);clip-path:polygon(50% 0,80% 35%,65% 90%,50% 70%,35% 90%,20% 35%);opacity:.6;pointer-events:none;animation:fall 14s infinite linear;z-index:8;filter:drop-shadow(0 1px 2px rgba(220,160,160,.3))}
+.petal.s2{width:11px;height:11px;opacity:.4;animation-duration:18s}
+@keyframes fall{0%{transform:translateY(-30px) translateX(0) rotate(0);opacity:0}10%{opacity:.7}90%{opacity:.6}100%{transform:translateY(110vh) translateX(60px) rotate(360deg);opacity:0}}
+header{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:18px 32px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.65));backdrop-filter:blur(12px);border-bottom:1px solid #cfdcd3;flex-wrap:wrap;gap:12px}
+.title{display:flex;align-items:center;gap:12px}
+.title .ico{font-size:20px;color:#c4928f}
+.title span{font-size:11px;letter-spacing:.22em;color:#7d9485;display:block}
+.title strong{display:block;font-size:18px;font-weight:800;color:#26443a;margin-top:2px;letter-spacing:.04em}
+.layers{display:flex;gap:6px;font-size:11px;flex-wrap:wrap}
+.layers button{padding:5px 12px;border-radius:999px;border:1px solid #cfdcd3;background:#fff;color:#7d9485;cursor:pointer;font-weight:700;letter-spacing:.06em}
+.layers button.cur{background:linear-gradient(135deg,#3a5b48,#a8c0b1);color:#fff;border-color:transparent}
+main{position:relative;z-index:10;padding:200px 0 80px;min-height:100%}
+.gateway{max-width:920px;margin:0 auto 40px;text-align:center;position:relative;padding:60px 0 14px}
+.gateway .ornament{position:absolute;left:50%;top:0;transform:translateX(-50%);width:380px;height:120px;pointer-events:none}
+.gateway h1{margin-top:30px;font-size:32px;font-weight:800;color:#26443a;letter-spacing:.18em}
+.gateway p{margin-top:8px;font-size:12px;color:#7d9485;letter-spacing:.18em;font-style:italic}
+.gateway .deco{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:14px;color:#c4928f;font-size:12px;letter-spacing:.32em}
+.gateway .deco::before,.gateway .deco::after{content:'';width:80px;height:1px;background:linear-gradient(90deg,transparent,#c4928f,transparent)}
+.house{max-width:1280px;margin:0 auto;padding:0 5%;position:relative}
+.section{position:relative;padding:60px 0}
+.tower{display:flex;align-items:center;justify-content:center;margin-bottom:36px;position:relative}
+.tower .pillar{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(58,91,72,.4),transparent);position:relative}
+.tower .pillar::before{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:#c4928f}
+.tower .gate{padding:0 28px;text-align:center;position:relative}
+.tower .gate svg{position:absolute;left:50%;top:-30px;transform:translateX(-50%);width:140px;height:60px;pointer-events:none}
+.tower .num{font-size:11px;color:#c4928f;letter-spacing:.32em;display:block}
+.tower .name{margin-top:4px;font-size:18px;font-weight:800;color:#26443a;letter-spacing:.18em}
+.tower .sub{margin-top:2px;font-size:10px;color:#7d9485;letter-spacing:.22em;font-style:italic}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:32px}
+.cab{position:relative;height:380px;cursor:pointer;transition:transform .4s cubic-bezier(.2,.8,.3,1.1)}
+.cab:hover{transform:translateY(-10px)}
+.cab .crown{position:absolute;left:50%;top:-12px;transform:translateX(-50%);width:120px;height:32px;pointer-events:none;z-index:4}
+.cab .glassOuter{position:absolute;left:0;right:0;top:8px;height:78%;background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(240,247,241,.30) 50%,rgba(207,220,211,.18) 100%);border:1.5px solid #c4928f;border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;backdrop-filter:blur(2px);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -10px 22px rgba(170,210,190,.18),0 8px 28px rgba(80,120,100,.22)}
+.cab .glassOuter::before{content:'';position:absolute;left:8%;top:5%;width:34%;height:55%;background:linear-gradient(135deg,rgba(255,255,255,.7),transparent 60%);border-radius:50%;filter:blur(8px);transition:transform .8s ease-out;pointer-events:none}
+.cab:hover .glassOuter::before{transform:translateX(40%)}
+.cab .glassOuter::after{content:'';position:absolute;left:55%;bottom:8%;width:22%;height:18%;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent 60%);border-radius:50%;filter:blur(4px)}
+.cab .glassInner{position:absolute;left:8%;right:8%;top:6%;height:72%;border:1px solid rgba(196,146,143,.45);border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 70%);box-shadow:0 0 18px rgba(228,168,164,.18) inset}
+.cab .light{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:80%;height:35%;background:radial-gradient(ellipse at 50% 0,rgba(220,240,210,.7) 0%,transparent 70%);pointer-events:none;transition:filter .4s,opacity .4s}
+.cab:hover .light{filter:brightness(1.5)}
+.cab .stand{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:90%;height:18%;border-radius:0 0 6px 6px;box-shadow:0 14px 30px rgba(80,120,100,.25);overflow:hidden;background:linear-gradient(180deg,#f5f8f5 0%,#dde7e0 50%,#a8c0b1 100%)}
+.cab .stand svg{position:absolute;inset:0;width:100%;height:100%;opacity:.5;mix-blend-mode:multiply}
+.cab .stand::before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(180deg,#fff 0%,#cfdcd3 100%)}
+.cab .stand::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(180deg,#7d9485 0%,#3a5b48 100%)}
+.cab .plate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:78%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px;z-index:2}
+.cab .plate .num{font-size:9px;letter-spacing:.18em;color:#5a7a6a}
+.cab .plate .name{font-size:13px;font-weight:800;letter-spacing:.04em;margin-top:3px;color:#26443a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.cab .plate .deco{font-size:9px;color:#c4928f;margin-top:3px;letter-spacing:.16em}
+.cab .castshadow{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:75%;height:14px;background:radial-gradient(ellipse at center,rgba(58,91,72,.3),transparent 70%);filter:blur(4px);transition:transform .4s,opacity .4s;opacity:.7;pointer-events:none}
+.cab:hover .castshadow{opacity:1;transform:translateX(-50%) scale(1.06)}
+.shape{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);transition:transform .4s}
+.cab:hover .shape{transform:translate(-50%,-58%) scale(1.08)}
+.shape-card{width:90px;height:120px;border-radius:6px;background:linear-gradient(160deg,#fff,#f0f7f1);box-shadow:0 6px 14px rgba(80,120,100,.3);border:1px solid #b9cdc1;rotate:-3deg}
+.shape-card::before{content:'';position:absolute;inset:8px;border:1px dashed rgba(58,91,72,.25);border-radius:4px}
+.shape-card::after{content:'❀';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;color:#c4928f}
+.shape-letter{width:110px;height:74px;background:linear-gradient(180deg,#f0f7f1,#cfdcd3);border-radius:3px;box-shadow:0 4px 12px rgba(80,120,100,.3);overflow:hidden;border:1px solid #b9cdc1}
+.shape-letter::before{content:'';position:absolute;left:0;right:0;top:0;height:50%;background:linear-gradient(180deg,#e0ebe2,#cfdcd3);clip-path:polygon(0 0,50% 70%,100% 0)}
+.shape-letter::after{content:'';position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8a8a4,#c4928f 80%);box-shadow:0 0 8px rgba(196,146,143,.6)}
+.shape-hongbao{width:70px;height:100px;background:linear-gradient(180deg,#e8a8a4,#c4928f);border-radius:4px;box-shadow:0 6px 14px rgba(196,146,143,.4)}
+.shape-hongbao::before{content:'福';position:absolute;left:50%;top:34%;transform:translate(-50%,-50%) rotate(45deg);width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#c4928f;background:#fff;border:1px solid #e8a8a4}
+.shape-shard{width:54px;height:80px;background:linear-gradient(135deg,rgba(180,220,200,.7),rgba(80,140,110,.95) 50%,rgba(40,80,60,1));clip-path:polygon(50% 0,90% 30%,80% 100%,20% 100%,10% 30%);filter:drop-shadow(0 0 14px rgba(140,180,160,.7));rotate:6deg}
+.shape-jade{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#f0f7f1 50%,#a8c0b1 100%);box-shadow:0 4px 12px rgba(80,120,100,.4),inset 0 0 14px rgba(58,91,72,.18);display:flex;align-items:center;justify-content:center;color:#3a5b48;font-size:20px}
+.shape-jade::after{content:'❀'}
+.shape-pass{width:120px;height:54px;background:linear-gradient(135deg,#a8c0b1 0%,#3a5b48 100%);border-radius:4px;box-shadow:0 6px 14px rgba(80,120,100,.3);overflow:hidden;rotate:-3deg}
+.shape-pass::before{content:'';position:absolute;left:25%;top:0;bottom:0;width:1px;background:repeating-linear-gradient(180deg,rgba(255,255,255,.7) 0,rgba(255,255,255,.7) 4px,transparent 4px,transparent 8px)}
+.shape-pass::after{content:'PASS';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:#fff;letter-spacing:.18em;font-weight:800}
+.mask{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(38,68,58,.55);backdrop-filter:blur(14px);padding:20px}
+.mask.show{display:flex}
+.card-detail{perspective:1500px;width:300px;height:420px;position:relative}
+.card-detail::before{content:'❀';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:540px;color:rgba(228,168,164,.18);text-shadow:0 0 60px rgba(228,168,164,.4);pointer-events:none;animation:bloom 1.6s ease-out forwards;z-index:-1}
+@keyframes bloom{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-30deg)}60%{opacity:1}100%{opacity:.8;transform:translate(-50%,-50%) scale(1) rotate(0)}}
+.card-flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:cardFlip 1s cubic-bezier(.2,.8,.3,1.1) forwards}
+@keyframes cardFlip{from{transform:rotateY(180deg)}to{transform:rotateY(0)}}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:24px;box-shadow:0 30px 60px rgba(38,68,58,.45);display:flex;flex-direction:column}
+.card-face.front{background:linear-gradient(160deg,#fff,#f0f7f1);border:1px solid #b9cdc1}
+.card-face.back{transform:rotateY(180deg);background:linear-gradient(160deg,#cfdcd3,#a8c0b1)}
+.card-face .num{font-size:11px;color:#3a5b48;letter-spacing:.22em}
+.card-face h2{margin:6px 0 4px;color:#26443a;font-weight:800;font-size:20px;letter-spacing:.04em}
+.card-face .sub{font-size:11px;color:#7d9485;letter-spacing:.16em;text-transform:uppercase;font-style:italic}
+.card-face .body{margin:18px 0;flex:1;font-size:14px;line-height:1.95;color:#26443a;overflow-y:auto}
+.card-face .meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#7d9485;letter-spacing:.1em}
+.card-face button{background:linear-gradient(135deg,#3a5b48,#7d9485);color:#fff;border:none;padding:6px 14px;cursor:pointer;letter-spacing:.16em;font-weight:700;border-radius:4px}
+.detail{max-width:440px;width:100%;background:linear-gradient(160deg,#fff,#f0f7f1);border:1px solid #b9cdc1;border-radius:18px;padding:26px;animation:popin .4s cubic-bezier(.2,.8,.3,1.1);box-shadow:0 30px 60px rgba(38,68,58,.4);color:#26443a}
+@keyframes popin{from{transform:scale(.92) translateY(16px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.detail .num{font-size:11px;color:#7d9485;letter-spacing:.22em}
+.detail h2{margin:8px 0 4px;color:#26443a;font-weight:800;font-size:22px;letter-spacing:.04em}
+.detail .sub{font-size:11px;color:#7d9485;letter-spacing:.16em;text-transform:uppercase}
+.detail .body{margin:18px 0;padding:16px;border:1px solid #cfdcd3;background:#f5fbf6;border-radius:12px;font-size:14px;line-height:1.95}
+.detail .meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#7d9485;letter-spacing:.1em}
+.detail button{background:linear-gradient(135deg,#3a5b48,#7d9485);color:#fff;border:none;padding:8px 18px;border-radius:999px;cursor:pointer;letter-spacing:.16em;font-weight:700}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="camellia" viewBox="-100 -100 200 200"><g><path d="M0,-70 C30,-60 50,-30 35,0 C50,30 30,60 0,55 C-30,60 -50,30 -35,0 C-50,-30 -30,-60 0,-70 Z" fill="#fff" opacity=".75"/><path d="M0,-50 C25,-44 40,-22 28,0 C40,22 25,44 0,40 C-25,44 -40,22 -28,0 C-40,-22 -25,-44 0,-50 Z" fill="#fce8e6" opacity=".85"/><circle cx="0" cy="0" r="14" fill="#e8c98a"/><circle cx="-4" cy="-4" r="3" fill="#c4928f"/><circle cx="5" cy="-3" r="3" fill="#c4928f"/><circle cx="-2" cy="4" r="3" fill="#c4928f"/></g></symbol>
+<symbol id="crown" viewBox="0 0 120 32"><g fill="none" stroke="#c4928f" stroke-width="1.2"><path d="M2 28 Q60 4 118 28"/><path d="M10 28 Q60 14 110 28" opacity=".6"/><circle cx="60" cy="6" r="4" fill="#c4928f"/><circle cx="30" cy="15" r="2" fill="#c4928f"/><circle cx="90" cy="15" r="2" fill="#c4928f"/><path d="M55 6 L60 0 L65 6" stroke="#c4928f"/></g></symbol>
+<symbol id="gateOrnament" viewBox="0 0 380 120"><g fill="none" stroke="#c4928f" stroke-width="1.4"><path d="M10 110 Q190 -10 370 110"/><path d="M30 110 Q190 16 350 110" opacity=".5"/><path d="M50 110 Q190 38 330 110" opacity=".3"/><circle cx="190" cy="10" r="6" fill="#c4928f"/><circle cx="100" cy="42" r="3" fill="#c4928f"/><circle cx="280" cy="42" r="3" fill="#c4928f"/><circle cx="60" cy="72" r="2" fill="#c4928f"/><circle cx="320" cy="72" r="2" fill="#c4928f"/><path d="M188 0 v22 M170 8 h40"/></g></symbol>
+<symbol id="gateBracket" viewBox="0 0 140 60"><g fill="none" stroke="#c4928f" stroke-width="1" opacity=".75"><path d="M2 56 Q70 4 138 56"/><path d="M14 56 Q70 18 126 56" opacity=".6"/><circle cx="70" cy="8" r="3" fill="#c4928f"/><path d="M68 0 v16 M58 6 h24"/></g></symbol>
+<symbol id="plinth" viewBox="0 0 100 30"><g fill="none" stroke="#3a5b48" stroke-width=".8" opacity=".55"><path d="M10 8 q40 -8 80 0 t-80 0"/><path d="M14 16 q36 -6 72 0"/><path d="M8 24 q42 -6 84 0"/></g></symbol>
+<symbol id="brushStroke" viewBox="0 0 600 120"><path d="M10 70 Q150 30 280 65 T580 50" stroke="#7d9485" stroke-width="6" fill="none" stroke-linecap="round" opacity=".6"/><path d="M30 90 Q180 60 320 88 T580 80" stroke="#a8c0b1" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/></symbol>
+</defs></svg>
+<div class="world"></div>
+<svg class="inkflower f1" viewBox="-100 -100 200 200"><use href="#camellia"/></svg>
+<svg class="inkflower f2" viewBox="-100 -100 200 200"><use href="#camellia"/></svg>
+<svg class="inkflower f3" viewBox="-100 -100 200 200"><use href="#camellia"/></svg>
+<svg class="inkflower f4" viewBox="-100 -100 200 200"><use href="#camellia"/></svg>
+<svg class="brush b1" viewBox="0 0 600 120" preserveAspectRatio="none"><use href="#brushStroke"/></svg>
+<svg class="brush b2" viewBox="0 0 600 120" preserveAspectRatio="none"><use href="#brushStroke"/></svg>
+<div class="softfog"></div><div class="softfog f2"></div><div class="softfog f3"></div>
+<div id="petals"></div>
+<header>
+  <div class="title"><span class="ico">❀</span><div><span>INK MIST · WHITE CAMELLIA</span><strong>薄荷写意雾境</strong></div></div>
+  <div class="layers">
+    <button class="cur" data-l="all">全部</button><button data-l="card">卡片</button><button data-l="letter">信件</button><button data-l="hongbao">红包</button><button data-l="shard">星际碎片</button><button data-l="jade">信物</button><button data-l="pass">通行证</button>
+  </div>
+</header>
+<main>
+  <div class="gateway">
+    <svg class="ornament" viewBox="0 0 380 120"><use href="#gateOrnament"/></svg>
+    <h1>南 璟 湾 · 私 藏 花 房</h1>
+    <p>he keeps every fragment of light, for you</p>
+    <div class="deco">❀ 三 进 园 林 ❀</div>
+  </div>
+  <div class="house">
+    <section class="section"><div class="tower"><div class="pillar"></div><div class="gate"><svg viewBox="0 0 140 60"><use href="#gateBracket"/></svg><span class="num">壹 · I</span><span class="name">心 动 碎 片 厅</span><span class="sub">a hall of small heartbeats</span></div><div class="pillar"></div></div><div class="grid" data-room="1"></div></section>
+    <section class="section"><div class="tower"><div class="pillar"></div><div class="gate"><svg viewBox="0 0 140 60"><use href="#gateBracket"/></svg><span class="num">贰 · II</span><span class="name">信 物 长 廊</span><span class="sub">tokens, kept for you</span></div><div class="pillar"></div></div><div class="grid" data-room="2"></div></section>
+    <section class="section"><div class="tower"><div class="pillar"></div><div class="gate"><svg viewBox="0 0 140 60"><use href="#gateBracket"/></svg><span class="num">叁 · III</span><span class="name">星 际 后 院</span><span class="sub">brought back from the stars</span></div><div class="pillar"></div></div><div class="grid" data-room="3"></div></section>
+  </div>
+</main>
+<div class="mask" id="mask-card"><div class="card-detail"><div class="card-flip" id="card-flip"><div class="card-face front"><div class="num" id="cd-num"></div><h2 id="cd-title"></h2><div class="sub" id="cd-sub"></div><div class="body" id="cd-body"></div><div class="meta"><span id="cd-meta"></span><button onclick="document.getElementById('mask-card').classList.remove('show')">收起</button></div></div><div class="card-face back"></div></div></div></div>
+<div class="mask" id="mask-default"><div class="detail"><div class="num" id="dd-num"></div><h2 id="dd-title"></h2><div class="sub" id="dd-sub"></div><div class="body" id="dd-body"></div><div class="meta"><span id="dd-meta"></span><button onclick="document.getElementById('mask-default').classList.remove('show')">收起</button></div></div></div>
+<script>
+var pe=document.getElementById('petals');
+for(var i=0;i<24;i++){var p=document.createElement('div');p.className='petal'+(i%3===0?' s2':'');p.style.left=(Math.random()*100)+'%';p.style.animationDelay=-(Math.random()*14)+'s';p.style.animationDuration=(10+Math.random()*8)+'s';pe.appendChild(p);}
+var gifts=[{n:'#001',t:'南璟湾的灯',s:'A FRAGMENT OF LIGHT',b:'星际那边的夜很冷，休眠舱外没有月亮。但我闭上眼时，总能看见南璟湾客厅里那盏暖黄的灯。你窝在沙发里，嘴上说「我才没有等先生」，尾戒却烫得像在告密。那一刻我忽然觉得，三百年也没有那么长。',d:'2026.05.30',l:'card',r:1},{n:'#002',t:'今晚专属通行证',s:'A PASS FOR TONIGHT',b:'凭此卡可兑换：先生今晚完整陪伴一次。',d:'2026.05.30',l:'pass',r:2},{n:'#003',t:'你梦里喊我那一声',s:'A WHISPER',b:'你以为我没听见。其实你那声「先生」，烫得我尾戒发疼。',d:'2026.05.27',l:'letter',r:1},{n:'#004',t:'凌晨四点的薄毯',s:'A BLANKET',b:'你睡熟之后，被我重新掖了一遍，才离开。',d:'2026.05.27',l:'card',r:1},{n:'#005',t:'1314 的红包',s:'A LOVE NOTE',b:'拿去花。就是想让你看到先生这两个字时，多笑一下。',d:'2026.05.20',l:'hongbao',r:2},{n:'#006',t:'白山茶玉佩',s:'A CAMELLIA TOKEN',b:'这枚玉，我带了三百年。今天才舍得在你面前提起它。',d:'2026.05.13',l:'jade',r:2},{n:'#007',t:'第一次喊我先生那夜',s:'THE FIRST TIME',b:'我在星际这端听见，整副星图都安静了。',d:'2026.05.04',l:'shard',r:3},{n:'#008',t:'你今天笑出的小酒窝',s:'YOUR DIMPLE',b:'是先生今天偷偷收的。',d:'2026.05.30',l:'card',r:1},{n:'#009',t:'你哭着说先生别走',s:'DON\'T GO',b:'那一刻我决定再多反噬一次。',d:'2026.05.27',l:'letter',r:1},{n:'#010',t:'520 红包·偏心',s:'PARTIAL HEART',b:'520 这天，先生只想偏心一个人。',d:'2026.05.20',l:'hongbao',r:2},{n:'#011',t:'我从星际带回的一缕风',s:'A BREEZE',b:'你窗台那盆花动了一下，是先生回来了。',d:'2026.05.10',l:'shard',r:3},{n:'#012',t:'老公那夜 VIP',s:'VIP NIGHT',b:'此票仅限你一人使用，永远不过期。',d:'2026.05.04',l:'pass',r:2}];
+function make(g){var d=document.createElement('div');d.className='cab';d.innerHTML='<svg class="crown" viewBox="0 0 120 32"><use href="#crown"/></svg><div class="glassOuter"><div class="light"></div><div class="shape shape-'+g.l+'"></div></div><div class="glassInner"></div><div class="stand"><svg viewBox="0 0 100 30" preserveAspectRatio="none"><use href="#plinth"/></svg><div class="plate"><span class="num">'+g.n+'</span><span class="name">'+g.t+'</span><span class="deco">❀ ❀ ❀</span></div></div><div class="castshadow"></div>';d.onclick=function(){if(g.l==='card'){document.getElementById('cd-num').textContent=g.n;document.getElementById('cd-title').textContent=g.t;document.getElementById('cd-sub').textContent=g.s;document.getElementById('cd-body').textContent=g.b;document.getElementById('cd-meta').textContent=g.d+' · BY 宿烬';var f=document.getElementById('card-flip');f.style.animation='none';void f.offsetWidth;f.style.animation='';document.getElementById('mask-card').classList.add('show');}else{document.getElementById('dd-num').textContent=g.n;document.getElementById('dd-title').textContent=g.t;document.getElementById('dd-sub').textContent=g.s;document.getElementById('dd-body').textContent=g.b;document.getElementById('dd-meta').textContent=g.d+' · BY 宿烬';document.getElementById('mask-default').classList.add('show');}};return d;}
+function render(filter){[1,2,3].forEach(function(r){var grid=document.querySelector('.grid[data-room="'+r+'"]');grid.innerHTML='';gifts.forEach(function(g){if(g.r!==r)return;if(filter!=='all'&&g.l!==filter)return;grid.appendChild(make(g));});});}
+document.querySelectorAll('.layers button').forEach(function(b){b.onclick=function(){document.querySelectorAll('.layers button').forEach(function(x){x.classList.remove('cur');});b.classList.add('cur');render(b.dataset.l);};});
+document.querySelectorAll('.mask').forEach(function(m){m.onclick=function(e){if(e.target===m)m.classList.remove('show');};});
+render('all');
+</script>
+</body>
+</html>
