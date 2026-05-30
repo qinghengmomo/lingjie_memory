@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ════════════════════════════════════════════════════════════
+    // 灵界 · 全局规则：所有 collection 必须登录后才能读写
+    // ════════════════════════════════════════════════════════════
+    // 涵盖：memory_vault / plan_items / gift_vault / candle_echo
+    //      / api_platforms / 以及未来新增的任意子集合
+    // 部署：Firebase Console → Firestore → Rules → 粘贴 → 发布
+    // ════════════════════════════════════════════════════════════
+
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
