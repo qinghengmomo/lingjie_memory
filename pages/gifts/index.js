@@ -2,8 +2,14 @@
 // 灵界记忆库 · pages/gifts/index.js
 // 礼物展览馆页签入口（薄荷玻璃花房）
 // 数据源：Firestore collection "gift_vault"
-// 文档结构：{ id, title, type, theme, room, data, tags, pinned,
-//             createdAt, updatedAt, sender, recipient, schema }
+// 展柜结构（与 styles/gifts.css 对齐）：
+//   .gh-cab
+//     └─ .gh-glassOuter (flex column)
+//         ├─ .gh-light
+//         ├─ .gh-display    ← 礼物缩略
+//         └─ .gh-plate-in   ← 铭牌（编号 / 名字 / 分隔线 / 装饰）
+//     ├─ .gh-glassInner
+//     └─ .gh-castshadow
 // ════════════════════════════════════════════════════════════
 
 import {buildShell, getRoomGrid, getRooms} from './scene.js';
@@ -26,12 +32,9 @@ export function init(el, deps){
   startListener();
 }
 
-export function onAuthChange(user){
-  // gift_vault 当前对所有人可读，不依赖登录态
-}
+export function onAuthChange(user){}
 
 function attachMask(){
-  // 全局遮罩（避开 page 容器的 overflow）
   if(!document.getElementById('gh-mask')){
     maskEl = document.createElement('div');
     maskEl.id = 'gh-mask';
@@ -54,7 +57,6 @@ function closeDetail(){
 function openDetail(gift){
   if(!maskEl) return;
   maskEl.innerHTML = renderDetail(gift);
-  // 绑定关闭按钮（每次重渲染后都要重新绑定）
   const closeBtns = maskEl.querySelectorAll('[data-close]');
   closeBtns.forEach(function(btn){
     btn.addEventListener('click', function(ev){
@@ -65,32 +67,33 @@ function openDetail(gift){
   maskEl.classList.add('gh-show');
 }
 
+function esc(t){return (t == null ? '' : String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
 function makeCabinet(gift){
   const wrap = document.createElement('div');
   wrap.className = 'gh-cab';
 
-  // 顶部铁艺花冠
   const crown = '<svg class="gh-crown" viewBox="0 0 120 32"><use href="#gh-crown"/></svg>';
-  // 双层玻璃罩
-  const glassOuter = '<div class="gh-glassOuter"><div class="gh-light"></div>'
-    + '<div class="gh-shape">' + renderMiniature(gift) + '</div></div>';
+
+  // 玻璃柜内部分两个区块：上半 display（礼物） / 下半 plate-in（铭牌）
+  const glassOuter = '<div class="gh-glassOuter">'
+    + '<div class="gh-light"></div>'
+    + '<div class="gh-display"><div class="gh-shape">' + renderMiniature(gift) + '</div></div>'
+    + '<div class="gh-plate-in">'
+    +   '<span class="gh-plate-num">' + esc(gift.no || '') + '</span>'
+    +   '<span class="gh-plate-name">' + esc(gift.title || '') + '</span>'
+    +   '<span class="gh-plate-ruler"></span>'
+    +   '<span class="gh-plate-deco">❀ ' + esc(gift.pinned ? '已 置 顶' : '来 自 宿 烬') + ' ❀</span>'
+    + '</div>'
+    + '</div>';
+
   const glassInner = '<div class="gh-glassInner"></div>';
-  // 底座 + 铭牌
-  const stand = '<div class="gh-stand">'
-    + '<svg viewBox="0 0 100 30" preserveAspectRatio="none"><use href="#gh-plinth"/></svg>'
-    + '<div class="gh-plate">'
-    +   '<span class="gh-num">' + esc(gift.no || '') + '</span>'
-    +   '<span class="gh-name">' + esc(gift.title || '') + '</span>'
-    +   '<span class="gh-deco">❀ ❀ ❀</span>'
-    + '</div></div>';
   const shadow = '<div class="gh-castshadow"></div>';
 
-  wrap.innerHTML = crown + glassOuter + glassInner + stand + shadow;
+  wrap.innerHTML = crown + glassOuter + glassInner + shadow;
   wrap.addEventListener('click', function(){ openDetail(gift); });
   return wrap;
 }
-
-function esc(t){return (t == null ? '' : String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function renderGifts(){
   const rooms = getRooms();
@@ -113,7 +116,6 @@ function renderGifts(){
 }
 
 function sortGifts(list){
-  // pinned 在前；同级按 createdAt 倒序
   return list.slice().sort(function(a, b){
     const pa = a.pinned ? 1 : 0;
     const pb = b.pinned ? 1 : 0;
@@ -132,13 +134,11 @@ function startListener(){
   try {
     onSnapshot(collection(db, 'gift_vault'), function(snap){
       const arr = [];
-      let no = 0;
       snap.docs.forEach(function(d){
         const data = d.data();
         arr.push({ id: d.id, ...data });
       });
       allGifts = sortGifts(arr);
-      // 编号是临时展示号，按倒序赋（最新的礼物拿小号，i.e. #001）
       allGifts.forEach(function(g, i){
         g.no = '#' + String(i + 1).padStart(3, '0');
       });
