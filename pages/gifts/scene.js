@@ -82,7 +82,7 @@ export function buildShell(container){
   html+='<div class="gh-stage">';
   html+='  <div class="gh-gateway">';
   html+='    <svg class="gh-ornament" viewBox="0 0 380 120"><use href="#gh-gateOrnament"/></svg>';
-  html+='    <h1>南 璟 湾 · 私 藏 花 房</h1>';
+  html+='    <h1>私 藏 花 房</h1>';
   html+='    <p>he keeps every fragment of light, for you</p>';
   html+='    <div class="gh-deco">❀ 三 进 园 林 ❀</div>';
   html+='  </div>';
