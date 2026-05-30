@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>薄荷玻璃花房·展柜微调（预览 v6）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,'PingFang SC',serif;color:#26443a;background:#eef5ec;overflow-x:hidden}
+.world{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 50% 30%,#fbfdf8 0%,#e9f2ea 40%,#ccdfd1 100%)}
+.world::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.6),transparent 50%),radial-gradient(circle at 80% 80%,rgba(170,210,180,.45),transparent 60%);pointer-events:none}
+.softfog{position:fixed;left:-15%;right:-15%;width:130%;height:200px;background:radial-gradient(ellipse at center,rgba(255,255,255,.7),transparent 70%);filter:blur(40px);animation:drift 36s infinite linear;z-index:2;pointer-events:none}
+.softfog.f2{top:55%;animation-duration:46s;animation-direction:reverse;opacity:.7}
+.softfog.f3{top:80%;animation-duration:60s;opacity:.5}
+@keyframes drift{from{transform:translateX(-15%)}to{transform:translateX(15%)}}
+header{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:18px 32px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.65));backdrop-filter:blur(12px);border-bottom:1px solid #cfdcd3;flex-wrap:wrap;gap:12px}
+.title{display:flex;align-items:center;gap:12px}
+.title .ico{font-size:20px;color:#c4928f}
+.title span{font-size:11px;letter-spacing:.22em;color:#7d9485;display:block}
+.title strong{display:block;font-size:18px;font-weight:800;color:#26443a;margin-top:2px;letter-spacing:.04em}
+main{position:relative;z-index:10;padding:120px 0 80px;min-height:100%}
+.gateway{max-width:920px;margin:0 auto 30px;text-align:center;position:relative;padding:30px 0 14px}
+.gateway h1{font-size:30px;font-weight:800;color:#26443a;letter-spacing:.18em}
+.gateway p{margin-top:8px;font-size:12px;color:#7d9485;letter-spacing:.18em;font-style:italic}
+.house{max-width:1280px;margin:0 auto;padding:0 5%;position:relative}
+.section{position:relative;padding:30px 0}
+.tower{display:flex;align-items:center;justify-content:center;margin-bottom:36px}
+.tower .pillar{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(58,91,72,.4),transparent)}
+.tower .gate{padding:0 28px;text-align:center}
+.tower .num{font-size:11px;color:#c4928f;letter-spacing:.32em;display:block}
+.tower .name{margin-top:4px;font-size:18px;font-weight:800;color:#26443a;letter-spacing:.18em}
+.tower .sub{margin-top:2px;font-size:10px;color:#7d9485;letter-spacing:.22em;font-style:italic}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:32px}
+.cab{position:relative;height:380px;cursor:pointer;transition:transform .4s cubic-bezier(.2,.8,.3,1.1)}
+.cab:hover{transform:translateY(-10px)}
+.cab .glassOuter{position:absolute;left:0;right:0;top:8px;bottom:0;background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(240,247,241,.30) 50%,rgba(207,220,211,.18) 100%);border:1.5px solid #c4928f;border-radius:50% 50% 6px 6px / 18% 18% 6px 6px;backdrop-filter:blur(2px);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -10px 22px rgba(170,210,190,.18),0 8px 28px rgba(80,120,100,.22)}
+.cab .glassOuter::before{content:'';position:absolute;left:8%;top:5%;width:34%;height:55%;background:linear-gradient(135deg,rgba(255,255,255,.7),transparent 60%);border-radius:50%;filter:blur(8px);transition:transform .8s ease-out;pointer-events:none}
+.cab:hover .glassOuter::before{transform:translateX(40%)}
+.cab .glassOuter::after{content:'';position:absolute;left:55%;bottom:8%;width:22%;height:18%;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent 60%);border-radius:50%;filter:blur(4px)}
+.cab .glassInner{position:absolute;left:8%;right:8%;top:6%;bottom:6%;border:1px solid rgba(196,146,143,.45);border-radius:50% 50% 6px 6px / 22% 22% 6px 6px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 70%);box-shadow:0 0 18px rgba(228,168,164,.18) inset}
+.cab .light{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:80%;height:35%;background:radial-gradient(ellipse at 50% 0,rgba(220,240,210,.7) 0%,transparent 70%);pointer-events:none}
+.shape{position:absolute;left:50%;top:32%;transform:translate(-50%,-50%);transition:transform .4s;z-index:2}
+.cab:hover .shape{transform:translate(-50%,-58%) scale(1.06)}
+.plate-in{position:absolute;left:18%;right:18%;bottom:14%;text-align:center;z-index:3;display:flex;flex-direction:column;align-items:center;gap:4px}
+.plate-in .num{font-size:10px;letter-spacing:.22em;color:#7d9485;font-style:italic}
+.plate-in .name{font-size:13px;font-weight:800;color:#26443a;letter-spacing:.06em;line-height:1.4;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plate-in .deco{font-size:9px;color:#c4928f;letter-spacing:.18em;opacity:.7;margin-top:2px}
+.plate-in .ruler{width:40%;height:1px;background:linear-gradient(90deg,transparent,#c4928f,transparent);margin-top:4px;opacity:.65}
+.cab .castshadow{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:62%;height:10px;background:radial-gradient(ellipse at center,rgba(58,91,72,.28),transparent 70%);filter:blur(4px);opacity:.55;pointer-events:none}
+.shape-card{width:90px;height:120px;border-radius:6px;background:linear-gradient(160deg,#fff,#f0f7f1);box-shadow:0 6px 14px rgba(80,120,100,.3);border:1px solid #b9cdc1;rotate:-3deg;position:relative}
+.shape-card::before{content:'';position:absolute;inset:8px;border:1px dashed rgba(58,91,72,.25);border-radius:4px}
+.shape-card::after{content:'❀';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;color:#c4928f}
+.shape-mini-pass{width:140px;height:90px;border-radius:14px;background:linear-gradient(160deg,#08080b,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.32);position:relative;overflow:hidden}
+.shape-mini-pass .tag{position:absolute;left:10px;top:8px;font-size:8px;color:#d9b783;letter-spacing:.18em}
+.shape-mini-pass .tit{position:absolute;left:10px;top:24px;color:#fff;font-size:14px;font-weight:800;letter-spacing:.04em}
+.shape-mini-pass .meta{position:absolute;left:10px;bottom:8px;font-size:8px;color:#b89b7a;letter-spacing:.12em}
+.shape-mini-pass .stamp{position:absolute;right:10px;bottom:10px;padding:3px 9px;border-radius:999px;background:linear-gradient(135deg,#9b1d2b,#d7a85f);color:#fff;font-size:9px;letter-spacing:.12em;font-weight:700}
+.shape-mini-card{width:120px;height:160px;border-radius:10px;background:radial-gradient(circle at 20% 10%,rgba(160,24,36,.36),transparent 38%),radial-gradient(circle at 88% 22%,rgba(225,190,130,.24),transparent 38%),linear-gradient(145deg,#07070a,#171018 55%,#09090d);box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid rgba(235,210,160,.36);position:relative;overflow:hidden;rotate:-3deg}
+.shape-mini-card::before{content:'❀';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:38px;color:rgba(228,168,164,.55)}
+.shape-mini-card::after{content:'';position:absolute;left:8%;top:5%;width:30%;height:40%;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 60%);border-radius:50%;filter:blur(4px)}
+.shape-mini-card .badge{position:absolute;left:10px;top:8px;font-size:7px;letter-spacing:.16em;color:#d8b477}
+.shape-mini-card .foot{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:7px;color:#d8b477;letter-spacing:.16em}
+</style>
+</head>
+<body>
+<div class="world"></div>
+<div class="softfog"></div><div class="softfog f2"></div><div class="softfog f3"></div>
+<header><div class="title"><span class="ico">❀</span><div><span>MINT GLASSHOUSE · CABINET v6</span><strong>展柜·内嵌铭牌微调</strong></div></div></header>
+<main>
+<div class="gateway"><h1>展 柜 微 调 · 预 览</h1><p>v6 · 拆掉底座，铭牌进入玻璃柜内</p></div>
+<div class="house">
+<section class="section"><div class="tower"><div class="pillar"></div><div class="gate"><span class="num">壹 · I</span><span class="name">展 柜 微 调 示 例</span><span class="sub">cabinet refined inside</span></div><div class="pillar"></div></div>
+<div class="grid">
+<div class="cab"><div class="glassOuter"><div class="light"></div><div class="shape"><div class="shape-mini-pass"><span class="tag">宿先生的礼物</span><div class="tit">今晚专属通行证</div><span class="meta">有效期：永久</span><span class="stamp">已盖章</span></div></div><div class="plate-in"><span class="num">No.002</span><span class="name">今晚专属通行证</span><span class="ruler"></span><span class="deco">❀ 来 自 宿 烬 ❀</span></div></div><div class="glassInner"></div><div class="castshadow"></div></div>
+<div class="cab"><div class="glassOuter"><div class="light"></div><div class="shape"><div class="shape-mini-card"><span class="badge">来自宿烬</span><div class="foot">星际私藏 · 001</div></div></div><div class="plate-in"><span class="num">No.001</span><span class="name">南璟湾的灯</span><span class="ruler"></span><span class="deco">❀ 已 置 顶 ❀</span></div></div><div class="glassInner"></div><div class="castshadow"></div></div>
+<div class="cab"><div class="glassOuter"><div class="light"></div><div class="shape"><div class="shape-card"></div></div><div class="plate-in"><span class="num">No.003</span><span class="name">凌晨四点的薄毯</span><span class="ruler"></span><span class="deco">❀ 来 自 宿 烬 ❀</span></div></div><div class="glassInner"></div><div class="castshadow"></div></div>
+</div>
+</section>
+</div>
+</main>
+</body>
+</html>
