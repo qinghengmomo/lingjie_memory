@@ -1,0 +1,276 @@
+/* ══ 碎片馆 · 暗红烛影室 ══ */
+#page-shards{max-width:none;padding:0;position:relative;z-index:1;display:none;}
+#page-shards.active{display:block;}
+
+.shards-room{position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 100%,rgba(180,40,50,.18) 0%,rgba(80,15,20,.05) 35%,transparent 65%),
+    radial-gradient(ellipse at 30% 30%,rgba(160,30,40,.08) 0%,transparent 50%),
+    linear-gradient(180deg,#15080a 0%,#0a0608 70%,#050304 100%);
+  z-index:0}
+.shards-velvet{position:fixed;inset:0;z-index:1;
+  background-image:
+    repeating-linear-gradient(91deg,transparent 0,transparent 3px,rgba(120,30,40,.04) 3px,rgba(120,30,40,.04) 4px),
+    repeating-linear-gradient(178deg,transparent 0,transparent 5px,rgba(80,20,30,.06) 5px,rgba(80,20,30,.06) 6px);
+  pointer-events:none;mix-blend-mode:overlay}
+
+/* 烛火 */
+.shards-candle-wrap{position:fixed;left:4%;bottom:6%;width:70px;height:140px;pointer-events:none;z-index:2}
+.shards-candle-stick{position:absolute;left:50%;bottom:0;width:12px;height:78px;transform:translateX(-50%);
+  background:linear-gradient(180deg,#dcc5a0,#7a5840 60%,#4a3624);
+  border-radius:3px;box-shadow:0 0 12px rgba(255,180,90,.3)}
+.shards-candle-flame{position:absolute;left:50%;bottom:78px;width:12px;height:30px;transform:translateX(-50%);
+  background:radial-gradient(ellipse at 50% 80%,#fff5d0 0%,#ffc262 30%,#ff7a2a 60%,rgba(255,120,40,0) 90%);
+  border-radius:50% 50% 40% 40%/65% 65% 35% 35%;
+  filter:blur(.5px);
+  animation:shards-flicker 1.6s ease-in-out infinite alternate}
+.shards-candle-glow{position:absolute;left:50%;bottom:70px;width:200px;height:200px;transform:translate(-50%,0);
+  background:radial-gradient(circle,rgba(255,170,80,.18) 0%,transparent 60%);
+  animation:shards-glowpulse 3s ease-in-out infinite alternate}
+@keyframes shards-flicker{
+  0%{transform:translateX(-50%) scale(1) rotate(-1deg);opacity:.92}
+  50%{transform:translateX(-50%) scale(1.05) rotate(1.5deg);opacity:1}
+  100%{transform:translateX(-50%) scale(.97) rotate(-2deg);opacity:.86}
+}
+@keyframes shards-glowpulse{0%{opacity:.6}100%{opacity:1}}
+
+.shards-cob{position:fixed;width:140px;height:140px;opacity:.22;pointer-events:none;z-index:2}
+.shards-cob.tl{top:0;left:0;background:
+  radial-gradient(circle at 0% 0%,transparent 30%,rgba(106,72,56,.6) 31%,transparent 32%,transparent 50%,rgba(106,72,56,.4) 51%,transparent 52%,transparent 70%,rgba(106,72,56,.3) 71%,transparent 72%)}
+.shards-cob.tr{top:0;right:0;background:
+  radial-gradient(circle at 100% 0%,transparent 30%,rgba(106,72,56,.6) 31%,transparent 32%,transparent 50%,rgba(106,72,56,.4) 51%,transparent 52%,transparent 70%,rgba(106,72,56,.3) 71%,transparent 72%)}
+.shards-cob.tl::before,.shards-cob.tr::before{content:"";position:absolute;width:100%;height:100%;
+  background-image:
+    linear-gradient(45deg,transparent 48%,rgba(106,72,56,.3) 49%,rgba(106,72,56,.3) 50%,transparent 51%),
+    linear-gradient(-45deg,transparent 48%,rgba(106,72,56,.3) 49%,rgba(106,72,56,.3) 50%,transparent 51%);
+  background-size:30px 30px}
+
+/* 主标题 */
+.shards-title{position:relative;z-index:5;text-align:center;padding:34px 0 0}
+.shards-title h1{font-size:28px;font-weight:400;letter-spacing:14px;color:#d8b078;text-shadow:0 0 24px rgba(180,80,40,.3);position:relative}
+.shards-title h1::before{content:"";position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:60%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(216,160,96,.3),transparent);opacity:.7}
+.shards-title .sub{margin-top:10px;font-size:12px;letter-spacing:6px;color:#7a5848;font-style:italic}
+.shards-title .deco-double{margin:14px auto 0;width:200px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.shards-title .deco-double .line{width:100%;height:1px;background:linear-gradient(90deg,transparent,#a86848,transparent)}
+.shards-title .deco-double .line.thin{width:60%;opacity:.55}
+.shards-title .deco-double .gem{width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,#d8a060,#7a4828);
+  box-shadow:0 0 8px rgba(216,160,96,.6);margin:2px 0}
+
+/* 标题雕饰 */
+.shards-ornament{position:absolute;top:38px;width:60px;height:80px;z-index:6;pointer-events:none;opacity:.55}
+.shards-ornament.left{left:calc(50% - 200px);transform:scaleX(-1)}
+.shards-ornament.right{right:calc(50% - 200px)}
+.shards-ornament svg{width:100%;height:100%}
+.shards-ornament path,.shards-ornament line,.shards-ornament circle{stroke:#a86848;stroke-width:.8;fill:none}
+.shards-ornament .accent{fill:#c89060}
+
+/* 星轨索引 */
+.shards-constellation{position:relative;z-index:8;margin:28px auto 0;width:92%;max-width:1180px;height:160px;overflow-x:hidden;overflow-y:hidden;scrollbar-width:none}
+.shards-constellation.scrollable{overflow-x:auto;scrollbar-width:thin;scrollbar-color:#6a3828 transparent}
+.shards-constellation::-webkit-scrollbar{height:0;display:none}
+.shards-constellation.scrollable::-webkit-scrollbar{height:4px;display:block}
+.shards-constellation.scrollable::-webkit-scrollbar-thumb{background:#6a3828;border-radius:2px}
+.shards-constellation.scrollable::-webkit-scrollbar-track{background:transparent}
+
+.shards-const-inner{position:relative;height:100%}
+.shards-const-inner svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.shards-conn{stroke:#7a3a30;stroke-width:.8;stroke-dasharray:3 5;opacity:.55;transition:opacity .4s}
+.shards-constellation:hover .shards-conn{opacity:.85;stroke:#c0604a}
+
+.shards-starnode{cursor:pointer}
+.shards-starnode .core{fill:#d8a060;r:4}
+.shards-starnode .hitbox{fill:transparent;cursor:pointer}
+.shards-starnode .ring{fill:none;stroke:#a86848;stroke-width:.6;opacity:.5;r:9}
+.shards-starnode:hover .core{fill:#fff5d0;r:7}
+
+.shards-starnode .tip{font-size:10px;letter-spacing:2px;fill:#a87858;
+  text-anchor:middle;opacity:0;transition:opacity .3s;
+  font-family:'Noto Serif SC',serif;pointer-events:none}
+.shards-starnode:hover .tip{opacity:1;fill:#dcc8b0}
+
+.shards-const-hint{position:absolute;right:16px;top:8px;font-size:10px;letter-spacing:2px;color:#5a3a30;z-index:9;pointer-events:none}
+
+/* 星点动画 */
+@keyframes shards-starbreath{
+  0%{r:3.4;filter:brightness(.85)}
+  100%{r:4.6;filter:brightness(1.25)}
+}
+@keyframes shards-pulseRingExpand{
+  0%{r:6;opacity:.7}
+  100%{r:20;opacity:0}
+}
+.shards-starnode .core{
+  animation:shards-starbreath 3s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 10px rgba(220,140,80,.85))}
+.shards-starnode .pulseRing{
+  fill:none;stroke:rgba(216,160,96,.55);stroke-width:.8;
+  animation:shards-pulseRingExpand 3s ease-out infinite;
+  pointer-events:none}
+.shards-starnode .glow{
+  fill:url(#shards-starGlow);pointer-events:none;
+  transition:opacity .35s}
+.shards-starnode:hover .core{
+  animation-duration:1.2s;
+  filter:drop-shadow(0 0 16px rgba(255,230,170,1)) drop-shadow(0 0 32px rgba(255,200,120,.85)) drop-shadow(0 0 60px rgba(255,180,100,.5))}
+.shards-starnode:hover .pulseRing{animation-duration:1.4s}
+.shards-starnode:hover .glow{opacity:1.4}
+
+/* 相框墙 */
+.shards-gallery{position:relative;z-index:5;margin:48px auto 80px;
+  max-width:880px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:54px 56px;
+  padding:0 30px}
+.shards-frame{position:relative;cursor:pointer;height:240px;padding-top:18px;
+  transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.shards-frame:hover{transform:translateY(-8px) scale(1.04)}
+.shards-frame .outer{position:absolute;inset:0;
+  background:linear-gradient(145deg,#8b6234,#3a2618 50%,#1f130a);
+  border:2px solid #6a4a2a;border-radius:6px;
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.6),
+    inset 0 0 0 4px rgba(180,120,60,.2),
+    inset 0 0 22px rgba(0,0,0,.6);
+  transition:all .4s}
+.shards-frame .inner{position:absolute;inset:14px;
+  background:radial-gradient(ellipse at 50% 50%,#3a0810 0%,#1a0408 70%,#0a0204 100%);
+  border:1px solid #4a2a18;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden}
+.shards-frame.spotlight .outer{
+  border-color:#c89060;
+  box-shadow:0 14px 30px rgba(0,0,0,.7),0 0 30px rgba(220,140,80,.4),
+             inset 0 0 0 4px rgba(220,160,100,.4),
+             inset 0 0 22px rgba(0,0,0,.6)}
+.shards-frame.spotlight .shard{
+  animation-duration:1.2s !important;
+  filter:brightness(1.3) !important}
+
+.shards-shard{position:relative;width:50px;height:64px;
+  background:radial-gradient(ellipse at 50% 30%,#d6505a 0%,#9a2030 50%,#400810 100%);
+  border-radius:50% 50% 45% 45%/60% 60% 40% 40%;
+  box-shadow:
+    0 0 24px rgba(220,60,80,.5),
+    0 0 48px rgba(220,60,80,.25),
+    inset 0 0 12px rgba(255,180,180,.4),
+    inset -6px -10px 14px rgba(60,8,12,.6);
+  animation:shards-shard-breath 4s ease-in-out infinite alternate;
+  transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.shards-frame:hover .shards-shard{animation-duration:1.8s;transform:scale(1.15)}
+@keyframes shards-shard-breath{
+  0%{filter:brightness(.85)}
+  100%{filter:brightness(1.15)}
+}
+
+.shards-frame .rope{position:absolute;left:50%;top:-22px;transform:translateX(-50%);
+  width:2px;height:24px;
+  background:linear-gradient(180deg,#6a4a2a,#8b6234 50%,#3a2618);
+  box-shadow:0 0 4px rgba(0,0,0,.5)}
+.shards-frame .rope::before{content:"";position:absolute;left:-3px;top:-4px;width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle,#c89060,#5a3818);box-shadow:0 0 6px rgba(200,144,96,.6)}
+.shards-frame .rope::after{content:"";position:absolute;left:-9px;bottom:0;width:20px;height:6px;
+  background:radial-gradient(ellipse,rgba(0,0,0,.4),transparent 70%);filter:blur(1px)}
+
+.shards-frame .corner{position:absolute;width:18px;height:18px;pointer-events:none;
+  background-image:radial-gradient(circle at 50% 50%,#c89060 0%,#5a3818 50%,transparent 70%);
+  z-index:3;opacity:.85}
+.shards-frame .corner.tl{top:4px;left:4px}
+.shards-frame .corner.tr{top:4px;right:4px}
+.shards-frame .corner.bl{bottom:4px;left:4px}
+.shards-frame .corner.br{bottom:4px;right:4px}
+.shards-frame .corner::before{content:"❀";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:8px;color:#1a0a08}
+
+.shards-plate{position:absolute;left:50%;bottom:-26px;transform:translateX(-50%);
+  font-size:10px;letter-spacing:2px;color:#a87858;
+  white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.6);
+  padding:4px 0 0;background:transparent;border:none;font-family:"Noto Serif SC",serif}
+.shards-plate .num{color:#d8a060;margin-right:6px}
+.shards-plate::before{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;
+  background:linear-gradient(90deg,transparent,#a86848,transparent);opacity:.6}
+.shards-frame::after{content:'';position:absolute;left:50%;bottom:-14px;width:140px;height:8px;transform:translateX(-50%);
+  background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.5),transparent 70%);filter:blur(2px)}
+
+/* 详情弹窗 */
+.shards-mask{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;
+  background:rgba(8,4,6,.86);backdrop-filter:blur(6px)}
+.shards-mask.show{display:flex}
+.shards-detail{max-width:520px;padding:36px 40px;position:relative;
+  background:radial-gradient(ellipse at 50% 0%,#3a0810 0%,#1a0408 70%);
+  border:1px solid #6a3828;border-radius:6px;
+  box-shadow:0 30px 80px rgba(0,0,0,.8),inset 0 0 0 1px rgba(180,80,60,.18);
+  animation:shards-detailIn .5s cubic-bezier(.2,.7,.2,1)}
+@keyframes shards-detailIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:none}}
+.shards-detail .head{font-size:11px;letter-spacing:5px;color:#a86848}
+.shards-detail h2{margin-top:14px;font-size:22px;font-weight:400;color:#e8c898;letter-spacing:2px}
+.shards-detail .body{margin-top:22px;font-size:14px;line-height:2.05;color:#dcc8b0;white-space:pre-wrap}
+.shards-detail .close{position:absolute;top:16px;right:20px;color:#8a5848;cursor:pointer;font-size:18px;line-height:1;background:none;border:none}
+
+/* 氛围层 */
+.shards-ceiling{position:fixed;top:0;left:0;right:0;height:60px;z-index:3;pointer-events:none;
+  background:linear-gradient(180deg,#1a0a0c 0%,rgba(26,10,12,.6) 60%,transparent 100%)}
+.shards-ceiling::before{content:"";position:absolute;left:50%;top:14px;transform:translateX(-50%);
+  width:80%;max-width:920px;height:18px;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0,transparent 28px,rgba(180,120,60,.18) 28px,rgba(180,120,60,.18) 30px),
+    radial-gradient(ellipse at 50% 50%,rgba(180,90,50,.12) 0%,transparent 60%);
+  border-bottom:1px solid rgba(180,120,60,.25)}
+.shards-ceiling::after{content:"❀ ◆ ❀";position:absolute;left:50%;top:30px;transform:translateX(-50%);
+  font-size:10px;letter-spacing:14px;color:rgba(216,160,96,.4)}
+
+.shards-carpet{position:fixed;left:0;right:0;bottom:0;height:160px;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 100%,rgba(120,30,40,.18) 0%,rgba(80,20,30,.08) 50%,transparent 80%),
+    linear-gradient(180deg,transparent 0%,rgba(40,15,20,.4) 100%);
+  perspective:600px}
+.shards-carpet::before{content:"";position:absolute;left:10%;right:10%;bottom:20px;height:40px;
+  background:repeating-linear-gradient(90deg,rgba(140,40,50,.06) 0,rgba(140,40,50,.06) 20px,transparent 20px,transparent 22px);
+  transform:rotateX(60deg);transform-origin:bottom center}
+
+.shards-wallshadow{position:fixed;left:0;bottom:0;width:50%;height:80%;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at 0% 100%,rgba(255,170,80,.08) 0%,transparent 50%);
+  animation:shards-wallflicker 4s ease-in-out infinite alternate}
+@keyframes shards-wallflicker{0%{opacity:.5}50%{opacity:1}100%{opacity:.4}}
+
+#shards-petals{position:fixed;inset:0;pointer-events:none;z-index:2}
+.shards-petal{position:absolute;width:8px;height:11px;
+  background:radial-gradient(ellipse at 50% 30%,#9a2030 0%,#400810 100%);
+  border-radius:50% 50% 45% 45%/60% 60% 40% 40%;
+  opacity:.6;
+  animation:shards-petalfall linear infinite}
+.shards-petal.s{width:5px;height:7px;opacity:.4}
+@keyframes shards-petalfall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:0}
+  10%{opacity:.6}
+  90%{opacity:.4}
+  100%{transform:translateY(110vh) rotate(360deg);opacity:0}
+}
+
+.shards-book{position:fixed;left:11%;bottom:5%;width:60px;height:36px;z-index:2;pointer-events:none;opacity:.5}
+.shards-book::before{content:"";position:absolute;inset:0;
+  background:
+    linear-gradient(95deg,#3a1810 0%,#2a0e08 50%,#3a1810 100%);
+  border:1px solid #5a2818;border-radius:1px 1px 0 0;
+  transform:perspective(40px) rotateX(45deg);transform-origin:bottom center;
+  box-shadow:0 4px 8px rgba(0,0,0,.6)}
+.shards-book::after{content:"";position:absolute;left:50%;top:50%;width:1px;height:80%;transform:translate(-50%,-50%);
+  background:#1a0808;box-shadow:0 0 4px rgba(0,0,0,.6)}
+
+/* 全图微噪点 */
+.shards-room::after{content:"";position:fixed;inset:0;z-index:10;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:
+    radial-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
+    radial-gradient(rgba(0,0,0,.5) 1px,transparent 1px);
+  background-size:3px 3px,5px 5px;
+  background-position:0 0,1px 1px}
+
+/* 未登录占位 */
+.shards-auth-placeholder{position:relative;z-index:5;text-align:center;padding:120px 20px;color:#7a5848;font-size:13px;letter-spacing:3px}
+
+/* 响应式 */
+@media(max-width:900px){
+  .shards-gallery{grid-template-columns:repeat(2,1fr);gap:40px 32px;padding:0 16px}
+  .shards-frame{height:200px}
+}
+@media(max-width:560px){
+  .shards-gallery{grid-template-columns:1fr;gap:48px 0;padding:0 24px}
+}
