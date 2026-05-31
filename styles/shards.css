@@ -206,7 +206,7 @@
 .shards-detail .close{position:absolute;top:16px;right:20px;color:#8a5848;cursor:pointer;font-size:18px;line-height:1;background:none;border:none}
 
 /* 氛围层 */
-.shards-ceiling{position:fixed;top:0;left:0;right:0;height:60px;z-index:3;pointer-events:none;
+.shards-ceiling{position:fixed;top:48px;left:0;right:0;height:60px;z-index:3;pointer-events:none;
   background:linear-gradient(180deg,#1a0a0c 0%,rgba(26,10,12,.6) 60%,transparent 100%)}
 .shards-ceiling::before{content:"";position:absolute;left:50%;top:14px;transform:translateX(-50%);
   width:80%;max-width:920px;height:18px;
