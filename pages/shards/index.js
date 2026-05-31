@@ -255,9 +255,6 @@ function renderGallery(container) {
     f.className = 'shards-frame';
     f.dataset.idx = i;
     f.innerHTML = `
-      <div class="rope"></div>
-      <div class="corner tl"></div><div class="corner tr"></div>
-      <div class="corner bl"></div><div class="corner br"></div>
       <div class="outer"></div>
       <div class="inner"><div class="shards-shard"></div></div>
       <div class="shards-plate"><span class="num">${s.no}</span>${esc(s.title)}</div>
