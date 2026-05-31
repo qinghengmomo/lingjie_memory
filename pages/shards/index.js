@@ -16,6 +16,7 @@ let container;
 let shards = [];
 let sceneBuilt = false;
 let resizeAttached = false;
+let resizeHandler = null;
 
 export function init(el) {
   container = el;
@@ -49,6 +50,22 @@ export function onAuth(authed) {
     shards = views;
     renderAll();
   });
+}
+
+/**
+ * 销毁碎片馆：取消订阅、清空数据、移除全局监听
+ * 给桥接层和未来的卸载流程使用
+ */
+export function destroy() {
+  unsubscribeAll();
+  shards = [];
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler);
+    resizeHandler = null;
+  }
+  resizeAttached = false;
+  sceneBuilt = false;
+  container = null;
 }
 
 function renderAll() {
@@ -105,10 +122,11 @@ function attachResize() {
   if (resizeAttached) return;
   resizeAttached = true;
   let tmr;
-  window.addEventListener('resize', () => {
+  resizeHandler = () => {
     clearTimeout(tmr);
     tmr = setTimeout(() => {
       if (shards.length) renderAll();
     }, 150);
-  });
+  };
+  window.addEventListener('resize', resizeHandler);
 }
