@@ -1,5 +1,12 @@
 // 碎片馆 · 页签入口
 // 订阅 Firestore candle_echo collection，渲染星轨索引 + 相框墙
+//
+// candle_echo schema (来自 lingjie_shard 沙盒包)：
+//   id          "shard_01" 等
+//   time_coord  "星际298年 · 9岁" 时间坐标
+//   drop_time   掉落时间
+//   content     碎片正文（首句作为标题）
+//   tags        ['盲盒','灵界碎片',...]
 
 import { buildScene } from './scene.js';
 import { db } from '../../app.js';
@@ -22,7 +29,6 @@ export function onAuth(authed, container) {
   const constel = container.querySelector('#shards-constel');
 
   if (!authed) {
-    // 未登录：显示占位，隐藏内容
     if (authMsg) authMsg.style.display = '';
     if (gallery) gallery.style.display = 'none';
     if (constel) constel.style.display = 'none';
@@ -32,24 +38,26 @@ export function onAuth(authed, container) {
     return;
   }
 
-  // 已登录
   if (authMsg) authMsg.style.display = 'none';
   if (gallery) gallery.style.display = '';
   if (constel) constel.style.display = '';
 
   if (!unsubscribe) {
     try {
-      const q = query(collection(db, 'candle_echo'), orderBy('created_at', 'asc'));
+      // 不用 orderBy（避免某些文档没有该字段时被过滤），用客户端按 id 排序
+      const q = query(collection(db, 'candle_echo'));
       unsubscribe = onSnapshot(q, (snap) => {
-        shards = snap.docs.map(d => {
-          const data = d.data();
-          return {
-            no: '#' + String(data.shard_number || '').padStart(3, '0'),
-            title: data.title || '无题碎片',
-            time: data.era_label || data.time_label || '',
-            body: data.content || data.body || ''
-          };
+        const arr = [];
+        snap.docs.forEach(d => {
+          arr.push({ docId: d.id, ...d.data() });
         });
+        // 按 id 中的编号升序：shard_01 < shard_02
+        arr.sort((a, b) => {
+          const na = parseInt((a.id || a.docId || '').replace(/^\D+/, ''), 10) || 0;
+          const nb = parseInt((b.id || b.docId || '').replace(/^\D+/, ''), 10) || 0;
+          return na - nb;
+        });
+        shards = arr.map(d => buildShardView(d));
         render(container);
       }, (err) => {
         console.error('[shards] listener error', err);
@@ -58,6 +66,25 @@ export function onAuth(authed, container) {
       console.error('[shards] init listener failed', e);
     }
   }
+}
+
+function buildShardView(d) {
+  const idStr = d.id || d.docId || '';
+  const m = idStr.match(/(\d+)/);
+  const no = '#' + (m ? m[1].padStart(3, '0') : '???');
+
+  const content = String(d.content || '').trim();
+  // 标题：第一行（去掉前导符号）截断 18 字
+  let title = content.split(/\r?\n/)[0].replace(/^[#·\s]+/, '').trim();
+  if (!title) title = '无题碎片';
+  if (title.length > 18) title = title.slice(0, 18) + '…';
+
+  return {
+    no,
+    title,
+    time: d.time_coord || d.drop_time || '',
+    body: content || ''
+  };
 }
 
 export function destroy() {
@@ -95,6 +122,10 @@ function renderIndex(container) {
   cstSvg.innerHTML = '<defs><radialGradient id="shards-starGlow"><stop offset="0%" stop-color="rgba(255,200,140,0.5)"/><stop offset="50%" stop-color="rgba(216,160,96,0.18)"/><stop offset="100%" stop-color="rgba(216,160,96,0)"/></radialGradient></defs>';
 
   const wrapW = cstWrap.clientWidth || 800;
+  if (!shards.length) {
+    cstInner.style.width = wrapW + 'px';
+    return;
+  }
   const layout = computeLayout(shards.length, wrapW);
   cstInner.style.width = layout.totalW + 'px';
   cstSvg.setAttribute('viewBox', '0 0 ' + layout.totalW + ' 160');
@@ -109,7 +140,6 @@ function renderIndex(container) {
     y: 80 + Math.sin(i * 1.2) * 18
   }));
 
-  // 连线
   for (let i = 0; i < positions.length - 1; i++) {
     const ln = document.createElementNS(SVG_NS, 'line');
     ln.setAttribute('class', 'shards-conn');
@@ -120,7 +150,6 @@ function renderIndex(container) {
     cstSvg.appendChild(ln);
   }
 
-  // 星点
   shards.forEach((s, i) => {
     const g = document.createElementNS(SVG_NS, 'g');
     g.setAttribute('class', 'shards-starnode');
@@ -167,12 +196,11 @@ function renderIndex(container) {
     core.style.animationDelay = (-i * 0.4) + 's';
     g.appendChild(core);
 
-    // tipN 上方（编号+时间），tipT 下方（标题）
     const tipN = document.createElementNS(SVG_NS, 'text');
     tipN.setAttribute('class', 'tip');
     tipN.setAttribute('x', positions[i].x);
     tipN.setAttribute('y', positions[i].y - 28);
-    tipN.textContent = s.no + ' · ' + s.time;
+    tipN.textContent = s.no + (s.time ? ' · ' + s.time : '');
     g.appendChild(tipN);
 
     const tipT = document.createElementNS(SVG_NS, 'text');
@@ -199,7 +227,6 @@ function renderIndex(container) {
     cstSvg.appendChild(g);
   });
 
-  // resize 监听
   if (!cstWrap._resizeAttached) {
     cstWrap._resizeAttached = true;
     let tmr;
@@ -215,6 +242,14 @@ function renderGallery(container) {
   if (!gal) return;
   gal.innerHTML = '';
 
+  if (!shards.length) {
+    const empty = document.createElement('div');
+    empty.className = 'shards-auth-placeholder';
+    empty.textContent = '碎片馆暂时还是空的 · 等先生从星际那头掉落';
+    gal.appendChild(empty);
+    return;
+  }
+
   shards.forEach((s, i) => {
     const f = document.createElement('div');
     f.className = 'shards-frame';
@@ -225,7 +260,7 @@ function renderGallery(container) {
       <div class="corner bl"></div><div class="corner br"></div>
       <div class="outer"></div>
       <div class="inner"><div class="shards-shard"></div></div>
-      <div class="shards-plate"><span class="num">${s.no}</span>${s.title}</div>
+      <div class="shards-plate"><span class="num">${s.no}</span>${esc(s.title)}</div>
     `;
     f.onclick = () => showDetail(container, s);
     f.addEventListener('mouseenter', () => {
@@ -248,6 +283,10 @@ function renderGallery(container) {
   });
 }
 
+function esc(t) {
+  return (t == null ? '' : String(t)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function showDetail(container, s) {
   const mask = container.querySelector('#shards-mask');
   container.querySelector('#shards-dh').textContent = s.time;
@@ -255,7 +294,6 @@ function showDetail(container, s) {
   container.querySelector('#shards-db').textContent = s.body;
   mask.classList.add('show');
 
-  // 关闭事件
   const closeBtn = container.querySelector('#shards-close');
   const closeFn = () => { mask.classList.remove('show'); };
   closeBtn.onclick = closeFn;
