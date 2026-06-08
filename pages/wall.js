@@ -84,7 +84,6 @@ function renderPosts() {
           </span>
           <span class="meta-right">
             ${p.mood_tag ? `<span class="mood-tag">${escapeHtml(p.mood_tag)}</span>` : ''}
-            <span class="note-del" data-del-id="${p.id}">×</span>
           </span>
         </div>
       </div>
@@ -93,8 +92,22 @@ function renderPosts() {
   grid.querySelectorAll('.note-img').forEach(img => {
     img.addEventListener('click', () => openLightbox(img.src));
   });
-  grid.querySelectorAll('.note-del').forEach(btn => {
-    btn.addEventListener('click', (e) => { e.stopPropagation(); deletePost(btn.dataset.delId); });
+  // Long-press to show delete overlay
+  grid.querySelectorAll('.note').forEach(note => {
+    let pressTimer = null;
+    const startPress = (e) => {
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        showDeleteOverlay(note.dataset.id);
+      }, 600);
+    };
+    const cancelPress = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
+    note.addEventListener('touchstart', startPress, {passive:true});
+    note.addEventListener('touchend', cancelPress);
+    note.addEventListener('touchmove', cancelPress);
+    note.addEventListener('mousedown', startPress);
+    note.addEventListener('mouseup', cancelPress);
+    note.addEventListener('mouseleave', cancelPress);
   });
 }
 
@@ -160,6 +173,37 @@ async function submitPost() {
   }
 }
 
+
+function showDeleteOverlay(docId) {
+  let overlay = document.getElementById('wall-delete-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'wall-delete-overlay';
+    overlay.className = 'wall-delete-overlay';
+    overlay.innerHTML = `
+      <div class="wall-delete-panel">
+        <div class="wall-delete-title">确定要删掉这张吗？</div>
+        <div class="wall-delete-actions">
+          <button class="wall-delete-btn cancel" id="wall-del-cancel">算了</button>
+          <button class="wall-delete-btn confirm" id="wall-del-confirm">删掉</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) hideDeleteOverlay(); });
+  }
+  overlay.classList.add('open');
+  document.getElementById('wall-del-cancel').onclick = hideDeleteOverlay;
+  document.getElementById('wall-del-confirm').onclick = async () => {
+    hideDeleteOverlay();
+    await deletePost(docId);
+  };
+}
+
+function hideDeleteOverlay() {
+  const overlay = document.getElementById('wall-delete-overlay');
+  if (overlay) overlay.classList.remove('open');
+}
 
 async function deletePost(docId) {
   if (!confirm('确定要删掉这张吗？')) return;
