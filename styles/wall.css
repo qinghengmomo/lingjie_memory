@@ -44,3 +44,7 @@
 
 /* fix: remove blue focus outline on buttons */
 .wall-btn-post:focus,.wall-btn-cancel:focus,.wall-btn-submit:focus{outline:none;}
+
+.meta-right{display:flex;align-items:center;gap:6px}
+.note-del{color:rgba(232,224,216,.2);font-size:14px;cursor:pointer;padding:0 2px;transition:color .2s;line-height:1}
+.note-del:hover{color:#c4545a}
