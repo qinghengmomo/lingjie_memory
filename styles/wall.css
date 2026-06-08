@@ -46,5 +46,12 @@
 .wall-btn-post:focus,.wall-btn-cancel:focus,.wall-btn-submit:focus{outline:none;}
 
 .meta-right{display:flex;align-items:center;gap:6px}
-.note-del{color:rgba(232,224,216,.2);font-size:14px;cursor:pointer;padding:0 2px;transition:color .2s;line-height:1}
-.note-del:hover{color:#c4545a}
+
+.wall-delete-overlay{display:none;position:fixed;inset:0;z-index:280;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center}
+.wall-delete-overlay.open{display:flex}
+.wall-delete-panel{width:100%;max-width:420px;background:#151218;border-radius:16px 16px 0 0;padding:24px 20px 32px;border-top:1px solid rgba(140,60,60,.2);text-align:center}
+.wall-delete-title{font-size:14px;color:rgba(232,224,216,.7);margin-bottom:18px;letter-spacing:1px;font-family:'Noto Sans SC',sans-serif}
+.wall-delete-actions{display:flex;gap:10px;justify-content:center}
+.wall-delete-btn{padding:10px 32px;border-radius:20px;border:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;letter-spacing:1px}
+.wall-delete-btn.cancel{background:rgba(255,255,255,.06);color:rgba(232,224,216,.5)}
+.wall-delete-btn.confirm{background:linear-gradient(135deg,#8b2d30,#c4545a);color:#fff}
