@@ -3,8 +3,8 @@
 // 负责：便利贴渲染、发布、点击大图、Firestore CRUD
 // ═══════════════════════════════════════════
 
-import { FIRESTORE_BASE_URL } from '../utils/config.js';
-
+const FIREBASE_PROJECT_ID = 'lingjie-f84c1';
+const FIRESTORE_BASE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 const WALL_COLLECTION = 'wall_posts';
 const WALL_API = `${FIRESTORE_BASE_URL}/${WALL_COLLECTION}`;
 
