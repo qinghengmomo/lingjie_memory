@@ -29,8 +29,9 @@ async function loadPosts() {
   if (!grid) return;
   grid.innerHTML = '<div class="wall-loading">加载中…</div>';
   try {
-    const token = window.__fb_id_token;
-    const url = `${WALL_API}?orderBy=created_at desc&pageSize=100`;
+    let token = null;
+    try { const auth = (await import('../app.js')).auth; if (auth.currentUser) token = await auth.currentUser.getIdToken(); } catch(e) {}
+    const url = `${WALL_API}?pageSize=100`;
     const resp = await fetch(url, {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
@@ -132,7 +133,8 @@ async function submitPost() {
     }
   };
   try {
-    const token = window.__fb_id_token;
+    let token = null;
+    try { const auth = (await import('../app.js')).auth; if (auth.currentUser) token = await auth.currentUser.getIdToken(); } catch(e) {}
     const resp = await fetch(WALL_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
