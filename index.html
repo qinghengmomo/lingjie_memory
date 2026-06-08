@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="styles/plan.css">
 <link rel="stylesheet" href="styles/gifts.css">
 <link rel="stylesheet" href="styles/shards.css">
+<link rel="stylesheet" href="styles/wall.css">
 <style>
 /* ══ SPA 完整样式 ══ */
 :root{
@@ -237,6 +238,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
     <a class="nav-tab" href="#plan" data-page="plan">星图</a>
     <a class="nav-tab" href="#gifts" data-page="gifts">花房</a>
     <a class="nav-tab" href="#shards" data-page="shards">烛影</a>
+    <a class="nav-tab" href="#wall" data-page="wall">我们的墙</a>
   </div>
   <div class="auth-area">
     <span class="auth-status" id="auth-status">未登录</span>
@@ -252,6 +254,38 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 <div class="page" id="page-plan"></div>
 <div class="page" id="page-gifts"></div>
 <div class="page" id="page-shards"></div>
+<div class="page page-wall" id="page-wall" style="max-width:none;">
+  <div class="wall-header">
+    <div>
+      <h2>我们的墙</h2>
+      <div class="wall-subtitle">只有你和我能看见的地方</div>
+    </div>
+    <button class="wall-btn-post" id="wall-btn-post">+</button>
+  </div>
+  <div class="wall-grid" id="wall-grid">
+    <div class="wall-empty">这面墙还是空的<br><span>点右上角的 + 贴上第一张</span></div>
+  </div>
+  <div class="wall-footer-space"></div>
+  <div class="wall-lightbox" id="wall-lightbox">
+    <img id="lightbox-img" src="" alt="">
+  </div>
+  <div class="wall-modal" id="wall-modal">
+    <div class="wall-modal-inner">
+      <h3>往墙上贴一张</h3>
+      <div class="wall-upload-area" id="wall-upload-area">📎 点击添加截图或图片<input type="file" accept="image/*" id="wall-file-input" style="display:none"></div>
+      <img class="wall-img-preview" id="wall-img-preview" src="" alt="">
+      <textarea id="wall-textarea" placeholder="写点什么……或者什么都不写也可以"></textarea>
+      <div class="wall-mood-row">
+        <label>心情</label>
+        <input id="wall-mood-input" placeholder="偷偷心动 / 此刻很好 / 嘴硬心软 …">
+      </div>
+      <div class="wall-actions">
+        <button class="wall-btn-cancel" id="wall-btn-cancel">算了</button>
+        <button class="wall-btn-submit" id="wall-btn-submit">贴上去</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="app.js"></script>
 <div class="login-modal-overlay" id="login-modal">
