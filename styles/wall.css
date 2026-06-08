@@ -1,0 +1,43 @@
+/* 廿廿 · 我们的墙 · wall.css · 深色暖红主题瀑布流 */
+.page-wall{background:#0a0a0f;min-height:100vh;margin:0 -24px;padding:0}
+.wall-header{position:sticky;top:44px;z-index:40;backdrop-filter:blur(20px);background:rgba(10,10,15,.78);border-bottom:1px solid rgba(140,60,60,.15);padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.wall-header h2{font-family:'Noto Serif SC',serif;font-size:16px;font-weight:600;letter-spacing:2px;background:linear-gradient(135deg,#c4545a,#e8a87c);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.wall-header .wall-subtitle{font-size:10px;color:rgba(232,224,216,.3);letter-spacing:1px;margin-top:2px}
+.wall-btn-post{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8b2d30,#c4545a);border:none;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(140,45,48,.4);transition:transform .2s}
+.wall-btn-post:active{transform:scale(.9)}
+.wall-grid{padding:10px 12px;columns:2;column-gap:10px}
+.note{break-inside:avoid;margin-bottom:10px;border-radius:12px;overflow:hidden;background:rgba(25,22,28,.65);border:1px solid rgba(140,60,60,.1);backdrop-filter:blur(6px);transition:transform .2s}
+.note:active{transform:scale(.97)}
+.note-img{width:100%;display:block;object-fit:cover;cursor:pointer}
+.caption{padding:10px 12px;font-size:13px;line-height:1.65;color:rgba(232,224,216,.85);font-family:'Noto Sans SC',sans-serif}
+.meta{padding:0 12px 10px;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:rgba(232,224,216,.3)}
+.meta-left{display:flex;align-items:center;gap:6px}
+.meta-date{color:rgba(232,224,216,.25)}
+.mood-tag{background:rgba(196,84,90,.12);color:#c4545a;padding:2px 8px;border-radius:20px;font-size:10px}
+.author-qingheng{color:#e8a87c;font-size:10px;letter-spacing:1px}
+.author-sujin{color:#c4545a;font-size:10px;letter-spacing:1px}
+.note.text-only .caption{padding:14px;font-size:14px;line-height:1.8;border-left:2px solid rgba(196,84,90,.25);margin:10px 12px;padding-left:12px}
+.note.full-img .caption{padding:8px 12px;font-size:12px;color:rgba(232,224,216,.55);font-style:italic}
+.wall-empty,.wall-loading{text-align:center;padding:80px 20px;color:rgba(232,224,216,.25);font-size:14px;letter-spacing:2px;line-height:2;column-span:all}
+.wall-empty span{font-size:11px;color:rgba(232,224,216,.15)}
+.wall-lightbox{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;cursor:pointer}
+.wall-lightbox.open{display:flex}
+.wall-lightbox img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:8px;box-shadow:0 4px 40px rgba(0,0,0,.6)}
+.wall-modal{display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center}
+.wall-modal.open{display:flex}
+.wall-modal-inner{width:100%;max-width:420px;background:#151218;border-radius:20px 20px 0 0;padding:24px 20px 32px;border-top:1px solid rgba(140,60,60,.2)}
+.wall-modal-inner h3{font-size:15px;margin-bottom:16px;color:rgba(232,224,216,.7);font-weight:400;letter-spacing:1px;font-family:'Noto Sans SC',sans-serif}
+.wall-modal-inner textarea{width:100%;height:100px;background:rgba(255,255,255,.04);border:1px solid rgba(140,60,60,.15);border-radius:10px;padding:12px;color:#e8e0d8;font-family:'Noto Sans SC',sans-serif;font-size:13px;resize:none;outline:none}
+.wall-modal-inner textarea::placeholder{color:rgba(232,224,216,.25)}
+.wall-mood-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.wall-mood-row label{font-size:11px;color:rgba(232,224,216,.35);white-space:nowrap}
+.wall-mood-row input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(140,60,60,.15);border-radius:8px;padding:6px 10px;color:#e8e0d8;font-family:'Noto Sans SC',sans-serif;font-size:12px;outline:none}
+.wall-mood-row input::placeholder{color:rgba(232,224,216,.2)}
+.wall-upload-area{margin-top:12px;border:1px dashed rgba(140,60,60,.2);border-radius:10px;padding:16px;text-align:center;color:rgba(232,224,216,.25);font-size:12px;cursor:pointer;transition:border-color .2s}
+.wall-upload-area:hover{border-color:rgba(196,84,90,.4);color:rgba(232,224,216,.4)}
+.wall-img-preview{display:none;margin-top:10px;max-height:160px;border-radius:8px;object-fit:cover;width:100%}
+.wall-actions{margin-top:14px;display:flex;gap:10px;justify-content:flex-end}
+.wall-actions button{padding:8px 20px;border-radius:20px;border:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer}
+.wall-btn-cancel{background:rgba(255,255,255,.06);color:rgba(232,224,216,.5)}
+.wall-btn-submit{background:linear-gradient(135deg,#8b2d30,#c4545a);color:#fff}
+.wall-footer-space{height:60px}
