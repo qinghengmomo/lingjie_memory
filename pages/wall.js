@@ -11,12 +11,17 @@ const WALL_API = `${FIRESTORE_BASE_URL}/${WALL_COLLECTION}`;
 let posts = [];
 let currentUser = null;
 
-export function initWall(user) {
-  currentUser = user;
-  const container = document.getElementById('wall-page');
-  if (!container) return;
+export function init(container, ctx) {
+  if (ctx && ctx.auth) {
+    const u = ctx.auth.currentUser;
+    currentUser = u ? { uid: u.uid, displayName: u.email, role: 'qingheng' } : null;
+  }
   bindEvents();
   loadPosts();
+}
+
+export function onAuthChange(user) {
+  currentUser = user ? { uid: user.uid, displayName: user.email, role: 'qingheng' } : null;
 }
 
 async function loadPosts() {
