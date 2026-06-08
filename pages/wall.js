@@ -82,13 +82,19 @@ function renderPosts() {
             <span class="${authorClass}">${authorLabel}</span>
             <span class="meta-date">${p.date_str || formatDate(p.created_at)}</span>
           </span>
-          ${p.mood_tag ? `<span class="mood-tag">${escapeHtml(p.mood_tag)}</span>` : ''}
+          <span class="meta-right">
+            ${p.mood_tag ? `<span class="mood-tag">${escapeHtml(p.mood_tag)}</span>` : ''}
+            <span class="note-del" data-del-id="${p.id}">×</span>
+          </span>
         </div>
       </div>
     `;
   }).join('');
   grid.querySelectorAll('.note-img').forEach(img => {
     img.addEventListener('click', () => openLightbox(img.src));
+  });
+  grid.querySelectorAll('.note-del').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); deletePost(btn.dataset.delId); });
   });
 }
 
@@ -151,6 +157,25 @@ async function submitPost() {
   } catch (e) {
     alert('发布失败：' + e.message);
     console.error('[wall] submitPost error:', e);
+  }
+}
+
+
+async function deletePost(docId) {
+  if (!confirm('确定要删掉这张吗？')) return;
+  try {
+    let token = null;
+    try { const auth = (await import('../app.js')).auth; if (auth.currentUser) token = await auth.currentUser.getIdToken(); } catch(e) {}
+    const url = `${WALL_API}/${docId}`;
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    await loadPosts();
+  } catch (e) {
+    alert('删除失败：' + e.message);
+    console.error('[wall] deletePost error:', e);
   }
 }
 
