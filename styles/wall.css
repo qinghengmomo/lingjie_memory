@@ -41,3 +41,6 @@
 .wall-btn-cancel{background:rgba(255,255,255,.06);color:rgba(232,224,216,.5)}
 .wall-btn-submit{background:linear-gradient(135deg,#8b2d30,#c4545a);color:#fff}
 .wall-footer-space{height:60px}
+
+/* fix: remove blue focus outline on buttons */
+.wall-btn-post:focus,.wall-btn-cancel:focus,.wall-btn-submit:focus{outline:none;}
