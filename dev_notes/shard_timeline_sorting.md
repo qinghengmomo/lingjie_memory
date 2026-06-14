@@ -1,0 +1,1 @@
+﻿Shard timeline sorting: pages/shards/data.js sorts by story time parsed from time_coord, not drop_time or shard_no. Formats: 星际纪元298年（青珩9岁）, 星际纪元298年-313年（养成期）, 2026-06-14（南璟湾）. Unparsed items go last. Rendering files do not sort.

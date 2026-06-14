@@ -1,4 +1,4 @@
-// 碎片馆 · 数据层
+﻿// 碎片馆 · 数据层
 // 单一职责：订阅 Firestore candle_echo，输出 ShardView[] 给上层渲染
 //
 // candle_echo schema v2 (lingjie_shard 沙盒包定义)：
@@ -80,19 +80,31 @@ function toView(raw) {
   };
 }
 
-function sortShards(arr) {
-  return arr.slice().sort((a, b) => {
-    const na = parseInt((a._id || '').replace(/^\D+/, ''), 10) || 0;
-    const nb = parseInt((b._id || '').replace(/^\D+/, ''), 10) || 0;
-    return na - nb;
-  });
+function parseShardTimeline(raw) {
+  const coord = String(raw.time_coord || '').trim();
+  const idStr = String(raw.id || raw._id || '');
+  const shardNo = Number(raw.shard_no) || (parseInt(idStr.replace(/^\D+/, ''), 10) || 0);
+  const dropMs = Date.parse(String(raw.drop_time || '').replace(' ', 'T') + '+08:00') || 0;
+  const out = { group: 9, start: Number.POSITIVE_INFINITY, end: Number.POSITIVE_INFINITY, qingAge: Number.POSITIVE_INFINITY, sujinAge: Number.POSITIVE_INFINITY, shardNo, dropMs };
+  const normalized = coord.replace(/[－—–~～至到]/g, '-').replace(/\s+/g, '');
+  const star = normalized.match(/星际(?:纪元)?(\d{1,4})年?(?:-(\d{1,4})年?)?/);
+  if (star) {
+    out.group = 0; out.start = parseInt(star[1], 10); out.end = star[2] ? parseInt(star[2], 10) : out.start;
+    const qing = normalized.match(/(?:青珩|青姮|她)(?:灵魂体)?(?:约)?(\d{1,3})岁/); if (qing) out.qingAge = parseInt(qing[1], 10);
+    const sujin = normalized.match(/宿烬(?:约)?(\d{1,3})岁/); if (sujin) out.sujinAge = parseInt(sujin[1], 10);
+    return out;
+  }
+  const modern = normalized.match(/(20\d{2})[-\/.年](\d{1,2})[-\/.月](\d{1,2})/);
+  if (modern) { out.group = 1; out.start = new Date(parseInt(modern[1],10), parseInt(modern[2],10)-1, parseInt(modern[3],10)).getTime(); out.end = out.start; }
+  return out;
 }
 
-/**
- * 启动订阅
- * @param {(shards:Array)=>void} onUpdate 数据更新回调
- * @param {(err:Error)=>void} onError 出错回调
- */
+function compareTimeline(a, b) {
+  const ka = parseShardTimeline(a); const kb = parseShardTimeline(b);
+  return (ka.group - kb.group) || (ka.start - kb.start) || (ka.end - kb.end) || (ka.qingAge - kb.qingAge) || (ka.sujinAge - kb.sujinAge) || (ka.shardNo - kb.shardNo) || (ka.dropMs - kb.dropMs);
+}
+
+function sortShards(arr) { return arr.slice().sort(compareTimeline); }
 export function subscribe(onUpdate, onError) {
   if (unsubscribe) return;
   try {
@@ -122,3 +134,4 @@ export function unsubscribeAll() {
     unsubscribe = null;
   }
 }
+
