@@ -1,271 +1,114 @@
-// ═══════════════════════════════════════════
-// 廿廿 · 我们的墙 · wall.js
-// 负责：便利贴渲染、发布、点击大图、Firestore CRUD
-// ═══════════════════════════════════════════
+// pages/wall.js
+// 我们的墚：wall_posts 的唯一前端入口。
+// 短句/图片/轻量情��贴进入 wall_posts；正式日记/礼物/硎片不进入本模块。
 
-const FIREBASE_PROJECT_ID = 'lingjie-f84c1';
-const FIRESTORE_BASE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
+import { query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
 const WALL_COLLECTION = 'wall_posts';
-const WALL_API = `${FIRESTORE_BASE_URL}/${WALL_COLLECTION}`;
+const PAGE_LIMIT = 100;
 
-let posts = [];
+let ctxRef = null;
 let currentUser = null;
+let unsubscribe = null;
+let eventsBound = false;
 
 export function init(container, ctx) {
-  if (ctx && ctx.auth) {
-    const u = ctx.auth.currentUser;
-    currentUser = u ? { uid: u.uid, displayName: u.email, role: 'qingheng' } : null;
-  }
+  ctxRef = ctx || ctxRef;
+  const u = ctxRef?.auth?.currentUser || null;
+  currentUser = u ? { uid: u.uid, displayName: u.email, role: 'qingheng' } : null;
   bindEvents();
   loadPosts();
 }
 
 export function onAuthChange(user) {
   currentUser = user ? { uid: user.uid, displayName: user.email, role: 'qingheng' } : null;
+  loadPosts();
+}
+
+function wallRef() {
+  if (!ctxRef?.db || !ctxRef?.collection) throw new Error('Firestore SDK 未初始化');
+  return ctxRef.collection(ctxRef.db, WALL_COLLECTION);
+}
+
+function getGrid() { return document.getElementById('wall-grid'); }
+function setState(cls, text, sub = '') {
+  const grid = getGrid();
+  if (!grid) return;
+  grid.innerHTML = `<div class="${cls}">${escapeHtml(text)}${sub ? `<br><span>${escapeHtml(sub)}</span>` : ''}</div>`;
 }
 
 async function loadPosts() {
-  const grid = document.getElementById('wall-grid');
-  if (!grid) return;
-  grid.innerHTML = '<div class="wall-loading">加载中…</div>';
+  const grid = getGrid();
+  if (!grid || !ctxRef?.db) return;
+  if (typeof unsubscribe === 'function') { try { unsubscribe(); } catch (_) {} unsubscribe = null; }
+  setState('wall-loading', '圇方我们的墚中…');
   try {
-    let token = null;
-    try { const auth = (await import('../app.js')).auth; if (auth.currentUser) token = await auth.currentUser.getIdToken(); } catch(e) {}
-    const url = `${WALL_API}?pageSize=100`;
-    const resp = await fetch(url, {
-      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-    });
-    const data = await resp.json();
-    posts = (data.documents || []).map(parseDoc).sort((a, b) => b.created_at - a.created_at);
-    renderPosts();
+    const q = query(wallRef(), orderBy('created_at', 'desc'), limit(PAGE_LIMIT));
+    const renderSnap = snap => renderPosts(snap.docs.map(parseDoc).sort((a, b) => b.created_at - a.created_at));
+    if (ctxRef?.onSnapshot) {
+      unsubscribe = ctxRef.onSnapshot(q, renderSnap, err => {
+        console.error('[wall] onSnapshot error:', err);
+        setState('wall-loading', '��取��被褏过该舗中来攣毐歧', err?.message || '');
+      });
+      return;
+    }
+    renderSnap(await getDocs(q));
   } catch (e) {
-    grid.innerHTML = '<div class="wall-loading">连接失败，请检查网络</div>';
     console.error('[wall] loadPosts error:', e);
+    setState('wall-loading', '读取失来', e?.message || '');
   }
 }
 
-function parseDoc(doc) {
-  const f = doc.fields || {};
-  const id = doc.name ? doc.name.split('/').pop() : '';
+function parseDoc(docSnap) {
+  const raw = docSnap.data ? docSnap.data() : {};
+  const created = toMillis(raw.created_at ?? raw.createdAt ?? raw.date ?? raw.time);
   return {
-    id,
-    content:     f.content?.stringValue || '',
-    image_url:   f.image_url?.stringValue || '',
-    image_b64:   f.image_b64?.stringValue || '',
-    mood_tag:    f.mood_tag?.stringValue || '',
-    author:      f.author?.stringValue || 'qingheng',
-    author_name: f.author_name?.stringValue || '',
-    created_at:  f.created_at?.integerValue ? Number(f.created_at.integerValue) : 0,
-    date_str:    f.date_str?.stringValue || '',
+    id: docSnap.id,
+    content: String(raw.content || raw.text || raw.body || ''),
+    image_url: String(raw.image_url || raw.imageUrl || raw.image || ''),
+    image_b64: String(raw.image_b64 || raw.imageBase64 || ''),
+    mood_tag: String(raw.mood_tag || raw.mood || raw.tag || ''),
+    author: String(raw.author || 'qingheng'),
+    author_name: String(raw.author_name || raw.authorName || ''),
+    created_at: created,
+    date_str: String(raw.date_str || raw.dateStr || raw.date || formatDate(created) || '')
   };
 }
 
-function renderPosts() {
-  const grid = document.getElementById('wall-grid');
-  if (!grid) return;
-  if (posts.length === 0) {
-    grid.innerHTML = '<div class="wall-empty">这面墙还是空的<br><span>点右上角的 + 贴上第一张</span></div>';
-    return;
+function toMillis(v) {
+  if (!v) return 0;
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+    const t = Date.parse(v.replace(/-/g, '/'));
+    return Number.isFinite(t) ? t : 0;
   }
+  if (typeof v.toMillis === 'function') return v.toMillis();
+  if (typeof v.seconds === 'number') return v.seconds * 1000;
+  return 0;
+}
+
+function renderPosts(posts) {
+  const grid = getGrid();
+  if (!grid) return;
+  if (!posts.length) return setState('wall-empty', '这面墙还没有内容', '点右上觑 + 贴上第一张小纸条');
   grid.innerHTML = posts.map(p => {
-    const hasImg = p.image_url || p.image_b64;
+    const hasImg = Boolean(p.image_url || p.image_b64);
     const imgSrc = p.image_url || (p.image_b64 ? `data:image/png;base64,${p.image_b64}` : '');
     const noteClass = hasImg ? (p.content ? 'note' : 'note full-img') : 'note text-only';
-    const authorLabel = p.author === 'sujin' ? '先生' : '阿珩';
+    const authorLabel = p.author_name || (p.author === 'sujin' ? '宿点' : '青珩');
     const authorClass = p.author === 'sujin' ? 'author-sujin' : 'author-qingheng';
     return `
-      <div class="${noteClass}" data-id="${p.id}">
-        ${hasImg ? `<img src="${imgSrc}" alt="" loading="lazy" class="note-img">` : ''}
-        ${p.content ? `<div class="caption">${escapeHtml(p.content)}</div>` : ''}
+      <div class="${noteClass}" data-id="${escapeAttr(p.id)}">
+        ${hasImg ? `<img src="${escapeAttr(imgSrc)}" alt="" loading="lazy" class="note-img">` : ''}
+        ${p.content ? `<div class="caption">${escapeHtml(p.content).replace(/\n/g, '<br>')}</div>` : ''}
         <div class="meta">
-          <span class="meta-left">
-            <span class="${authorClass}">${authorLabel}</span>
-            <span class="meta-date">${p.date_str || formatDate(p.created_at)}</span>
-          </span>
-          <span class="meta-right">
-            ${p.mood_tag ? `<span class="mood-tag">${escapeHtml(p.mood_tag)}</span>` : ''}
-          </span>
+          <span class="meta-left"><span class="${authorClass}">${escapeHtml(authorLabel)}</span><span class="meta-date">${escapeHtml(p.date_str || formatDate(p.created_at))}</span></span>
+          <span class="meta-right">${p.mood_tag ? `<span class="mood-tag">${escapeHtml(p.mood_tag)}</span>` : ''}</span>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
-  grid.querySelectorAll('.note-img').forEach(img => {
-    img.addEventListener('click', () => openLightbox(img.src));
-  });
-  // Long-press to show delete overlay
-  grid.querySelectorAll('.note').forEach(note => {
-    let pressTimer = null;
-    const startPress = (e) => {
-      pressTimer = setTimeout(() => {
-        pressTimer = null;
-        showDeleteOverlay(note.dataset.id);
-      }, 600);
-    };
-    const cancelPress = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
-    note.addEventListener('touchstart', startPress, {passive:true});
-    note.addEventListener('touchend', cancelPress);
-    note.addEventListener('touchmove', cancelPress);
-    note.addEventListener('mousedown', startPress);
-    note.addEventListener('mouseup', cancelPress);
-    note.addEventListener('mouseleave', cancelPress);
-  });
-}
-
-function openLightbox(src) {
-  const overlay = document.getElementById('wall-lightbox');
-  const img = document.getElementById('lightbox-img');
-  if (!overlay || !img) return;
-  img.src = src;
-  overlay.classList.add('open');
-}
-function closeLightbox() {
-  const overlay = document.getElementById('wall-lightbox');
-  if (!overlay) return;
-  overlay.classList.remove('open');
-}
-
-async function submitPost() {
-  const textarea = document.getElementById('wall-textarea');
-  const fileInput = document.getElementById('wall-file-input');
-  const moodInput = document.getElementById('wall-mood-input');
-  if (!textarea) return;
-  const content = textarea.value.trim();
-  const mood = moodInput ? moodInput.value.trim() : '';
-  let image_b64 = '';
-  if (fileInput && fileInput.files && fileInput.files[0]) {
-    image_b64 = await fileToBase64(fileInput.files[0]);
-  }
-  if (!content && !image_b64) { alert('至少写点什么，或者贴一张图'); return; }
-  const now = Date.now();
-  const role = currentUser?.role || 'qingheng';
-  const authorName = role === 'sujin' ? '宿烬' : '青珩';
-  const body = {
-    fields: {
-      content: { stringValue: content },
-      image_b64: { stringValue: image_b64 },
-      image_url: { stringValue: '' },
-      mood_tag: { stringValue: mood },
-      author: { stringValue: role },
-      author_name: { stringValue: authorName },
-      created_at: { integerValue: String(now) },
-      date_str: { stringValue: formatDate(now) },
-    }
-  };
-  try {
-    let token = null;
-    try { const auth = (await import('../app.js')).auth; if (auth.currentUser) token = await auth.currentUser.getIdToken(); } catch(e) {}
-    const resp = await fetch(WALL_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-      body: JSON.stringify(body)
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    closeModal();
-    textarea.value = '';
-    if (moodInput) moodInput.value = '';
-    if (fileInput) fileInput.value = '';
-    const preview = document.getElementById('wall-img-preview');
-    if (preview) { preview.style.display = 'none'; preview.src = ''; }
-    await loadPosts();
-  } catch (e) {
-    alert('发布失败：' + e.message);
-    console.error('[wall] submitPost error:', e);
-  }
-}
-
-
-function showDeleteOverlay(docId) {
-  let overlay = document.getElementById('wall-delete-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'wall-delete-overlay';
-    overlay.className = 'wall-delete-overlay';
-    overlay.innerHTML = `
-      <div class="wall-delete-panel">
-        <div class="wall-delete-title">确定要删掉这张吗？</div>
-        <div class="wall-delete-actions">
-          <button class="wall-delete-btn cancel" id="wall-del-cancel">算了</button>
-          <button class="wall-delete-btn confirm" id="wall-del-confirm">删掉</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) hideDeleteOverlay(); });
-  }
-  overlay.classList.add('open');
-  document.getElementById('wall-del-cancel').onclick = hideDeleteOverlay;
-  document.getElementById('wall-del-confirm').onclick = async () => {
-    hideDeleteOverlay();
-    await deletePost(docId);
-  };
-}
-
-function hideDeleteOverlay() {
-  const overlay = document.getElementById('wall-delete-overlay');
-  if (overlay) overlay.classList.remove('open');
-}
-
-async function deletePost(docId) {
-  if (!confirm('确定要删掉这张吗？')) return;
-  try {
-    let token = null;
-    try { const auth = (await import('../app.js')).auth; if (auth.currentUser) token = await auth.currentUser.getIdToken(); } catch(e) {}
-    const url = `${WALL_API}/${docId}`;
-    const resp = await fetch(url, {
-      method: 'DELETE',
-      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    await loadPosts();
-  } catch (e) {
-    alert('删除失败：' + e.message);
-    console.error('[wall] deletePost error:', e);
-  }
-}
-
-function openModal() { const m = document.getElementById('wall-modal'); if (m) m.classList.add('open'); }
-function closeModal() { const m = document.getElementById('wall-modal'); if (m) m.classList.remove('open'); }
-
-function bindEvents() {
-  document.getElementById('wall-btn-post')?.addEventListener('click', openModal);
-  document.getElementById('wall-btn-cancel')?.addEventListener('click', closeModal);
-  document.getElementById('wall-btn-submit')?.addEventListener('click', submitPost);
-  const modal = document.getElementById('wall-modal');
-  if (modal) modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-  const lightbox = document.getElementById('wall-lightbox');
-  if (lightbox) lightbox.addEventListener('click', closeLightbox);
-  const fileInput = document.getElementById('wall-file-input');
-  const uploadArea = document.getElementById('wall-upload-area');
-  if (uploadArea && fileInput) {
-    uploadArea.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const preview = document.getElementById('wall-img-preview');
-          if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      }
-    });
-  }
-}
-
-function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
-function formatDate(ts) {
-  if (!ts) return '';
-  const d = new Date(typeof ts === 'string' ? Number(ts) : ts);
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mi = String(d.getMinutes()).padStart(2,'0');
-  return `${d.getFullYear()}-${mm}-${dd} ${hh}:${mi}`;
-}
-async function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => { resolve((reader.result.split(',')[1]) || reader.result); };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  grid.querySelectorAll('.note-img').forEach(img => img.addEventListener('click', () => openLightbox(img.src)));
+  bindLongPressDelete(grid);
 }
